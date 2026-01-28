@@ -55,7 +55,7 @@ The grounding layer was designed around these **independent validation slugs**:
 | CH signature (target) | Validation slug (example) | What it “observes” |
 |---|---|---|
 | Power law / avalanches | `vdem_subvrs` | magnitude of government response to domestic unrest |
-| Diverging correlation | `vdem_labvrs` | labor action/strength as a sub-swarm synchronization channel |
+| Diverging correlation | `vdem_labvrs` and `vdem_relig` | labor and religious action/strength as a sub-swarm synchronization channel |
 | Scale invariance | `vdem_localgov` (plus a national comparator) | cross-scale similarity of governance dynamics |
 | No characteristic size | `vdem_v3polsoc` (via year-to-year “jumps”) | heavy tails in polarization changes |
 

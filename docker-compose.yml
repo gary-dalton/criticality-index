@@ -1,18 +1,17 @@
 services:
   jupyter:
-    # This image includes Python (SciPy), Julia, and R
     image: quay.io/jupyter/datascience-notebook:latest
     container_name: jupyter_ds_stack
     ports:
       - "8888:8888"
     volumes:
+      # Project files: Bind mounted for easy editing from WSL/VS Code
       - ./work:/home/jovyan/work
+      # Persistent Depot: Stores packages and precompiled binaries
+      - /home/gary/projects/julia_depot:/home/jovyan/.julia
     environment:
-      # Sets the authentication token. Change this to your preference.
       - JUPYTER_TOKEN=my-prosperity-token
-      # Enables the modern JupyterLab interface by default
       - JUPYTER_ENABLE_LAB=yes
-      # Ensures you can install additional packages if needed
       - GRANT_SUDO=yes
     user: root
     restart: always

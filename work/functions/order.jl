@@ -48,6 +48,8 @@ function sensor_pts(val)
     return 100 - ((val - 1) * 25)
 end
 
+
+
 """
 Normalizes V-Dem's Freedom from Peaceful Social Conflict.
 V-Dem typically uses an interval scale (e.g., -5 to 5).
@@ -57,6 +59,8 @@ function sensor_peasfrel(val, min_val, max_val)
     # Standard Min-Max normalization to 0-100
     return ((val - min_val) / (max_val - min_val)) * 100
 end
+
+
 
 """
 Logic Integration Note
