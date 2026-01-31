@@ -134,6 +134,11 @@ end
 Checks for discrepancies between start_year/birth_year and end_year/death_year in meta_df.
 Prints any errors where the absolute difference exceeds the tolerance (default: 1).
 
+Usage:
+    check_year_discrepancies(meta_df)
+Returns:
+    - Nothing (prints errors to console)
+
 Arguments:
 - meta_df::DataFrame: Metadata DataFrame containing year columns
 - tolerance::Int: Allowed difference (default: 1)
