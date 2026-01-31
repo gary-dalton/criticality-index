@@ -253,7 +253,6 @@ end
 # ==============================================================================
 
 """
-    download_qog_sources()
 Downloads the official QoG datasets from their public URLs into the specified directory.
 Usage:
     download_qog_sources(PATH_DATA_DIR, QOG_SOURCES)
@@ -1862,6 +1861,141 @@ function list_region_orphans(df_ident::DataFrame)
     println(">>> Region Orphans: $(nrow(orphan_summary)) entities, $(sum(orphan_summary.rows)) total rows")
     
     return orphan_summary
+end
+
+
+"""
+Comprehensive loader for QoG time-series data with full processing pipeline. Executes the complete data preparation workflow: load raw Arrow with rowid assignment, preview rescue collisions (optional), apply historical ccode rescue, standardize regions, report coverage diagnostics, and list orphan entities.
+Usage:
+    df = load_qog_timeseries()
+    df = load_qog_timeseries("path/to/custom.arrow"; preview_collisions=false, verbose=false)
+Returns:
+- DataFrame with fully processed time-series data ready for analysis
+Pipeline Steps:
+1. Load raw data with `load_raw_ident` (assigns `ggis_rowid`)
+2. Preview rescue collisions via `preview_rescue_collisions` (optional)
+3. Apply historical ccode rescue via `rescue_historical_ccodes`
+4. Standardize regions via `standardize_regions` (grouped imputation + fallback mapping)
+5. Report coverage diagnostics and list orphans via `list_region_orphans`
+Output Guarantees:
+- Unique `ggis_rowid` for all rows (immutable identifier)
+- `ident_*` namespace variables properly promoted
+- Historical ccodes rescued where possible
+- `ggis_region` populated via multiple imputation strategies
+- Collision tracking via `ggis_spine_collision` flag
+- Rescue tracking via `ggis_ccode_rescued` flag
+Key Columns:
+- ggis_rowid: Unique row identifier (immutable)
+- ident_ccode, ident_ccodealp, ident_cname, ident_year: Entity identifiers
+- ggis_region: Standardized region (1-6, or missing for orphans)
+- ggis_ccode_rescued: Flag indicating rescued ccodes
+- ggis_spine_collision: Flag indicating duplicate (ccode, year) pairs
+- ht_region: Original region from source data
+Notes:
+- Default path is PATH_TS_RAW (data/qog_std_ts_jan25.arrow)
+- Set `preview_collisions=false` to skip collision preview
+- Set `verbose=false` to suppress detailed rescue/region diagnostics
+- All diagnostic output prints to stdout
+- Orphan summary is printed but the orphan DataFrame is not returned (use `list_region_orphans` separately if needed)
+- The function does NOT modify the original Arrow file
+"""
+function load_qog_timeseries(timeseries_path::AbstractString=PATH_TS_RAW; 
+                             preview_collisions::Bool=true,
+                             show_collision_years::Bool=true,
+                             verbose::Bool=true)
+    
+    println("="^80)
+    println("QoG Time-Series Loader Pipeline")
+    println("="^80)
+    println("Input: $timeseries_path")
+    println()
+    
+    # -------------------------------------------------------------------------
+    # Step 1: Load with rowid assignment
+    # -------------------------------------------------------------------------
+    println(">>> Step 1/5: Loading raw data with identity promotion...")
+    df_ident = load_raw_ident(timeseries_path)
+    println("    Loaded: $(nrow(df_ident)) rows × $(ncol(df_ident)) columns")
+    println("    ✓ ggis_rowid assigned")
+    println()
+    
+    # -------------------------------------------------------------------------
+    # Step 2: Preview rescue collisions
+    # -------------------------------------------------------------------------
+    if preview_collisions
+        println(">>> Step 2/5: Previewing rescue collisions...")
+        collision_preview = preview_rescue_collisions(df_ident; show_years=show_collision_years)
+        if nrow(collision_preview) > 0
+            println("    ⚠️  Found $(nrow(collision_preview)) collision group(s)")
+            if show_collision_years && :years in propertynames(collision_preview)
+                println("    (See year details above)")
+            end
+        end
+        println()
+    else
+        println(">>> Step 2/5: Skipping collision preview")
+        println()
+    end
+    
+    # -------------------------------------------------------------------------
+    # Step 3: Apply rescue
+    # -------------------------------------------------------------------------
+    println(">>> Step 3/5: Rescuing historical ccodes...")
+    df_rescued = rescue_historical_ccodes(df_ident; verbose=verbose)
+    println()
+    
+    # -------------------------------------------------------------------------
+    # Step 4: Standardize regions
+    # -------------------------------------------------------------------------
+    println(">>> Step 4/5: Standardizing regions...")
+    df_regions = standardize_regions(df_rescued; verbose=verbose)
+    println()
+    
+    # -------------------------------------------------------------------------
+    # Step 5: Coverage diagnostics and orphan report
+    # -------------------------------------------------------------------------
+    println(">>> Step 5/5: Coverage diagnostics...")
+    n_total = nrow(df_regions)
+    n_missing = count(ismissing, df_regions.ggis_region)
+    n_assigned = n_total - n_missing
+    coverage_pct = round(100 * n_assigned / n_total, digits=2)
+    
+    println("    Total rows: $n_total")
+    println("    Regions assigned: $n_assigned ($coverage_pct%)")
+    println("    Missing regions: $n_missing")
+    println()
+    
+    # List orphans if any
+    if n_missing > 0
+        println(">>> Orphan entities (no region assignment):")
+        orphans = list_region_orphans(df_regions)
+        println()
+    else
+        println(">>> ✓ No orphan entities — full region coverage achieved!")
+        println()
+    end
+    
+    # -------------------------------------------------------------------------
+    # Final summary
+    # -------------------------------------------------------------------------
+    println("="^80)
+    println("Pipeline Complete!")
+    println("="^80)
+    println("Output DataFrame: $(nrow(df_regions)) rows × $(ncol(df_regions)) columns")
+    println()
+    println("Key columns:")
+    println("  - ggis_rowid:          Unique row identifier")
+    println("  - ident_ccode:         Country code (with historical rescue)")
+    println("  - ident_year:          Year")
+    println("  - ggis_region:         Standardized region (1-6)")
+    println("  - ggis_ccode_rescued:  Historical rescue flag")
+    println("  - ggis_spine_collision: Duplicate spine flag")
+    println()
+    println("Ready for analysis! 🚀")
+    println("="^80)
+    println()
+    
+    return df_regions
 end
 
 
