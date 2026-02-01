@@ -57,6 +57,16 @@ end
 # ==============================================================================
 
 """
+Returns true if col is numeric (eltype <: Union{Missing, Number}).
+
+Usage:
+    b = _is_numeric_col(df.some_column)
+Returns:
+- Bool: true if numeric, false otherwise
+"""
+_is_numeric_col(col) = eltype(col) <: Union{Missing, Number}
+
+"""
 Returns the most frequent value in v; on tie, returns the smallest value.
 Used to define country-level region from possibly varying year-level region.
 
@@ -82,6 +92,21 @@ function _mode_smallest(v)
 end
 
 """
+Normalizes geo-class strings from metadata to one of: "global", "regional", "other".
+Any unknown value is coerced to "other".
+"""
+function _normalize_geo_class(x)
+    if ismissing(x)
+        return "other"
+    end
+    s = lowercase(strip(string(x)))
+    if s == "global" || s == "regional" || s == "other"
+        return s
+    end
+    return "other"
+end
+
+"""
 Builds a lookup from slug to (geo_class, birth_year, death_year) for applicability and lifespan.
 
 Usage:
@@ -97,8 +122,8 @@ function _slug_meta_lookup(meta_df::DataFrame)
     out = Dict{String, NamedTuple}()
     for row in eachrow(meta_df)
         slug = string(row.slug)
-        geo = coalesce(get(row, :ggis_geo_classification, missing), "other")
-        geo_str = ismissing(geo) ? "other" : string(geo)
+        geo_raw = get(row, :ggis_geo_classification, missing)
+        geo_str = _normalize_geo_class(geo_raw)
         by = coalesce(get(row, :ggis_birth_year, missing), get(row, :birth_year, missing))
         dy = coalesce(get(row, :ggis_death_year, missing), get(row, :death_year, missing))
         out[slug] = (geo_class = geo_str, birth_year = by, death_year = dy)
@@ -118,8 +143,12 @@ Arguments:
 - df::DataFrame: Must have ident_ccode and ggis_region
 """
 function _country_region_map(df::DataFrame)
-    g = groupby(df, :ident_ccode)
-    return Dict(ccode => _mode_smallest(sdf.ggis_region) for (ccode, sdf) in zip([first(sdf.ident_ccode) for sdf in g], g))
+    out = Dict{Int, Union{Int, Missing}}()
+    for sdf in groupby(df, :ident_ccode)
+        ccode = Int(first(skipmissing(sdf.ident_ccode)))
+        out[ccode] = _mode_smallest(sdf.ggis_region)
+    end
+    return out
 end
 
 # ==============================================================================
@@ -142,19 +171,20 @@ Arguments:
 - birth_year, death_year: Union{Int,Missing} from metadata
 - min_obs_per_period::Int: Minimum non-missing count to return a mean
 """
-function _period_mean(df_c::DataFrame, slug_sym::Symbol, lo::Int, hi::Int,
-                     birth_year, death_year, min_obs_per_period::Int)
+function _period_mean(df_c::AbstractDataFrame, slug_sym::Symbol, lo::Int, hi::Int,
+                      birth_year, death_year, min_obs_per_period::Int)
     col = df_c[!, slug_sym]
+    _is_numeric_col(col) || return missing
     years = df_c.ident_year
     period_ok = (y -> !ismissing(y) && lo <= Int(y) <= hi).(years)
     lo_ok = ismissing(birth_year) .|| (y -> !ismissing(y) && Int(y) >= birth_year).(years)
     hi_ok = ismissing(death_year) .|| (y -> !ismissing(y) && Int(y) <= death_year).(years)
     in_scope = period_ok .& lo_ok .& hi_ok
     vals = col[in_scope]
-    vals_clean = skipmissing(vals)
-    n = length(vals_clean)
-    if n >= min_obs_per_period
-        return mean(vals_clean)
+    # Count non-missing explicitly; skipmissing(vals) is an iterator and length(...) can be unsafe.
+    n_nonmiss = count(!ismissing, vals)
+    if n_nonmiss >= min_obs_per_period
+        return mean(skipmissing(vals))
     end
     return missing
 end
@@ -175,8 +205,8 @@ Arguments:
 - birth_year, death_year: Union{Int,Missing}
 - appl_mask::BitVector: Boolean mask of applicable rows (same length as df_c)
 """
-function _period_missrate(df_c::DataFrame, slug_sym::Symbol, lo::Int, hi::Int,
-                         birth_year, death_year, appl_mask::BitVector)
+function _period_missrate(df_c::AbstractDataFrame, slug_sym::Symbol, lo::Int, hi::Int,
+                          birth_year, death_year, appl_mask::BitVector)
     years = df_c.ident_year
     period_ok = (y -> !ismissing(y) && lo <= Int(y) <= hi).(years)
     lo_ok = ismissing(birth_year) .|| (y -> !ismissing(y) && Int(y) >= birth_year).(years)
@@ -205,13 +235,14 @@ Arguments:
 - appl_mask::BitVector: Applicable rows
 - min_obs_for_vol::Int: Minimum non-missing observations to compute std
 """
-function _volatility(df_c::DataFrame, slug_sym::Symbol, birth_year, death_year,
-                    appl_mask::BitVector, min_obs_for_vol::Int)
+function _volatility(df_c::AbstractDataFrame, slug_sym::Symbol, birth_year, death_year,
+                     appl_mask::BitVector, min_obs_for_vol::Int)
     years = df_c.ident_year
     lo_ok = ismissing(birth_year) .|| (y -> !ismissing(y) && Int(y) >= birth_year).(years)
     hi_ok = ismissing(death_year) .|| (y -> !ismissing(y) && Int(y) <= death_year).(years)
     in_scope = lo_ok .& hi_ok .& appl_mask
     col = df_c[!, slug_sym]
+    _is_numeric_col(col) || return missing
     vals = col[in_scope]
     vals_clean = collect(skipmissing(vals))
     if length(vals_clean) >= min_obs_for_vol
@@ -254,8 +285,11 @@ function build_country_features_df(
     slugs_in_df = [s for s in meta_slugs if s in df_names]
     slug_meta = _slug_meta_lookup(meta_df)
     country_region = _country_region_map(df)
-    ccodes = sort(unique(skipmissing(df.ident_ccode)))
+    country_groups = collect(groupby(df, :ident_ccode))
+    sort!(country_groups; by = g -> Int(first(skipmissing(g.ident_ccode))))
+    ccodes = [Int(first(skipmissing(g.ident_ccode))) for g in country_groups]
     n_periods = length(periods)
+
 
     # Prebuild period year masks for whole df (we'll subset by country anyway; here we only use lo/hi)
     # Per-country, per-slug we also apply birth/death and applicability
@@ -278,21 +312,19 @@ function build_country_features_df(
     n_countries = length(ccodes)
     key_ccode = Int[]
     key_region = Union{Int, Missing}[]
-    feature_columns = Dict(s => Union{Float64, Missing}[] for s in feature_cols)
-    for _ in 1:n_countries
-        for col in feature_cols
-            push!(feature_columns[col], missing)
-        end
+    feature_columns = Dict{String, Vector{Union{Missing, Float64}}}()
+    for col in feature_cols
+        feature_columns[col] = fill(missing, n_countries)
     end
 
     # Audit: per slug, applicable rows by period, overall coverage, countries with ≥1 obs per period
     audit_rows = Vector{NamedTuple}(undef, 0)
 
-    for (idx, ccode) in enumerate(ccodes)
-        df_c = df[df.ident_ccode .== ccode, :]
+    for (idx, df_c) in enumerate(country_groups)
+        ccode = Int(first(skipmissing(df_c.ident_ccode)))
         c_region = get(country_region, ccode, missing)
-        key_ccode = push!(key_ccode, ccode)
-        key_region = push!(key_region, c_region)
+        push!(key_ccode, ccode)
+        push!(key_region, c_region)
 
         for slug in slugs_in_df
             slug_sym = Symbol(slug)
@@ -374,7 +406,8 @@ function build_country_features_df(
 end
 
 """Count of applicable rows in period for one country (for audit)."""
-function _period_applicable_count(df_c::DataFrame, slug_sym::Symbol, lo::Int, hi::Int, birth_year, death_year, appl_mask::BitVector)
+function _period_applicable_count(df_c::AbstractDataFrame, slug_sym::Symbol, lo::Int, hi::Int,
+                                  birth_year, death_year, appl_mask::BitVector)
     years = df_c.ident_year
     period_ok = (y -> !ismissing(y) && lo <= Int(y) <= hi).(years)
     lo_ok = ismissing(birth_year) .|| (y -> !ismissing(y) && Int(y) >= birth_year).(years)
