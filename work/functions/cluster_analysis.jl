@@ -16,6 +16,13 @@ const DEFAULT_MIN_OBS_PER_PERIOD = 1
 """Default minimum observations required to compute volatility (default: 3)."""
 const DEFAULT_MIN_OBS_FOR_VOL = 3
 
+# --- Step 2 filtering rules ---
+"""Minimum number of periods in which a slug must meet coverage threshold."""
+const STEP2_MIN_PERIODS_REQUIRED = 1
+
+"""Minimum per-period country coverage required for a slug."""
+const STEP2_MIN_COVERAGE = 0.10
+
 """
 Default four fixed periods as closed intervals [lo, hi].
 External config: revise year cutoffs here without changing logic.
@@ -518,13 +525,302 @@ function run_cluster_samples()
     println("│    check_country_features_qa(df, features_df)")
     println("└" * "─"^74)
 
+    println("\n┌─ filter_slugs_step2(country_features_df, meta_df; periods, coverage_threshold, require_periods, df_panel, id_patterns, exclude_slugs)")
+    println("│  INTENT: Step 2 — Filter unusable slugs before feature-selection and clustering.")
+    println("│          Drops non-numeric, low-coverage, insufficient-period, near-constant, and identifier-like slugs.")
+    println("│  USE WHEN: After Step 1, before Step 3 (predictive ranking) and Step 4 (clustering).")
+    println("│")
+    println("│  ARGUMENTS:")
+    println("│    country_features_df::DataFrame — output of build_country_features_df()")
+    println("│    meta_df::DataFrame — metadata including `slug` (and geo/lifespan fields used earlier)")
+    println("│    Optional kwargs:")
+    println("│      periods=DEFAULT_PERIODS")
+    println("│      coverage_threshold=STEP2_MIN_COVERAGE")
+    println("│      require_periods=STEP2_MIN_PERIODS_REQUIRED")
+    println("│      df_panel=df  (recommended; improves numeric detection)")
+    println("│      id_patterns=[...]  (regex list)")
+    println("│      exclude_slugs=[...]")
+    println("│")
+    println("│  RETURNS: (kept_slugs, rejected_slugs, slug_filter_report)")
+    println("│")
+    println("│  USAGE:")
+    println("│    kept, rejected, report = filter_slugs_step2(country_features_df, meta; df_panel=df)")
+    println("│    first(report, 20)")
+    println("│    length(kept), length(rejected)")
+    println("└" * "─"^74)
+
+
     println("\n" * "="^76)
     println("  TYPICAL WORKFLOW (Step 1):")
     println("  1. df, meta = load_dataframes()")
     println("  2. country_features_df, audit = build_country_features_df(df, meta)")
     println("  3. check_country_features_qa(df, country_features_df)")
     println("  4. first(country_features_df, 5)")
-    println("  5. (Step 2+: filter variables, compute features, cluster, inspect, update metadata)")
+    println("  5. kept, rejected, report = filter_slugs_step2(country_features_df, meta; df_panel=df)")
+    println("  6. (Step 3+: rank features, cluster, inspect, update metadata)")
     println("="^76 * "\n")
     return nothing
+end
+
+# ==============================================================================
+# STEP 2: FILTER UNUSABLE SLUGS
+# ==============================================================================
+
+"""
+Returns true if a slug looks like an identifier / key rather than an analytical variable.
+
+Default patterns are conservative; adjust via `id_patterns` in `filter_slugs_step2`.
+"""
+function _looks_like_identifier(slug::AbstractString, id_patterns::Vector{Regex})
+    s = lowercase(String(slug))
+    for rx in id_patterns
+        occursin(rx, s) && return true
+    end
+    return false
+end
+
+"""
+Infer whether a slug is numeric.
+
+Priority order:
+1) If `df_panel` is provided and contains the slug, use the panel column eltype.
+2) Otherwise, infer from `country_features_df` period-mean columns: if any period mean
+   has at least one non-missing value, treat as numeric.
+
+Returns:
+- Bool
+"""
+function _infer_slug_numeric(
+    slug::AbstractString,
+    country_features_df::AbstractDataFrame,
+    period_names::Vector{String};
+    df_panel::Union{Nothing, AbstractDataFrame} = nothing
+)::Bool
+    sym = Symbol(slug)
+
+    # 1) Panel: conclude TRUE when clearly numeric
+    if df_panel !== nothing && (sym in propertynames(df_panel))
+        col = df_panel[!, sym]
+        if eltype(col) <: Union{Missing, Number}
+            return true
+        end
+    end
+
+    # 2) Fallback: any period mean column has observed numeric values
+    for pname in period_names
+        colname = Symbol(string(slug, "__", pname, "_mean"))
+        if colname in names(country_features_df)
+            v = country_features_df[!, colname]
+            if (eltype(v) <: Union{Missing, Number}) && any(!ismissing, v)
+                return true
+            end
+        end
+    end
+
+    return false
+end
+
+
+"""
+Step 2: Filter unusable slugs before feature-selection and clustering.
+
+This function is additive (does not modify `country_features_df`).
+
+Rules (in order):
+- Drop identifier-like slugs (pattern-based)
+- Drop non-numeric slugs (per user's Step 2 decision)
+- Drop if overall coverage (non-missing period means) < `coverage_threshold`
+- Drop if not usable in all periods (each period coverage >= threshold; require 4 periods)
+- Drop if near-constant (std==0 or unique<=1 in last period mean)
+
+Coverage definition:
+- For each slug, consider its period mean columns `slug__P*_mean`.
+- Overall coverage = (# non-missing cells across countries×periods) / (n_countries * n_periods)
+- Period coverage = (# non-missing countries in that period) / n_countries
+
+Returns:
+- kept_slugs::Vector{String}
+- rejected_slugs::Vector{String}
+- slug_filter_report::DataFrame
+
+Usage:
+    kept, rejected, report = filter_slugs_step2(country_features_df, meta_df)
+    kept, rejected, report = filter_slugs_step2(country_features_df, meta_df; df_panel=df)
+"""
+function filter_slugs_step2(
+    country_features_df::AbstractDataFrame,
+    meta_df::AbstractDataFrame;
+    periods::Vector{<:NamedTuple} = DEFAULT_PERIODS,
+    coverage_threshold::Float64 = STEP2_MIN_COVERAGE,
+    require_periods::Int = STEP2_MIN_PERIODS_REQUIRED,
+    df_panel::Union{Nothing, AbstractDataFrame} = nothing,
+    id_patterns::Vector{Regex} = [
+        r"^ident_", r"_id$", r"rowid", r"ccode", r"year", r"^iso", r"code$"
+    ],
+    exclude_slugs::Vector{String} = String[],
+    verbose::Bool = true
+)
+    # Period names
+    period_names = String[p.name for p in periods]
+    n_periods = length(period_names)
+    if require_periods != n_periods
+        @warn "require_periods != length(periods); using require_periods=$require_periods and periods=$n_periods"
+    end
+
+    # Candidate slugs: from metadata, present in country_features_df as at least one mean column
+    meta_slugs = String.(meta_df.slug)
+    cf_names = Set(Symbol.(names(country_features_df)))
+    slugs = String[]
+    for slug in meta_slugs
+        slug in exclude_slugs && continue
+        # require at least one period-mean column exists
+        any_present = any(pn -> Symbol(string(slug, "__", pn, "_mean")) in cf_names, period_names)
+        any_present && push!(slugs, slug)
+    end
+
+    n_countries = nrow(country_features_df)
+
+    report_rows = NamedTuple[]
+    kept_slugs = String[]
+    rejected_slugs = String[]
+
+    for slug in slugs
+        # Basic columns for reporting
+        decision = "keep"
+        reason = ""
+
+        # F5: identifier-like
+        if _looks_like_identifier(slug, id_patterns)
+            decision = "drop"
+            reason = "identifier_like"
+        end
+
+        # F2: non-numeric (user choice: drop)
+        numeric = _infer_slug_numeric(slug, country_features_df, period_names; df_panel=df_panel)
+        if decision == "keep" && !numeric
+            decision = "drop"
+            reason = "non_numeric"
+        end
+
+        # Coverage metrics (based on means only)
+        period_cov = fill(0.0, n_periods)
+        usable_periods = 0
+        overall_cov = 0.0
+
+        if n_countries == 0
+            overall_cov = 0.0
+        else
+            total_nonmiss = 0
+            total_cells = n_countries * n_periods
+            for (i, pn) in enumerate(period_names)
+                colname = Symbol(string(slug, "__", pn, "_mean"))
+                if colname in names(country_features_df)
+                    v = country_features_df[!, colname]
+                    nonmiss = count(!ismissing, v)
+                    period_cov[i] = nonmiss / n_countries
+                    total_nonmiss += nonmiss
+                else
+                    period_cov[i] = 0.0
+                end
+            end
+            overall_cov = total_nonmiss / total_cells
+            usable_periods = count(c -> c >= coverage_threshold, period_cov)
+        end
+
+        # Coverage and period usability
+        if decision == "keep" && overall_cov < coverage_threshold
+            decision = "drop"
+            reason = "low_coverage"
+        end
+        if decision == "keep" && usable_periods < require_periods
+            decision = "drop"
+            reason = "insufficient_periods"
+        end
+
+        # Near-constant (use last period mean)
+        near_constant = false
+        if decision == "keep"
+            last_col = Symbol(string(slug, "__", period_names[end], "_mean"))
+            if last_col in names(country_features_df)
+                v = country_features_df[!, last_col]
+                vv = collect(skipmissing(v))
+                if length(vv) <= 1
+                    near_constant = true
+                else
+                    if std(vv) == 0.0 || length(unique(vv)) <= 1
+                        near_constant = true
+                    end
+                end
+            else
+                near_constant = true
+            end
+
+            if near_constant
+                decision = "drop"
+                reason = "near_constant"
+            end
+        end
+
+        if decision == "keep"
+            push!(kept_slugs, slug)
+        else
+            push!(rejected_slugs, slug)
+        end
+
+        push!(report_rows, (
+            slug = slug,
+            numeric = numeric,
+            coverage = overall_cov,
+            usable_periods = usable_periods,
+            decision = decision,
+            reason = reason,
+            period_coverages = period_cov
+        ))
+    end
+
+    slug_filter_report = DataFrame(report_rows)
+
+    # Sort report for readability: drops first, then by increasing coverage
+    sort!(slug_filter_report, [:decision, :coverage])
+
+    if verbose
+        total = length(slugs)
+        kept_n = length(kept_slugs)
+        rejected_n = length(rejected_slugs)
+
+        println("\n" * "="^72)
+        println("Step 2 — Slug Filtering Diagnostics")
+        println("="^72)
+
+        println("Total candidate slugs: $total")
+        println("Kept slugs:            $kept_n")
+        println("Rejected slugs:        $rejected_n")
+        println("Keep rate:             $(round(100 * kept_n / max(total,1); digits=1)) %")
+
+        println("\nRejection reasons:")
+        by_reason = combine(groupby(slug_filter_report, :reason), nrow => :count)
+        sort!(by_reason, :count, rev=true)
+        show(by_reason, allrows=true, allcols=true)
+        println()
+
+        println("\nCoverage statistics (kept slugs):")
+        kept_cov = slug_filter_report.coverage[slug_filter_report.decision .== "keep"]
+        if !isempty(kept_cov)
+            println("  min coverage: ", round(minimum(kept_cov); digits=3))
+            println("  median:       ", round(median(kept_cov); digits=3))
+            println("  mean:         ", round(mean(kept_cov); digits=3))
+            println("  max:          ", round(maximum(kept_cov); digits=3))
+        end
+
+        println("\nExample kept slugs:")
+        println(join(first(kept_slugs, min(10, length(kept_slugs))), ", "))
+
+        println("\nExample rejected slugs:")
+        println(join(first(rejected_slugs, min(10, length(rejected_slugs))), ", "))
+
+        println("="^72 * "\n")
+    end
+
+
+    return kept_slugs, rejected_slugs, slug_filter_report
 end
