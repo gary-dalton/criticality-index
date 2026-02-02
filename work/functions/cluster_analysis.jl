@@ -1,3 +1,10 @@
+using SparseArrays
+using LinearAlgebra
+using Graphs
+using Statistics
+using CommunityDetection
+using SimpleWeightedGraphs
+
 include("qog_augmented_standard.jl")
 
 # ==============================================================================
@@ -22,6 +29,21 @@ const STEP2_MIN_PERIODS_REQUIRED = 1
 
 """Minimum per-period country coverage required for a slug."""
 const STEP2_MIN_COVERAGE = 0.10
+
+
+# --- Step 2A (Other-slug tagging) rules ---
+"""Minimum non-missing observations within a (country, period) required to mark an Other slug as present."""
+const PRESENT_MIN_OBS_OTHER = 2
+
+# --- Anchor slugs (used for post-cluster interpretation / labeling) ---
+const ANCHOR_POP = "wpp_pop"                         # Population (levels)
+const ANCHOR_WEALTH_HISTORICAL = "gle_cgdpc"         # GDP per capita (historical; e.g., 1950–2011)
+const ANCHOR_WEALTH_MODERN = "wdi_gdpcapcon2015"     # GDP per capita (modern; e.g., 1960–2023)
+const ANCHOR_WEALTH_SWITCH_YEAR = 1960              # Prefer modern wealth series from this year onward
+const ANCHOR_GOV_TYPE = "bmr_dem"                    # Binary democracy indicator (0/1)
+
+"""Small epsilon to avoid division-by-zero in z-scoring when variance is ~0."""
+const BASELINE_ZSCORE_EPS = 1e-12
 
 """
 Default four fixed periods as closed intervals [lo, hi].
@@ -525,6 +547,39 @@ function run_cluster_samples()
     println("│    check_country_features_qa(df, features_df)")
     println("└" * "─"^74)
 
+    println("\n┌─ build_country_period_missingness_baseline_df(country_features_df, meta_df; periods, verbose)")
+    println("│  INTENT: Step 2A — Build country×period baseline missingness using ONLY:")
+    println("│          - Global slugs, and")
+    println("│          - Regional slugs applicable to the country’s region.")
+    println("│")
+    println("│  RETURNS: DataFrame with columns:")
+    println("│    ident_ccode, period, miss_global, miss_regional")
+    println("│")
+    println("│  USAGE:")
+    println("│    miss_df = build_country_period_missingness_baseline_df(country_features_df, meta)")
+    println("└" * "─"^74)
+    println("\n┌─ build_other_slug_presence_df(df, meta_df; periods, min_present_obs, verbose)")
+    println("│  INTENT: Step 2A — Compute Other-slug presence directly from panel df.")
+    println("│          present(S,c,p)=1 if nonmissing obs in (c,p) >= PRESENT_MIN_OBS_OTHER (default 2).")
+    println("│")
+    println("│  RETURNS: Sparse DataFrame (only present rows):")
+    println("│    slug, ident_ccode, period, nonmissing_obs")
+    println("│")
+    println("│  USAGE:")
+    println("│    presence_df = build_other_slug_presence_df(df, meta)")
+    println("└" * "─"^74)
+    println("\n┌─ build_country_period_anchor_df(df; periods, verbose)")
+    println("│  INTENT: Step 2A — Compute anchor summaries for post-cluster interpretation:")
+    println("│          log-pop, stitched log-wealth, and regime share/change by period.")
+    println("│  NOTE: Anchors are NOT used for clustering; used to label/interpret slug modules.")
+    println("│")
+    println("│  RETURNS: DataFrame with columns (per ident_ccode, period):")
+    println("│    log_pop_level, log_pop_change, log_gdp_level, log_gdp_change, dem_share, dem_change")
+    println("│")
+    println("│  USAGE:")
+    println("│    anchors_df = build_country_period_anchor_df(df)")
+    println("└" * "─"^74)
+
     println("\n┌─ filter_slugs_step2(country_features_df, meta_df; periods, coverage_threshold, require_periods, df_panel, id_patterns, exclude_slugs)")
     println("│  INTENT: Step 2 — Filter unusable slugs before feature-selection and clustering.")
     println("│          Drops non-numeric, low-coverage, insufficient-period, near-constant, and identifier-like slugs.")
@@ -551,13 +606,55 @@ function run_cluster_samples()
 
 
     println("\n" * "="^76)
-    println("  TYPICAL WORKFLOW (Step 1):")
+
+println("\n┌─ build_country_period_missingness_baseline_df(country_features_df, meta_df; periods=DEFAULT_PERIODS)")
+println("│  INTENT: Build per-(country,period) missingness baselines using ONLY slugs tagged Global and Regional.")
+println("│          Regional missrates are averaged over applicable regional slugs (non-applicable → missing → ignored).")
+println("│  USE WHEN: You are tagging / clustering Other slugs and need each country-period's measurement environment.")
+println("│  RETURNS: country_period_missingness_df (long form: ident_ccode, period, miss_global, miss_regional, n_global_used, n_regional_used)")
+println("└" * "─"^74)
+
+println("\n┌─ build_country_period_anchor_df(df; periods=DEFAULT_PERIODS)")
+println("│  INTENT: Compute post-cluster interpretation features per (country,period) from anchor slugs:")
+println("│          log population, stitched log wealth, and democracy share/change.")
+println("│  NOTE: Anchors are NOT used to form clusters; they are used to label/interpret country sets after clustering.")
+println("│  RETURNS: country_period_anchor_df (long form: ident_ccode, period, log_pop_level/change, log_gdp_level/change, dem_share/change)")
+println("└" * "─"^74)
+
+println("\n┌─ build_other_slug_presence_df(df, meta_df; periods=DEFAULT_PERIODS, min_present_obs=PRESENT_MIN_OBS_OTHER)")
+println("│  INTENT: Compute presence of Other slugs by (country,period) directly from the raw panel df.")
+println("│          present=true iff nonmissing_obs >= min_present_obs.")
+println("│  RETURNS: other_presence_df (sparse: only present rows; columns: slug, ident_ccode, period, nonmissing_obs)")
+println("└" * "─"^74)
+    println("  TYPICAL WORKFLOW (Steps 1–3A):")
+    println("  Step 1 ---")
     println("  1. df, meta = load_dataframes()")
     println("  2. country_features_df, audit = build_country_features_df(df, meta)")
     println("  3. check_country_features_qa(df, country_features_df)")
     println("  4. first(country_features_df, 5)")
-    println("  5. kept, rejected, report = filter_slugs_step2(country_features_df, meta; df_panel=df)")
-    println("  6. (Step 3+: rank features, cluster, inspect, update metadata)")
+    println("  Step 2A ---")
+    println("  5. miss_df = build_country_period_missingness_baseline_df(country_features_df, meta)")
+    println("  Step 2B ---")
+    println("  6. presence_df = build_other_slug_presence_df(df, meta)  # Other slugs only; k=2 by const")
+    println("  Step 2C ---")
+    println("  7. anchors_df = build_country_period_anchor_df(df)        # post-cluster diagnostics")
+    println("  Step 3A ---")
+    println("  8. X, slug_index, cell_index = build_slug_cell_matrix(presence_df)")
+    println("  9. edges_dir = cosine_topk_edges(X, slug_index; k=20, min_sim=0.05)")
+    println(" 10. edges_und = symmetrize_edges(edges_dir; mode=:max)")
+    println("  Step 3B ---")
+    println(" 11. g, slugs_g, comps = graph_components_diagnostics(edges_und);")
+    println(" 12. comp_slugs = component_slug_sets(comps, slugs_g); length.(comp_slugs))")
+    println(" 13. small = argmin(length.(comp_slugs)); println(comp_slugs[small])")
+    println(" 14. g_w, slugs_g, slug_to_idx = build_weighted_slug_graph(edges_und);")
+    println(" Step 4 ---")
+    println(" 15. cluster_presence_df, cluster_sizes_df = cluster_presence(presence_df, slug_cluster_df)")
+    println(" 16. cluster_presence_enriched_df = attach_environment_and_anchors(cluster_presence_df, miss_df, anchor_df)")
+    println(" 17. cluster_summary_df = summarize_clusters(cluster_presence_enriched_df)")
+    println(" 18. top_countries_df = top_countries_by_cluster(cluster_presence_enriched_df)")
+    println(" 19. period_cov_df  = period_coverage_by_cluster(cluster_presence_enriched_df)")
+    println("  Step 5 ---")
+    println(" 20. audit = join_audit(cluster_presence_enriched_df, miss_df, anchor_df)")
     println("="^76 * "\n")
     return nothing
 end
@@ -823,4 +920,1064 @@ function filter_slugs_step2(
 
 
     return kept_slugs, rejected_slugs, slug_filter_report
+end
+
+
+# ==============================================================================
+# STEP 2A: BASELINES + OTHER-SLUG PRESENCE (for tagging "Other" slugs)
+# ==============================================================================
+#
+# IMPORTANT: This is a different pipeline than `filter_slugs_step2`.
+# Here we DO NOT prune "Other" slugs by coverage. Instead, we:
+#   (a) compute country-period missingness baselines using Global + applicable Regional slugs,
+#   (b) compute optional anchor summaries for post-cluster interpretation,
+#   (c) compute Other-slug presence by (country,period) directly from the raw panel.
+#
+# These outputs support:
+#   - Rep A (membership topology): slug → {countries×periods where present}
+#   - Rep B (signature topology): slug → differences in missingness environment (and later anchors)
+
+"""Normalize geo-classification labels from metadata."""
+function _norm_geo_class(x)::String
+    if ismissing(x)
+        return "other"
+    end
+    s = lowercase(strip(string(x)))
+    return s == "" ? "other" : s
+end
+
+"""Return slugs from meta_df by geo classification (global/regional/other)."""
+function slugs_by_geo(meta_df::AbstractDataFrame, geo::AbstractString)::Vector{String}
+    geo_n = lowercase(strip(String(geo)))
+    has_slug = :slug in propertynames(meta_df)
+    has_geo  = :ggis_geo_classification in propertynames(meta_df)
+    (!has_slug || !has_geo) && error("meta_df must have columns :slug and :ggis_geo_classification")
+
+    out = String[]
+    for r in eachrow(meta_df)
+        if _norm_geo_class(r.ggis_geo_classification) == geo_n
+            push!(out, string(r.slug))
+        end
+    end
+    return out
+end
+
+"""
+Build per-(country,period) missingness baselines using ONLY:
+  - slugs tagged Global
+  - slugs tagged Regional (averaged over applicable slugs; non-applicable missrate columns are missing and ignored)
+
+Inputs:
+- country_features_df: output of build_country_features_df (wide; one row per ident_ccode)
+- meta_df: metadata with slug + ggis_geo_classification
+
+Output:
+- DataFrame (long):
+    ident_ccode, period,
+    miss_global, miss_regional,
+    n_global_used, n_regional_used
+
+Notes:
+- Uses Step 1's `slug__<period>_missrate` columns; no raw df scan needed.
+- Regional applicability is already handled in Step 1 via `applicable_n==0 → missing`, so averaging ignoring missings
+  effectively averages only in-region slugs for that country.
+"""
+function build_country_period_missingness_baseline_df(
+    country_features_df::AbstractDataFrame,
+    meta_df::AbstractDataFrame;
+    periods::Vector{<:NamedTuple} = DEFAULT_PERIODS,
+    verbose::Bool = true
+)::DataFrame
+    period_names = [p.name for p in periods]
+    global_slugs  = slugs_by_geo(meta_df, "global")
+    regional_slugs = slugs_by_geo(meta_df, "regional")
+
+    # Keep only slugs that actually have missrate columns in country_features_df
+    df_cols = Set(Symbol.(names(country_features_df)))
+
+    global_cols_by_period = Dict{String, Vector{Symbol}}()
+    regional_cols_by_period = Dict{String, Vector{Symbol}}()
+    for pname in period_names
+        gcols = Symbol[]
+        rcols = Symbol[]
+        for s in global_slugs
+            c = Symbol(string(s, "__", pname, "_missrate"))
+            c in df_cols && push!(gcols, c)
+        end
+        for s in regional_slugs
+            c = Symbol(string(s, "__", pname, "_missrate"))
+            c in df_cols && push!(rcols, c)
+        end
+        global_cols_by_period[pname] = gcols
+        regional_cols_by_period[pname] = rcols
+    end
+
+    # Build long output
+    out_ccode = Int[]
+    out_period = String[]
+    out_miss_g = Vector{Union{Missing, Float64}}()
+    out_miss_r = Vector{Union{Missing, Float64}}()
+    out_ng = Int[]
+    out_nr = Int[]
+
+    ccodes = country_features_df[!, :ident_ccode]
+    n_c = length(ccodes)
+
+    for (pi, pname) in enumerate(period_names)
+        gcols = global_cols_by_period[pname]
+        rcols = regional_cols_by_period[pname]
+
+        for i in 1:n_c
+            push!(out_ccode, Int(ccodes[i]))
+            push!(out_period, pname)
+
+            # Global baseline missingness (avg across global missrate cols, ignoring missing)
+            if isempty(gcols)
+                push!(out_miss_g, missing); push!(out_ng, 0)
+            else
+                s = 0.0; k = 0
+                for c in gcols
+                    v = country_features_df[i, c]
+                    if !ismissing(v)
+                        s += Float64(v); k += 1
+                    end
+                end
+                push!(out_miss_g, k == 0 ? missing : (s / k))
+                push!(out_ng, k)
+            end
+
+            # Regional baseline missingness (avg across applicable regional missrate cols, ignoring missing)
+            if isempty(rcols)
+                push!(out_miss_r, missing); push!(out_nr, 0)
+            else
+                s = 0.0; k = 0
+                for c in rcols
+                    v = country_features_df[i, c]
+                    if !ismissing(v)
+                        s += Float64(v); k += 1
+                    end
+                end
+                push!(out_miss_r, k == 0 ? missing : (s / k))
+                push!(out_nr, k)
+            end
+        end
+    end
+
+    out = DataFrame(
+        ident_ccode = out_ccode,
+        period = out_period,
+        miss_global = out_miss_g,
+        miss_regional = out_miss_r,
+        n_global_used = out_ng,
+        n_regional_used = out_nr
+    )
+
+    if verbose
+        println("\n" * "="^72)
+        println("Step 2A — Missingness baseline diagnostics")
+        println("="^72)
+        println("Periods: ", join(period_names, ", "))
+        println("Global slugs in metadata:   ", length(global_slugs))
+        println("Regional slugs in metadata: ", length(regional_slugs))
+        println("Global missrate columns found (by period):")
+        for pname in period_names
+            println("  ", pname, ": ", length(global_cols_by_period[pname]))
+        end
+        println("Regional missrate columns found (by period):")
+        for pname in period_names
+            println("  ", pname, ": ", length(regional_cols_by_period[pname]))
+        end
+        println("Example global slugs:   ", join(first(global_slugs, min(10, length(global_slugs))), ", "))
+        println("Example regional slugs: ", join(first(regional_slugs, min(10, length(regional_slugs))), ", "))
+        println("="^72 * "\n")
+    end
+
+    return out
+end
+
+"""
+Compute per-(country,period) anchor summaries (log scale) for post-cluster interpretation.
+
+Anchors:
+- ANCHOR_POP: log population
+- Wealth: stitched between ANCHOR_WEALTH_HISTORICAL and ANCHOR_WEALTH_MODERN
+          Prefer modern series from ANCHOR_WEALTH_SWITCH_YEAR onward.
+- ANCHOR_GOV_TYPE: democracy indicator (0/1)
+
+Aggregations per (country,period):
+- level: mean(log(value)) over non-missing and value>0
+- change: last - first of log(value) within the period (requires ≥2 non-missing obs)
+
+Returns (long):
+  ident_ccode, period,
+  log_pop_level, log_pop_change,
+  log_gdp_level, log_gdp_change,
+  dem_share, dem_change
+"""
+function build_country_period_anchor_df(
+    df::AbstractDataFrame;
+    periods::Vector{<:NamedTuple} = DEFAULT_PERIODS,
+    verbose::Bool = true
+)::DataFrame
+    period_names = [p.name for p in periods]
+
+    # Sanity: anchors must exist
+    for s in (ANCHOR_POP, ANCHOR_WEALTH_HISTORICAL, ANCHOR_WEALTH_MODERN, ANCHOR_GOV_TYPE)
+        Symbol(s) in propertynames(df) || @warn "Anchor slug not found in df: $s"
+    end
+
+    out = DataFrame(
+        ident_ccode = Int[],
+        period = String[],
+        log_pop_level = Union{Missing, Float64}[],
+        log_pop_change = Union{Missing, Float64}[],
+        log_gdp_level = Union{Missing, Float64}[],
+        log_gdp_change = Union{Missing, Float64}[],
+        dem_share = Union{Missing, Float64}[],
+        dem_change = Union{Missing, Float64}[]
+    )
+
+    # Group by country for efficient per-country slicing
+    g = groupby(df, :ident_ccode)
+
+    for sdf in g
+        ccode = Int(first(sdf.ident_ccode))
+        years = sdf.ident_year
+
+        pop_col = Symbol(ANCHOR_POP)
+        hist_col = Symbol(ANCHOR_WEALTH_HISTORICAL)
+        mod_col = Symbol(ANCHOR_WEALTH_MODERN)
+        dem_col = Symbol(ANCHOR_GOV_TYPE)
+
+        pop = pop_col in propertynames(sdf) ? sdf[!, pop_col] : fill(missing, nrow(sdf))
+        wh  = hist_col in propertynames(sdf) ? sdf[!, hist_col] : fill(missing, nrow(sdf))
+        wm  = mod_col in propertynames(sdf) ? sdf[!, mod_col] : fill(missing, nrow(sdf))
+        dem = dem_col in propertynames(sdf) ? sdf[!, dem_col] : fill(missing, nrow(sdf))
+
+        # For wealth: year-wise stitch (prefer modern from switch year onward when present)
+        wealth = Vector{Union{Missing, Float64}}(undef, nrow(sdf))
+        for i in 1:nrow(sdf)
+            y = years[i]
+            if ismissing(y)
+                wealth[i] = missing
+                continue
+            end
+            yi = Int(y)
+            if yi >= ANCHOR_WEALTH_SWITCH_YEAR
+                v = wm[i]
+                if !ismissing(v)
+                    wealth[i] = Float64(v)
+                else
+                    wealth[i] = ismissing(wh[i]) ? missing : Float64(wh[i])
+                end
+            else
+                wealth[i] = ismissing(wh[i]) ? missing : Float64(wh[i])
+            end
+        end
+
+        for p in periods
+            # mask for this period
+            mask = (y -> !ismissing(y) && p.lo <= Int(y) <= p.hi).(years)
+            if !any(mask)
+                push!(out, (ident_ccode=ccode, period=p.name,
+                            log_pop_level=missing, log_pop_change=missing,
+                            log_gdp_level=missing, log_gdp_change=missing,
+                            dem_share=missing, dem_change=missing))
+                continue
+            end
+
+            # --- Population ---
+            pop_vals = pop[mask]
+            pop_clean = [Float64(v) for v in pop_vals if !ismissing(v) && Float64(v) > 0]
+            log_pop_level = isempty(pop_clean) ? missing : mean(log.(pop_clean))
+
+            # change = last - first (log scale)
+            log_pop_change = missing
+            if length(pop_clean) >= 2
+                # take first/last by time ordering within period, using non-missing & >0
+                idxs = findall(mask)
+                # sort idxs by year (already sorted in panel typically, but don't assume)
+                idxs = sort(idxs, by=i -> Int(years[i]))
+                series = Float64[]
+                for i in idxs
+                    v = pop[i]
+                    if !ismissing(v) && Float64(v) > 0
+                        push!(series, log(Float64(v)))
+                    end
+                end
+                if length(series) >= 2
+                    log_pop_change = series[end] - series[1]
+                end
+            end
+
+            # --- Wealth (stitched) ---
+            w_vals = wealth[mask]
+            w_clean = [Float64(v) for v in w_vals if !ismissing(v) && Float64(v) > 0]
+            log_gdp_level = isempty(w_clean) ? missing : mean(log.(w_clean))
+
+            log_gdp_change = missing
+            if length(w_clean) >= 2
+                idxs = findall(mask)
+                idxs = sort(idxs, by=i -> Int(years[i]))
+                series = Float64[]
+                for i in idxs
+                    v = wealth[i]
+                    if !ismissing(v) && Float64(v) > 0
+                        push!(series, log(Float64(v)))
+                    end
+                end
+                if length(series) >= 2
+                    log_gdp_change = series[end] - series[1]
+                end
+            end
+
+            # --- Democracy ---
+            dem_vals = dem[mask]
+            dem_clean = [Float64(v) for v in dem_vals if !ismissing(v)]
+            dem_share = isempty(dem_clean) ? missing : mean(dem_clean)
+
+            dem_change = missing
+            if length(dem_clean) >= 2
+                idxs = findall(mask)
+                idxs = sort(idxs, by=i -> Int(years[i]))
+                series = Float64[]
+                for i in idxs
+                    v = dem[i]
+                    if !ismissing(v)
+                        push!(series, Float64(v))
+                    end
+                end
+                if length(series) >= 2
+                    dem_change = series[end] - series[1]
+                end
+            end
+
+            push!(out, (ident_ccode=ccode, period=p.name,
+                        log_pop_level=log_pop_level, log_pop_change=log_pop_change,
+                        log_gdp_level=log_gdp_level, log_gdp_change=log_gdp_change,
+                        dem_share=dem_share, dem_change=dem_change))
+        end
+    end
+
+    if verbose
+        println("\n" * "="^72)
+        println("Step 2A — Anchor diagnostics (post-cluster interpretation)")
+        println("="^72)
+        println("Anchors:")
+        println("  POP:    ", ANCHOR_POP)
+        println("  WEALTH: ", ANCHOR_WEALTH_HISTORICAL, " (pre-", ANCHOR_WEALTH_SWITCH_YEAR, "), ", ANCHOR_WEALTH_MODERN, " (>= ", ANCHOR_WEALTH_SWITCH_YEAR, ")")
+        println("  GOV:    ", ANCHOR_GOV_TYPE)
+        println("Rows produced: ", nrow(out))
+        println("Countries: ", length(unique(out.ident_ccode)))
+        println("="^72 * "\n")
+    end
+
+    return out
+end
+
+"""
+Compute sparse presence table for slugs tagged Other.
+
+Definition:
+- present(S,c,p) = true iff nonmissing_obs(S,c,p) >= min_present_obs
+
+This scans raw df (panel) directly; it does NOT rely on Step 1 audit.
+
+Returns:
+- other_presence_df (sparse; only present rows):
+    slug::String, ident_ccode::Int, period::String, nonmissing_obs::Int
+"""
+function build_other_slug_presence_df(
+    df::AbstractDataFrame,
+    meta_df::AbstractDataFrame;
+    periods::Vector{<:NamedTuple} = DEFAULT_PERIODS,
+    min_present_obs::Int = PRESENT_MIN_OBS_OTHER,
+    verbose::Bool = true
+)::DataFrame
+    period_names = [p.name for p in periods]
+    other_slugs = slugs_by_geo(meta_df, "other")
+
+    # Only slugs that exist in df
+    df_syms = Set(propertynames(df))
+    other_slugs = [s for s in other_slugs if Symbol(s) in df_syms]
+
+    # Group by country once
+    g = groupby(df, :ident_ccode)
+
+    out_slug = String[]
+    out_ccode = Int[]
+    out_period = String[]
+    out_nonmiss = Int[]
+
+    # Precompute per-country indices by period (within each SubDataFrame)
+    for sdf in g
+        ccode = Int(first(sdf.ident_ccode))
+        years = sdf.ident_year
+
+        period_idxs = Dict{String, Vector{Int}}()
+        for p in periods
+            idxs = findall(y -> !ismissing(y) && p.lo <= Int(y) <= p.hi, years)
+            period_idxs[p.name] = idxs
+        end
+
+        for slug in other_slugs
+            col = sdf[!, Symbol(slug)]
+            for pname in period_names
+                idxs = period_idxs[pname]
+                isempty(idxs) && continue
+                n_nonmiss = 0
+                for i in idxs
+                    if !ismissing(col[i])
+                        n_nonmiss += 1
+                        # small early-exit when we already meet threshold
+                        if n_nonmiss >= min_present_obs
+                            break
+                        end
+                    end
+                end
+                if n_nonmiss >= min_present_obs
+                    push!(out_slug, slug)
+                    push!(out_ccode, ccode)
+                    push!(out_period, pname)
+                    push!(out_nonmiss, n_nonmiss)
+                end
+            end
+        end
+    end
+
+    out = DataFrame(
+        slug = out_slug,
+        ident_ccode = out_ccode,
+        period = out_period,
+        nonmissing_obs = out_nonmiss
+    )
+
+    if verbose
+        println("\n" * "="^72)
+        println("Step 2A — Other-slug presence diagnostics")
+        println("="^72)
+        println("Other slugs in metadata: ", length(slugs_by_geo(meta_df, "other")))
+        println("Other slugs found in df: ", length(other_slugs))
+        println("min_present_obs:         ", min_present_obs)
+        println("Sparse presence rows:    ", nrow(out))
+        if nrow(out) > 0
+            println("Example present rows:")
+            println(first(out, min(10, nrow(out))))
+        end
+        println("="^72 * "\n")
+    end
+
+    return out
+end
+
+
+# ==============================================================================
+# STEP 3A: MEMBERSHIP TOPOLOGY CLUSTERING (Other slugs)
+# ==============================================================================
+
+"""
+Build a sparse binary matrix X with rows = Other slugs, cols = (country,period) cells.
+
+Inputs:
+- presence_df: output of build_other_slug_presence_df (sparse, only present rows)
+    columns: slug::String, ident_ccode::Int, period::String, nonmissing_obs::Int
+
+Outputs:
+- X::SparseMatrixCSC{Float64,Int}   (binary 0/1)
+- slug_index::Vector{String}        (row -> slug)
+- cell_index::Vector{Tuple{Int,String}}  (col -> (ident_ccode, period))
+"""
+function build_slug_cell_matrix(presence_df::AbstractDataFrame; verbose::Bool=true)
+    @assert all(Symbol.(["slug","ident_ccode","period"]) .∈ Ref(propertynames(presence_df))) "presence_df missing required columns"
+
+    # Stable row index: slugs sorted
+    slugs = sort!(unique(String.(presence_df.slug)))
+    slug_to_i = Dict{String,Int}(s => i for (i,s) in enumerate(slugs))
+
+    # Stable col index: cells sorted by (ccode, period)
+    cells = unique([(Int(r.ident_ccode), String(r.period)) for r in eachrow(presence_df)])
+    sort!(cells, by = x -> (x[1], x[2]))
+    cell_to_j = Dict{Tuple{Int,String},Int}(c => j for (j,c) in enumerate(cells))
+
+    # Build sparse triplets
+    I = Int[]
+    J = Int[]
+    V = Float64[]
+    sizehint!(I, nrow(presence_df))
+    sizehint!(J, nrow(presence_df))
+    sizehint!(V, nrow(presence_df))
+
+    for r in eachrow(presence_df)
+        i = slug_to_i[String(r.slug)]
+        j = cell_to_j[(Int(r.ident_ccode), String(r.period))]
+        push!(I, i); push!(J, j); push!(V, 1.0)
+    end
+
+    # NOTE: requires `using SparseArrays`
+    X = sparse(I, J, V, length(slugs), length(cells))
+
+    if verbose
+        n_slugs = size(X,1)
+        n_cells = size(X,2)
+        nnzX    = nnz(X)
+        dens    = nnzX / (n_slugs * n_cells)
+
+        # Row and column nnz distributions (cheap enough at this size)
+        row_counts = vec(sum(X .!= 0.0, dims=2))
+        col_counts = vec(sum(X .!= 0.0, dims=1))
+
+        println("\n" * "="^72)
+        println("Step 3A — Membership topology matrix build")
+        println("="^72)
+        println("Input presence rows: ", nrow(presence_df))
+        println("Unique Other slugs:  ", n_slugs)
+        println("Unique cells:        ", n_cells, "  (country,period)")
+        println("nnz(X):              ", nnzX)
+        println("Density:             ", round(dens * 100, digits=4), "%")
+
+        # Prevalence summaries
+        println("\nSlug prevalence (#cells present):")
+        println("  min/median/max: ", minimum(row_counts), " / ",
+                               Int(round(median(row_counts))), " / ",
+                               maximum(row_counts))
+
+        println("Cell load (#slugs present):")
+        println("  min/median/max: ", minimum(col_counts), " / ",
+                               Int(round(median(col_counts))), " / ",
+                               maximum(col_counts))
+
+        # Examples
+        println("\nExample slugs: ", join(slugs[1:min(end,10)], ", "))
+        println("Example cells: ", join(string.(cells[1:min(end,10)]), ", "))
+        println("="^72 * "\n")
+    end
+
+    return X, slugs, cells
+end
+
+
+"""
+Compute cosine-similarity top-k neighbor edges between slugs using sparse dot products.
+
+Method:
+- Normalize rows by L2 norm
+- Similarity = dot(normalized_row_i, normalized_row_j)
+- For each i, keep the top-k j with similarity >= min_sim
+
+Outputs:
+- edges_df: DataFrame with columns:
+    slug_i, slug_j, sim
+
+Notes:
+- This is O(nnz) per row using sparse row access; still heavy at 1k+ slugs,
+  but feasible if you keep k small (10-30).
+"""
+function cosine_topk_edges(
+    X::SparseMatrixCSC{Float64,Int},
+    slug_index::Vector{String};
+    k::Int = 20,
+    min_sim::Float64 = 0.0,
+    verbose::Bool = true
+)::DataFrame
+    n = size(X, 1)
+    @assert n == length(slug_index)
+
+    # L2 norms for each row (slug)
+    norms = Vector{Float64}(undef, n)
+    for i in 1:n
+        # sparse row extraction via view on transpose
+        # (CSC is column-oriented; rows are cheap on Xt = X')
+        # We'll compute norms via sum of squares of row nonzeros.
+        norms[i] = 0.0
+    end
+
+    Xt = transpose(X) # still sparse
+    # Compute row norms by iterating nonzeros in X (CSC columns)
+    # Accumulate squares into norms[row]
+    for col in 1:size(X,2)
+        for ptr in X.colptr[col]:(X.colptr[col+1]-1)
+            row = X.rowval[ptr]
+            v   = X.nzval[ptr]
+            norms[row] += v*v
+        end
+    end
+    for i in 1:n
+        norms[i] = sqrt(norms[i])
+    end
+
+    # Precompute normalized X as a lazy operation: similarity uses dot / (ni*nj)
+    # We'll compute candidates via column overlaps: for each slug i, build a map of dot products.
+    out_i = String[]
+    out_j = String[]
+    out_s = Float64[]
+
+    # Build row-wise nonzero lists using Xt (columns are rows of X)
+    # row_nz_cols[i] gives the list of columns where X[i, col] != 0
+    row_nz_cols = Vector{Vector{Int}}(undef, n)
+    for i in 1:n
+        row_nz_cols[i] = Int[]
+    end
+    for j in 1:size(X,2)
+        for ptr in X.colptr[j]:(X.colptr[j+1]-1)
+            i = X.rowval[ptr]
+            push!(row_nz_cols[i], j)
+        end
+    end
+
+    if verbose
+        println("\n" * "="^72)
+        println("Step 3A — Membership topology (cosine top-k edges)")
+        println("="^72)
+        println("Slugs (rows): ", n)
+        println("Cells (cols): ", size(X,2))
+        println("Requested k:   ", k)
+        println("min_sim:       ", min_sim)
+        println("="^72)
+    end
+
+    # For each slug i, accumulate dot products to other slugs via shared columns.
+    # We do: for each column where i is present, iterate all slugs present in that column.
+    # To support this, build col -> slugs list once (from CSC structure).
+    col_slugs = Vector{Vector{Int}}(undef, size(X,2))
+    for col in 1:size(X,2)
+        sl = Int[]
+        for ptr in X.colptr[col]:(X.colptr[col+1]-1)
+            push!(sl, X.rowval[ptr])
+        end
+        col_slugs[col] = sl
+    end
+
+    for i in 1:n
+        ni = norms[i]
+        if ni == 0.0
+            continue
+        end
+
+        acc = Dict{Int,Float64}()
+
+        for col in row_nz_cols[i]
+            for j in col_slugs[col]
+                j == i && continue
+                acc[j] = get(acc, j, 0.0) + 1.0  # since binary, dot += 1 per shared cell
+            end
+        end
+
+        # Convert dot -> cosine and select top-k
+        sims = Tuple{Int,Float64}[]
+        for (j, dotv) in acc
+            nj = norms[j]
+            nj == 0.0 && continue
+            s = dotv / (ni * nj)
+            s >= min_sim && push!(sims, (j, s))
+        end
+
+        if !isempty(sims)
+            sort!(sims, by = x -> -x[2])
+            take = sims[1:min(k, length(sims))]
+            for (j, s) in take
+                push!(out_i, slug_index[i])
+                push!(out_j, slug_index[j])
+                push!(out_s, s)
+            end
+        end
+    end
+
+    edges_df = DataFrame(slug_i = out_i, slug_j = out_j, sim = out_s)
+
+    if verbose
+        println("Edges produced (directed top-k): ", nrow(edges_df))
+        if nrow(edges_df) > 0
+            println("Example edges:")
+            println(first(edges_df, min(10, nrow(edges_df))))
+        end
+        println("="^72 * "\n")
+    end
+
+    return edges_df
+end
+
+"""
+Symmetrize directed top-k edges into an undirected edge list, then print diagnostics.
+
+Inputs:
+- edges_df: DataFrame(slug_i, slug_j, sim) from cosine_topk_edges
+
+Outputs:
+- und_edges: DataFrame(slug_a, slug_b, weight)
+"""
+function symmetrize_edges(edges_df::AbstractDataFrame; mode::Symbol = :max, verbose::Bool=true)
+    @assert all(Symbol.(["slug_i","slug_j","sim"]) .∈ Ref(propertynames(edges_df)))
+
+    acc = Dict{Tuple{String,String}, Vector{Float64}}()
+    for r in eachrow(edges_df)
+        a = String(r.slug_i); b = String(r.slug_j)
+        (a == b) && continue
+        p = a < b ? (a,b) : (b,a)
+        if !haskey(acc, p)
+            acc[p] = Float64[]
+        end
+        push!(acc[p], Float64(r.sim))
+    end
+
+    out_a = String[]; out_b = String[]; out_w = Float64[]; out_n = Int[]
+    for (p, vals) in acc
+        w = mode == :mean ? mean(vals) : maximum(vals)
+        push!(out_a, p[1]); push!(out_b, p[2]); push!(out_w, w); push!(out_n, length(vals))
+    end
+
+    und = DataFrame(slug_a = out_a, slug_b = out_b, weight = out_w, n_dir = out_n)
+
+    if verbose
+        println("\n" * "="^72)
+        println("Step 3A — Symmetrize top-k edges (undirected graph)")
+        println("="^72)
+        println("Directed edges in:   ", nrow(edges_df))
+        println("Undirected edges out:", nrow(und))
+        println("Mode:                ", String(mode))
+        println("Reciprocal edges (%):", round(100 * mean(und.n_dir .== 2), digits=2))
+        println("Weight min/med/max:  ",
+            round(minimum(und.weight), digits=4), " / ",
+            round(median(und.weight), digits=4), " / ",
+            round(maximum(und.weight), digits=4)
+        )
+        println("Example undirected edges:")
+        println(first(und, min(10, nrow(und))))
+        println("="^72 * "\n")
+    end
+
+    return und
+end
+
+"""
+Build graph from undirected slug edges and print connectivity diagnostics.
+
+Inputs:
+    edges_und: DataFrame with columns
+        slug_a, slug_b, weight
+
+Outputs:
+    g      : Graphs.jl SimpleGraph
+    slugs  : index -> slug mapping
+    comps  : connected components (vectors of node indices)
+"""
+function graph_components_diagnostics(edges_und; verbose=true)
+
+    @assert all(Symbol.(["slug_a","slug_b"]) .∈ Ref(propertynames(edges_und)))
+
+    # ---- build node index ----
+    slugs = sort(unique(vcat(edges_und.slug_a, edges_und.slug_b)))
+    slug_to_idx = Dict(s => i for (i, s) in enumerate(slugs))
+
+    g = SimpleGraph(length(slugs))
+
+    for r in eachrow(edges_und)
+        u = slug_to_idx[r.slug_a]
+        v = slug_to_idx[r.slug_b]
+        u != v && add_edge!(g, u, v)
+    end
+
+    comps = connected_components(g)
+    sizes = sort(map(length, comps))
+
+    if verbose
+        println("\n" * "="^72)
+        println("Step 3A — Graph connectivity diagnostics")
+        println("="^72)
+        println("Nodes: ", nv(g))
+        println("Edges: ", ne(g))
+        println("Connected components: ", length(comps))
+        println("Component size min/med/max: ",
+                minimum(sizes), " / ",
+                Int(round(median(sizes))), " / ",
+                maximum(sizes))
+        println("Largest component share (%): ",
+                round(100 * maximum(sizes) / nv(g), digits=2))
+        println("="^72 * "\n")
+    end
+
+    return g, slugs, comps
+end
+
+"""
+Convert graph connected components from index space into slug lists.
+
+Inputs
+------
+comps:
+    Output of `Graphs.connected_components(g)`, i.e. a vector of
+    vectors of vertex indices, where each inner vector represents one
+    connected component.
+
+slugs_g:
+    Vector mapping vertex index → slug identifier. Typically this is
+    the slug ordering used when constructing the graph.
+
+Behavior
+--------
+Each component is converted from integer vertex indices into the
+corresponding slug identifiers.
+
+No reordering of components or members is performed; the structure
+returned by `connected_components` is preserved.
+
+Returns
+-------
+Vector{Vector{String}}
+
+A vector where each element is the list of slugs belonging to one
+connected component.
+
+Notes
+-----
+• Component order is not guaranteed to be sorted by size.
+• Slug ordering inside each component follows the index order returned
+  by `connected_components`.
+• Use `length.(result)` to inspect component sizes.
+
+Example
+-------
+    g, slugs_g, comps = graph_components_diagnostics(edges_und)
+
+    comp_slugs = component_slug_sets(comps, slugs_g)
+
+    # sizes of components
+    length.(comp_slugs)
+
+"""
+function component_slug_sets(comps, slugs_g)
+    return [slugs_g[c] for c in comps]
+end
+
+
+"""
+Build a SimpleWeightedGraph from an undirected slug edge list.
+
+Inputs
+------
+edges_und:
+    DataFrame with columns:
+      slug_a::String, slug_b::String, weight::Float64
+
+Behavior
+--------
+Creates a stable vertex ordering from the unique slug set, then constructs a
+weighted undirected graph with those vertices. Edge weights are stored in the
+graph.
+
+Returns
+-------
+g_w::SimpleWeightedGraph
+slugs_g::Vector{String}
+    Vertex index -> slug mapping (1-based).
+slug_to_idx::Dict{String,Int}
+    Slug -> vertex index mapping.
+"""
+function build_weighted_slug_graph(edges_und::AbstractDataFrame)
+    @assert all(Symbol.(["slug_a","slug_b","weight"]) .∈ Ref(propertynames(edges_und)))
+
+    slugs_g = sort(unique(vcat(String.(edges_und.slug_a), String.(edges_und.slug_b))))
+    slug_to_idx = Dict(s => i for (i, s) in enumerate(slugs_g))
+
+    src = Vector{Int}(undef, nrow(edges_und))
+    dst = Vector{Int}(undef, nrow(edges_und))
+    wts = Vector{Float64}(undef, nrow(edges_und))
+
+    for (k, r) in enumerate(eachrow(edges_und))
+        src[k] = slug_to_idx[String(r.slug_a)]
+        dst[k] = slug_to_idx[String(r.slug_b)]
+        wts[k] = Float64(r.weight)
+    end
+
+    # Build weighted graph in one go (fast path).
+    g_w = SimpleWeightedGraph(src, dst, wts)
+
+    return g_w, slugs_g, slug_to_idx
+end
+
+
+"""
+cluster_presence(presence_df, slug_cluster_df)
+
+Returns (cluster_presence_df, cluster_sizes_df)
+
+- cluster_presence_df: per (cluster, country, period) presence aggregates
+- cluster_sizes_df: per cluster total slug count (cluster size)
+"""
+function cluster_presence(presence_df::DataFrame, slug_cluster_df::DataFrame)
+    # Cluster sizes (useful later)
+    cluster_sizes_df = combine(groupby(slug_cluster_df, :cluster_id),
+                              nrow => :cluster_slug_count)
+
+    # Join slug -> cluster
+    cp = leftjoin(presence_df, slug_cluster_df, on=:slug)
+
+    # Safety: enforce no missing cluster_id after join
+    if any(ismissing, cp.cluster_id)
+        bad = unique(cp[ismissing.(cp.cluster_id), :slug])
+        error("cluster_presence: slugs missing cluster_id after join. Example: $(first(bad, min(length(bad), 10)))")
+    end
+
+    # Aggregate presence per (cluster, country, period)
+    cluster_presence_df =
+        combine(groupby(cp, [:cluster_id, :ident_ccode, :period]),
+                nrow => :present_slugs,
+                :nonmissing_obs => sum => :present_obs)
+
+    # Add cluster sizes
+    cluster_presence_df = leftjoin(cluster_presence_df, cluster_sizes_df, on=:cluster_id)
+
+    # Optional normalization features
+    cluster_presence_df[!, :present_slug_share] = cluster_presence_df.present_slugs ./ cluster_presence_df.cluster_slug_count
+
+    return cluster_presence_df, cluster_sizes_df
+end
+
+"""
+attach_environment_and_anchors(cluster_presence_df, miss_df, anchor_df)
+
+Returns cluster_presence_enriched_df
+"""
+function attach_environment_and_anchors(cluster_presence_df::DataFrame,
+                                        miss_df::DataFrame,
+                                        anchor_df::DataFrame)
+
+    x = leftjoin(cluster_presence_df, miss_df, on=[:ident_ccode, :period])
+    x = leftjoin(x, anchors_df, on=[:ident_ccode, :period])
+
+    # Diagnostics: you *expect* miss_df coverage for all (country,period) in your universe,
+    # but tolerate some missing anchors if stitched series has gaps.
+    return x
+end
+
+"""
+summarize_clusters(cluster_presence_enriched_df)
+
+Returns cluster_summary_df
+"""
+function summarize_clusters(x::DataFrame)
+    g = groupby(x, :cluster_id)
+
+    mmean(v) = mean(skipmissing(v))
+    mmedian(v) = median(skipmissing(v))
+
+    cluster_summary_df = combine(g,
+        nrow => :footprint_cells,
+        :ident_ccode => (v -> length(unique(v))) => :n_countries,
+        :period => (v -> length(unique(v))) => :n_periods,
+        :present_slugs => mmean => :mean_present_slugs,
+        :present_slug_share => mmean => :mean_present_slug_share,
+
+        :miss_global => mmean => :mean_miss_global,
+        :miss_regional => mmean => :mean_miss_regional,
+        :miss_global => mmedian => :median_miss_global,
+        :miss_regional => mmedian => :median_miss_regional,
+
+        # anchors_df fields
+        :log_pop_level => mmean => :mean_log_pop_level,
+        :log_pop_change => mmean => :mean_log_pop_change,
+        :log_gdp_level => mmean => :mean_log_gdp_level,
+        :log_gdp_change => mmean => :mean_log_gdp_change,
+        :dem_share => mmean => :mean_dem_share,
+        :dem_change => mmean => :mean_dem_change
+    )
+
+    # Optional: density proxy (cells / (countries * periods)) is NOT meaningful without a fixed universe,
+    # but you can compute it if you define that universe separately.
+    return cluster_summary_df
+end
+
+"""
+top_countries_by_cluster(x; topn=15)
+
+Returns a table: cluster_id, ident_ccode, country_cells, mean_slug_share
+"""
+function top_countries_by_cluster(x::DataFrame; topn::Int=15)
+    t = combine(groupby(x, [:cluster_id, :ident_ccode]),
+                nrow => :country_cells,
+                :present_slug_share => (v -> mean(skipmissing(v))) => :mean_slug_share)
+
+    sort!(t, [:cluster_id, :country_cells, :mean_slug_share], rev=true)
+
+    # Keep top N per cluster
+    return combine(groupby(t, :cluster_id)) do sdf
+        first(sdf, min(topn, nrow(sdf)))
+    end
+end
+
+"""
+period_coverage_by_cluster(x)
+
+Returns: cluster_id, period, cells, mean_slug_share
+"""
+function period_coverage_by_cluster(x::DataFrame)
+    t = combine(groupby(x, [:cluster_id, :period]),
+                nrow => :cells,
+                :present_slug_share => (v -> mean(skipmissing(v))) => :mean_slug_share)
+    sort!(t, [:cluster_id, :period])
+    return t
+end
+
+"""
+    join_audit(cluster_presence_df, miss_df, anchors_df)
+
+Audit helper for validating joins between cluster presence data and
+environment/anchor tables.
+
+This function performs left joins of `cluster_presence_df` with:
+
+1. `miss_df`      on (:ident_ccode, :period)
+2. `anchors_df`   on (:ident_ccode, :period)
+
+and reports how many rows lack matching environment or anchor data.
+
+This is intended as a lightweight diagnostic step to detect:
+
+• join key mismatches  
+• missing environment coverage  
+• missing anchor coverage  
+• unintended universe differences across tables  
+
+No mutation of inputs occurs.
+
+# Arguments
+- `cluster_presence_df::DataFrame`: Cluster presence table containing
+  `:ident_ccode` and `:period`.
+- `miss_df::DataFrame`: Missingness baseline table containing
+  `:ident_ccode`, `:period`, and `:miss_global`.
+- `anchors_df::DataFrame`: Anchor summary table containing
+  `:ident_ccode`, `:period`, and `:log_pop_level`.
+
+# Returns
+A NamedTuple with:
+
+- `miss_missing`    — number of rows with missing environment data
+- `miss_total`      — total rows after joining environment data
+- `anchors_missing` — number of rows with missing anchor data
+- `anchors_total`   — total rows after joining anchor data
+
+# Notes
+This audit assumes:
+
+• `miss_df` contains column `:miss_global`
+• `anchors_df` contains column `:log_pop_level`
+• `(ident_ccode, period)` uniquely identifies rows in both tables
+
+Unexpected increases in row counts typically indicate duplicate keys
+in the joined tables.
+
+# Usage
+audit = join_audit(cluster_presence_df, miss_df, anchors_df)
+
+"""
+function join_audit(cluster_presence_df::DataFrame, miss_df::DataFrame, anchors_df::DataFrame)
+    x = leftjoin(cluster_presence_df, miss_df, on=[:ident_ccode, :period])
+    y = leftjoin(cluster_presence_df, anchors_df, on=[:ident_ccode, :period])
+
+    miss_missing = sum(ismissing.(x.miss_global))  # assumes miss_global exists
+    anch_missing = sum(ismissing.(y.log_pop_level))  # assumes anchor exists
+
+    return (miss_missing=miss_missing,
+            miss_total=nrow(x),
+            anchors_missing=anch_missing,
+            anchors_total=nrow(y))
 end
