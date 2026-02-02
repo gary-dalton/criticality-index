@@ -1795,101 +1795,266 @@ function build_weighted_slug_graph(edges_und::AbstractDataFrame)
 end
 
 
+
 """
-cluster_presence(presence_df, slug_cluster_df)
+Constructs a cluster × (country, period) presence table from slug presence data.
 
-Returns (cluster_presence_df, cluster_sizes_df)
+Pipeline role:
+- Step 4A (Interpretation): convert slug-level presence rows into a cluster-level
+  footprint across (ident_ccode, period), with intensity measures.
 
-- cluster_presence_df: per (cluster, country, period) presence aggregates
-- cluster_sizes_df: per cluster total slug count (cluster size)
+Process:
+1) Join `presence_df` with `slug_cluster_df` on :slug.
+2) Aggregate by (:cluster_id, :ident_ccode, :period):
+   - present_slugs = count of present slug-rows in that cell
+   - present_obs   = sum(nonmissing_obs) in that cell
+3) Add cluster sizes and compute present_slug_share.
+
+Usage:
+    cluster_presence_df, audit = cluster_presence(presence_df, slug_cluster_df)
+
+Returns:
+- cluster_presence_df::DataFrame with columns:
+    :cluster_id, :ident_ccode, :period,
+    :present_slugs, :present_obs,
+    :cluster_slug_count, :present_slug_share
+- audit::NamedTuple diagnostics
+
+Arguments:
+- presence_df::DataFrame: must contain :slug, :ident_ccode, :period, :nonmissing_obs
+  (only “present” rows should exist, per your sparse rule)
+- slug_cluster_df::DataFrame: must contain :slug, :cluster_id
+
+Audit fields:
+- n_presence_rows
+- n_cluster_rows
+- n_join_rows
+- n_missing_cluster_id
+- n_cells (unique (cluster,country,period))
+- min_cluster_size, max_cluster_size
+
+Notes:
+- If any slugs lack cluster IDs, this function errors (by design).
 """
 function cluster_presence(presence_df::DataFrame, slug_cluster_df::DataFrame)
-    # Cluster sizes (useful later)
+    # cluster sizes
     cluster_sizes_df = combine(groupby(slug_cluster_df, :cluster_id),
                               nrow => :cluster_slug_count)
 
-    # Join slug -> cluster
+    # join slug -> cluster
     cp = leftjoin(presence_df, slug_cluster_df, on=:slug)
 
-    # Safety: enforce no missing cluster_id after join
-    if any(ismissing, cp.cluster_id)
+    n_missing_cluster = sum(ismissing.(cp.cluster_id))
+    if n_missing_cluster > 0
         bad = unique(cp[ismissing.(cp.cluster_id), :slug])
-        error("cluster_presence: slugs missing cluster_id after join. Example: $(first(bad, min(length(bad), 10)))")
+        error("cluster_presence: $(n_missing_cluster) rows missing cluster_id after join. Example slugs: $(first(bad, min(length(bad), 10)))")
     end
 
-    # Aggregate presence per (cluster, country, period)
+    # aggregate per cluster-cell
     cluster_presence_df =
         combine(groupby(cp, [:cluster_id, :ident_ccode, :period]),
                 nrow => :present_slugs,
                 :nonmissing_obs => sum => :present_obs)
 
-    # Add cluster sizes
+    # add cluster size and normalized intensity
     cluster_presence_df = leftjoin(cluster_presence_df, cluster_sizes_df, on=:cluster_id)
+    cluster_presence_df[!, :present_slug_share] =
+        cluster_presence_df.present_slugs ./ cluster_presence_df.cluster_slug_count
 
-    # Optional normalization features
-    cluster_presence_df[!, :present_slug_share] = cluster_presence_df.present_slugs ./ cluster_presence_df.cluster_slug_count
+    # audit
+    sizes = cluster_sizes_df.cluster_slug_count
+    audit = (n_presence_rows = nrow(presence_df),
+             n_cluster_rows = nrow(slug_cluster_df),
+             n_join_rows = nrow(cp),
+             n_missing_cluster_id = n_missing_cluster,
+             n_cells = nrow(cluster_presence_df),
+             min_cluster_size = isempty(sizes) ? missing : minimum(sizes),
+             max_cluster_size = isempty(sizes) ? missing : maximum(sizes))
 
-    return cluster_presence_df, cluster_sizes_df
+    return cluster_presence_df, audit
 end
 
 """
-attach_environment_and_anchors(cluster_presence_df, miss_df, anchor_df)
+Attaches missingness environment and anchor summaries to cluster presence cells.
 
-Returns cluster_presence_enriched_df
+Pipeline role:
+- Step 4B (Interpretation): enrich cluster footprint cells with:
+  - country-period environment (miss_global, miss_regional)
+  - anchor dynamics (log_pop_level/change, log_gdp_level/change, dem_share/change)
+
+Process:
+1) leftjoin(cluster_presence_df, miss_df) on (:ident_ccode, :period)
+2) leftjoin(result, anchors_df) on (:ident_ccode, :period)
+
+Usage:
+    enriched_df, audit = attach_environment_and_anchors(cluster_presence_df, miss_df, anchors_df)
+
+Returns:
+- enriched_df::DataFrame: cluster_presence_df plus miss_df and anchors_df columns
+- audit::NamedTuple diagnostics
+
+Arguments:
+- cluster_presence_df::DataFrame: must contain :ident_ccode, :period
+- miss_df::DataFrame: must contain :ident_ccode, :period, :miss_global, :miss_regional
+- anchors_df::DataFrame: must contain :ident_ccode, :period plus anchor columns:
+  :log_pop_level, :log_pop_change, :log_gdp_level, :log_gdp_change, :dem_share, :dem_change
+
+Audit fields:
+- n_in, n_after_miss, n_after_anchors
+- miss_dup_keys, anchors_dup_keys
+- missing_counts (for key joined columns)
+
+Notes:
+- If row counts increase after joins, investigate duplicate keys in miss_df / anchors_df.
 """
 function attach_environment_and_anchors(cluster_presence_df::DataFrame,
                                         miss_df::DataFrame,
-                                        anchor_df::DataFrame)
+                                        anchors_df::DataFrame)
+
+    miss_dup = _count_duplicate_keys(miss_df, [:ident_ccode, :period])
+    anch_dup = _count_duplicate_keys(anchors_df, [:ident_ccode, :period])
 
     x = leftjoin(cluster_presence_df, miss_df, on=[:ident_ccode, :period])
-    x = leftjoin(x, anchors_df, on=[:ident_ccode, :period])
+    y = leftjoin(x, anchors_df, on=[:ident_ccode, :period])
 
-    # Diagnostics: you *expect* miss_df coverage for all (country,period) in your universe,
-    # but tolerate some missing anchors if stitched series has gaps.
-    return x
+    # Schema presence check (robust to names() returning strings)
+    cols_y = Set(Symbol.(names(y)))
+    expected = Symbol[
+        :miss_global, :miss_regional,
+        :log_pop_level, :log_pop_change,
+        :log_gdp_level, :log_gdp_change,
+        :dem_share, :dem_change
+    ]
+    expected_present = Dict(s => (s in cols_y) for s in expected)
+
+    # Focused missingness diagnostics (signal columns)
+    cols_check = Symbol[:miss_global, :miss_regional, :log_pop_level, :log_gdp_level, :dem_share]
+    mc = _missing_counts(y, cols_check)
+
+    n = nrow(y)
+    mr = (;
+        (c => (mc[c] == -1 ? missing : mc[c] / n) for c in cols_check)...
+    )
+
+    key_types = (;
+        ident_ccode = eltype(cluster_presence_df.ident_ccode),
+        period = eltype(cluster_presence_df.period),
+        miss_ident_ccode = eltype(miss_df.ident_ccode),
+        miss_period = eltype(miss_df.period),
+        anchors_ident_ccode = eltype(anchors_df.ident_ccode),
+        anchors_period = eltype(anchors_df.period)
+    )
+
+    audit = (n_in = nrow(cluster_presence_df),
+             n_after_miss = nrow(x),
+             n_after_anchors = nrow(y),
+             miss_dup_keys = miss_dup,
+             anchors_dup_keys = anch_dup,
+             expected_present = expected_present,
+             missing_counts = mc,
+             missing_rates = mr,
+             key_types = key_types)
+
+    return y, audit
 end
 
 """
-summarize_clusters(cluster_presence_enriched_df)
+Computes per-cluster summary statistics for interpretation.
 
-Returns cluster_summary_df
+Pipeline role:
+- Step 4C (Interpretation): collapse cluster presence cells into per-cluster
+  applicability + environment + anchor signature.
+
+Required inputs:
+- A cluster presence table enriched with environment and anchors (recommended),
+  though the function will compute what it can based on available columns.
+
+Usage:
+    cluster_summary_df, audit = summarize_clusters(cluster_presence_enriched_df)
+
+Returns:
+- cluster_summary_df::DataFrame with columns (when available):
+    :cluster_id
+    :footprint_cells
+    :n_countries
+    :n_periods
+    :mean_present_slugs
+    :mean_present_slug_share
+    :mean_miss_global, :mean_miss_regional, :median_miss_global, :median_miss_regional
+    :mean_log_pop_level, :mean_log_pop_change
+    :mean_log_gdp_level, :mean_log_gdp_change
+    :mean_dem_share, :mean_dem_change
+- audit::NamedTuple diagnostics
+
+Arguments:
+- x::DataFrame: must contain :cluster_id, :ident_ccode, :period,
+  :present_slugs, :present_slug_share
+  Optional: miss/anchor columns as above
+
+Audit fields:
+- n_clusters
+- cluster_size_min, cluster_size_max (by footprint_cells)
 """
 function summarize_clusters(x::DataFrame)
     g = groupby(x, :cluster_id)
-
-    mmean(v) = mean(skipmissing(v))
-    mmedian(v) = median(skipmissing(v))
 
     cluster_summary_df = combine(g,
         nrow => :footprint_cells,
         :ident_ccode => (v -> length(unique(v))) => :n_countries,
         :period => (v -> length(unique(v))) => :n_periods,
-        :present_slugs => mmean => :mean_present_slugs,
-        :present_slug_share => mmean => :mean_present_slug_share,
+        :present_slugs => _safe_mean => :mean_present_slugs,
+        :present_slug_share => _safe_mean => :mean_present_slug_share,
 
-        :miss_global => mmean => :mean_miss_global,
-        :miss_regional => mmean => :mean_miss_regional,
-        :miss_global => mmedian => :median_miss_global,
-        :miss_regional => mmedian => :median_miss_regional,
+        # environment (if present)
+        :miss_global => _safe_mean => :mean_miss_global,
+        :miss_regional => _safe_mean => :mean_miss_regional,
+        :miss_global => _safe_median => :median_miss_global,
+        :miss_regional => _safe_median => :median_miss_regional,
 
-        # anchors_df fields
-        :log_pop_level => mmean => :mean_log_pop_level,
-        :log_pop_change => mmean => :mean_log_pop_change,
-        :log_gdp_level => mmean => :mean_log_gdp_level,
-        :log_gdp_change => mmean => :mean_log_gdp_change,
-        :dem_share => mmean => :mean_dem_share,
-        :dem_change => mmean => :mean_dem_change
+        # anchors (if present)
+        :log_pop_level => _safe_mean => :mean_log_pop_level,
+        :log_pop_change => _safe_mean => :mean_log_pop_change,
+        :log_gdp_level => _safe_mean => :mean_log_gdp_level,
+        :log_gdp_change => _safe_mean => :mean_log_gdp_change,
+        :dem_share => _safe_mean => :mean_dem_share,
+        :dem_change => _safe_mean => :mean_dem_change
     )
 
-    # Optional: density proxy (cells / (countries * periods)) is NOT meaningful without a fixed universe,
-    # but you can compute it if you define that universe separately.
-    return cluster_summary_df
+    fp = cluster_summary_df.footprint_cells
+    audit = (n_clusters = nrow(cluster_summary_df),
+             cluster_size_min = isempty(fp) ? missing : minimum(fp),
+             cluster_size_max = isempty(fp) ? missing : maximum(fp))
+
+    return cluster_summary_df, audit
 end
 
 """
-top_countries_by_cluster(x; topn=15)
+Ranks countries within each cluster by footprint and mean intensity.
 
-Returns a table: cluster_id, ident_ccode, country_cells, mean_slug_share
+Pipeline role:
+- Step 4D (Interpretation): for each cluster, show where it “lives” geographically.
+
+Computes per (cluster, ident_ccode):
+- country_cells: number of (country,period) cells where cluster is present
+- mean_slug_share: mean present_slug_share across those cells (intensity proxy)
+
+Usage:
+    top_countries_df, audit = top_countries_by_cluster(enriched_df; topn=15)
+
+Returns:
+- top_countries_df::DataFrame with columns:
+    :cluster_id, :ident_ccode, :country_cells, :mean_slug_share
+  containing top `topn` rows per cluster (or fewer if small).
+- audit::NamedTuple diagnostics
+
+Arguments:
+- x::DataFrame: must contain :cluster_id, :ident_ccode, :present_slug_share
+- topn::Int=15: number of top countries to keep per cluster
+
+Audit fields:
+- n_rows_in
+- n_rows_out
+- topn
 """
 function top_countries_by_cluster(x::DataFrame; topn::Int=15)
     t = combine(groupby(x, [:cluster_id, :ident_ccode]),
@@ -1898,86 +2063,172 @@ function top_countries_by_cluster(x::DataFrame; topn::Int=15)
 
     sort!(t, [:cluster_id, :country_cells, :mean_slug_share], rev=true)
 
-    # Keep top N per cluster
-    return combine(groupby(t, :cluster_id)) do sdf
+    top_countries_df = combine(groupby(t, :cluster_id)) do sdf
         first(sdf, min(topn, nrow(sdf)))
     end
+
+    audit = (n_rows_in = nrow(x),
+             n_rows_out = nrow(top_countries_df),
+             topn = topn)
+
+    return top_countries_df, audit
 end
 
 """
-period_coverage_by_cluster(x)
+Computes period coverage and mean intensity per cluster.
 
-Returns: cluster_id, period, cells, mean_slug_share
+Pipeline role:
+- Step 4D (Interpretation): show temporal signature of each cluster across fixed periods.
+
+Computes per (cluster, period):
+- cells: number of (country,period) cells where cluster is present
+- mean_slug_share: mean present_slug_share within that period
+
+Usage:
+    period_cov_df, audit = period_coverage_by_cluster(enriched_df)
+
+Returns:
+- period_cov_df::DataFrame with columns:
+    :cluster_id, :period, :cells, :mean_slug_share
+- audit::NamedTuple diagnostics
+
+Arguments:
+- x::DataFrame: must contain :cluster_id, :period, :present_slug_share
+
+Audit fields:
+- n_rows_in
+- n_rows_out
+- n_clusters
+- n_periods
 """
 function period_coverage_by_cluster(x::DataFrame)
     t = combine(groupby(x, [:cluster_id, :period]),
                 nrow => :cells,
                 :present_slug_share => (v -> mean(skipmissing(v))) => :mean_slug_share)
+
     sort!(t, [:cluster_id, :period])
-    return t
+
+    audit = (n_rows_in = nrow(x),
+             n_rows_out = nrow(t),
+             n_clusters = length(unique(t.cluster_id)),
+             n_periods = length(unique(t.period)))
+
+    return t, audit
 end
 
-"""
-    join_audit(cluster_presence_df, miss_df, anchors_df)
-
-Audit helper for validating joins between cluster presence data and
-environment/anchor tables.
-
-This function performs left joins of `cluster_presence_df` with:
-
-1. `miss_df`      on (:ident_ccode, :period)
-2. `anchors_df`   on (:ident_ccode, :period)
-
-and reports how many rows lack matching environment or anchor data.
-
-This is intended as a lightweight diagnostic step to detect:
-
-• join key mismatches  
-• missing environment coverage  
-• missing anchor coverage  
-• unintended universe differences across tables  
-
-No mutation of inputs occurs.
-
-# Arguments
-- `cluster_presence_df::DataFrame`: Cluster presence table containing
-  `:ident_ccode` and `:period`.
-- `miss_df::DataFrame`: Missingness baseline table containing
-  `:ident_ccode`, `:period`, and `:miss_global`.
-- `anchors_df::DataFrame`: Anchor summary table containing
-  `:ident_ccode`, `:period`, and `:log_pop_level`.
-
-# Returns
-A NamedTuple with:
-
-- `miss_missing`    — number of rows with missing environment data
-- `miss_total`      — total rows after joining environment data
-- `anchors_missing` — number of rows with missing anchor data
-- `anchors_total`   — total rows after joining anchor data
-
-# Notes
-This audit assumes:
-
-• `miss_df` contains column `:miss_global`
-• `anchors_df` contains column `:log_pop_level`
-• `(ident_ccode, period)` uniquely identifies rows in both tables
-
-Unexpected increases in row counts typically indicate duplicate keys
-in the joined tables.
-
-# Usage
-audit = join_audit(cluster_presence_df, miss_df, anchors_df)
 
 """
-function join_audit(cluster_presence_df::DataFrame, miss_df::DataFrame, anchors_df::DataFrame)
+Audits join coverage for environment and anchors against cluster presence.
+
+Performs left joins of `cluster_presence_df` with:
+1) `miss_df` on (:ident_ccode, :period)
+2) `anchors_df` on (:ident_ccode, :period)
+
+and returns counts of missing join results. Also detects duplicate key rows
+in the right-side tables, which can cause row-explosion in joins.
+
+Usage:
+    audit = join_audit(cluster_presence_df, miss_df, anchors_df)
+
+Returns:
+- NamedTuple with:
+    miss_missing::Int        # rows lacking miss_df match (via miss_global missing)
+    miss_total::Int          # total rows after joining miss_df (should equal nrow(cluster_presence_df) unless miss_df has dup keys)
+    anchors_missing::Int     # rows lacking anchors_df match (via log_pop_level missing)
+    anchors_total::Int       # total rows after joining anchors_df
+    miss_dup_keys::Int       # duplicate key rows in miss_df for (ident_ccode, period)
+    anchors_dup_keys::Int    # duplicate key rows in anchors_df for (ident_ccode, period)
+
+Arguments:
+- cluster_presence_df::DataFrame: must contain :ident_ccode, :period
+- miss_df::DataFrame: must contain :ident_ccode, :period, :miss_global
+- anchors_df::DataFrame: must contain :ident_ccode, :period, :log_pop_level
+
+Notes:
+- This audit assumes :miss_global and :log_pop_level are the primary “match signals”.
+  If those can be missing even when matched, replace with a stricter match test.
+"""
+function join_audit(cluster_presence_df::DataFrame,
+                    miss_df::DataFrame,
+                    anchors_df::DataFrame)
+
+    miss_dup = _count_duplicate_keys(miss_df, [:ident_ccode, :period])
+    anch_dup = _count_duplicate_keys(anchors_df, [:ident_ccode, :period])
+
     x = leftjoin(cluster_presence_df, miss_df, on=[:ident_ccode, :period])
     y = leftjoin(cluster_presence_df, anchors_df, on=[:ident_ccode, :period])
 
-    miss_missing = sum(ismissing.(x.miss_global))  # assumes miss_global exists
-    anch_missing = sum(ismissing.(y.log_pop_level))  # assumes anchor exists
+    miss_missing = (:miss_global ∈ names(x)) ? sum(ismissing.(x.miss_global)) : -1
+    anch_missing = (:log_pop_level ∈ names(y)) ? sum(ismissing.(y.log_pop_level)) : -1
 
-    return (miss_missing=miss_missing,
-            miss_total=nrow(x),
-            anchors_missing=anch_missing,
-            anchors_total=nrow(y))
+    return (miss_missing = miss_missing,
+            miss_total = nrow(x),
+            anchors_missing = anch_missing,
+            anchors_total = nrow(y),
+            miss_dup_keys = miss_dup,
+            anchors_dup_keys = anch_dup)
+end
+
+"""
+Counts duplicate key rows in df for a given set of join keys.
+
+Usage:
+    ndup = _count_duplicate_keys(df, [:ident_ccode, :period])
+Returns:
+- Int: Number of rows that are duplicates beyond the first occurrence per key
+
+Arguments:
+- df::DataFrame
+- keys::Vector{Symbol}
+"""
+function _count_duplicate_keys(df::DataFrame, keys::Vector{Symbol})
+    isempty(df) && return 0
+    g = groupby(df, keys)
+    return sum(max(0, nrow(sdf) - 1) for sdf in g)
+end
+
+"""
+Returns a compact missingness count for selected columns.
+
+Usage:
+    m = _missing_counts(df, [:miss_global, :log_pop_level])
+Returns:
+- NamedTuple: (col => n_missing, ...)
+
+Arguments:
+- df::DataFrame
+- cols::Vector{Symbol}
+"""
+function _missing_counts(df::DataFrame, cols::Vector{Symbol})
+    dfcols = Set(Symbol.(names(df)))  # normalize
+    out = Dict{Symbol, Int}()
+
+    for c in cols
+        if c in dfcols
+            out[c] = sum(ismissing.(df[!, c]))
+        else
+            out[c] = -1
+        end
+    end
+
+    return (; out...)
+end
+
+
+"""
+Safe mean over a vector that may be all-missing.
+Returns `missing` if there are no non-missing values.
+"""
+_safe_mean(v) = begin
+    w = collect(skipmissing(v))
+    isempty(w) ? missing : mean(w)
+end
+
+"""
+Safe median over a vector that may be all-missing.
+Returns `missing` if there are no non-missing values.
+"""
+_safe_median(v) = begin
+    w = collect(skipmissing(v))
+    isempty(w) ? missing : median(w)
 end
