@@ -224,7 +224,7 @@ const TEMPORAL_THRESHOLDS = (
 Geographic coverage thresholds for global/regional classification.
 """
 const GLOBAL_PENETRATION_UPPER_BOUND   = 0.95
-const REGIONAL_PENETRATION_UPPER_BOUND = 0.95
+const REGIONAL_PENETRATION_UPPER_BOUND = 0.80
 const REGIONAL_PENETRATION_LOWER_BOUND = 0.05
 const REGIONAL_EXCLUSION_TOLERANCE     = 3   # "all but at most 3 regions"
 const TOTAL_REGIONS_COUNT              = 10  # Total QoG regions

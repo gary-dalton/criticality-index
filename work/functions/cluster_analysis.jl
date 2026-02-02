@@ -56,6 +56,10 @@ const DEFAULT_PERIODS = [
     (name = "P4", lo = 2015, hi = 2023),
 ]
 
+const REGIONAL_PENETRATION_UPPER_BOUND = 0.95
+const REGIONAL_EXCLUSION_TOLERANCE     = 3
+const TOTAL_REGIONS_COUNT              = 10
+
 # ==============================================================================
 # DATA LOADING
 # ==============================================================================
@@ -988,44 +992,130 @@ function build_country_period_missingness_baseline_df(
     periods::Vector{<:NamedTuple} = DEFAULT_PERIODS,
     verbose::Bool = true
 )::DataFrame
+    # --- Step 2A: compute (country, period) missingness baselines ---
+    # Global baseline: average missrate across slugs tagged "global" (existing behavior).
+    # Regional baseline: average missrate across slugs tagged "regional" that are applicable
+    # to the country's region AND alive during the period (birth/death overlap), with a
+    # concentration constraint (strong in ≤ REGIONAL_EXCLUSION_TOLERANCE regions).
+
     period_names = [p.name for p in periods]
-    global_slugs  = slugs_by_geo(meta_df, "global")
+    global_slugs   = slugs_by_geo(meta_df, "global")
     regional_slugs = slugs_by_geo(meta_df, "regional")
+
+    # Required for regional baselines
+    (:ggis_region in propertynames(country_features_df)) || error("country_features_df must include :ggis_region for regional baselines")
 
     # Keep only slugs that actually have missrate columns in country_features_df
     df_cols = Set(Symbol.(names(country_features_df)))
 
+    # --------------------------------------------------------------------------
+    # Helpers (local)
+    # --------------------------------------------------------------------------
+    _as_string(x) = ismissing(x) ? "" : string(x)
+
+    function _parse_region_penetration(x)::Union{Missing, Vector{Float64}}
+        ismissing(x) && return missing
+        s = strip(_as_string(x))
+        isempty(s) && return missing
+        s = replace(s, "[" => "", "]" => "")
+        parts = split(s, ",")
+        vals = Float64[]
+        for p in parts
+            t = strip(p)
+            isempty(t) && continue
+            push!(vals, parse(Float64, t))
+        end
+        length(vals) == TOTAL_REGIONS_COUNT || return missing
+        return vals
+    end
+
+    function _alive_in_period(birth_year, death_year, lo::Int, hi::Int)::Bool
+        # Overlap rule: [birth, death] overlaps [lo, hi]
+        by = ismissing(birth_year) ? -typemax(Int) : Int(round(birth_year))
+        dy = ismissing(death_year) ?  typemax(Int) : Int(round(death_year))
+        return (by <= hi) && (dy >= lo)
+    end
+
+    # Build a lookup: slug => (penetration_vec, birth_year, death_year, strong_region_count)
+    regional_meta = Dict{String, NamedTuple{(:pen,:by,:dy,:nstrong), Tuple{Union{Missing,Vector{Float64}}, Any, Any, Int}}}()
+    if (:slug in propertynames(meta_df)) && (:ggis_region_penetration in propertynames(meta_df))
+        for row in eachrow(meta_df)
+            geo = hasproperty(row, :ggis_geo_classification) ? lowercase(_as_string(getproperty(row, :ggis_geo_classification))) : ""
+            geo == "regional" || continue
+            slug = _as_string(getproperty(row, :slug))
+            pen  = _parse_region_penetration(getproperty(row, :ggis_region_penetration))
+            by   = hasproperty(row, :ggis_birth_year) ? getproperty(row, :ggis_birth_year) : missing
+            dy   = hasproperty(row, :ggis_death_year) ? getproperty(row, :ggis_death_year) : missing
+            if ismissing(pen)
+                regional_meta[slug] = (pen=missing, by=by, dy=dy, nstrong=0)
+            else
+                nstrong = count(>=(REGIONAL_PENETRATION_UPPER_BOUND), pen)
+                regional_meta[slug] = (pen=pen, by=by, dy=dy, nstrong=nstrong)
+            end
+        end
+    else
+        error("meta_df must include :slug and :ggis_region_penetration to build regional pools")
+    end
+
+    # --------------------------------------------------------------------------
+    # Precompute missrate columns by period for global slugs (existing behavior)
+    # --------------------------------------------------------------------------
     global_cols_by_period = Dict{String, Vector{Symbol}}()
-    regional_cols_by_period = Dict{String, Vector{Symbol}}()
     for pname in period_names
         gcols = Symbol[]
-        rcols = Symbol[]
         for s in global_slugs
             c = Symbol(string(s, "__", pname, "_missrate"))
             c in df_cols && push!(gcols, c)
         end
-        for s in regional_slugs
-            c = Symbol(string(s, "__", pname, "_missrate"))
-            c in df_cols && push!(rcols, c)
-        end
         global_cols_by_period[pname] = gcols
-        regional_cols_by_period[pname] = rcols
     end
 
+    # --------------------------------------------------------------------------
+    # Precompute regional pools as missrate columns by (period, region)
+    # --------------------------------------------------------------------------
+    regions_present = unique(Int.(country_features_df[!, :ggis_region]))
+    regional_cols_by_period_region = Dict{String, Dict{Int, Vector{Symbol}}}()
+    for (pi, pname) in enumerate(period_names)
+        # find this period bounds
+        p = periods[pi]
+        lo = Int(p.lo); hi = Int(p.hi)
+
+        per_region = Dict{Int, Vector{Symbol}}()
+        for r in regions_present
+            cols = Symbol[]
+            for s in regional_slugs
+                meta = get(regional_meta, _as_string(s), nothing)
+                meta === nothing && continue
+                ismissing(meta.pen) && continue
+                meta.nstrong <= REGIONAL_EXCLUSION_TOLERANCE || continue
+                meta.pen[r] >= REGIONAL_PENETRATION_UPPER_BOUND || continue
+                _alive_in_period(meta.by, meta.dy, lo, hi) || continue
+
+                c = Symbol(string(s, "__", pname, "_missrate"))
+                c in df_cols && push!(cols, c)
+            end
+            per_region[r] = cols
+        end
+        regional_cols_by_period_region[pname] = per_region
+    end
+
+    # --------------------------------------------------------------------------
     # Build long output
-    out_ccode = Int[]
+    # --------------------------------------------------------------------------
+    out_ccode  = Int[]
     out_period = String[]
     out_miss_g = Vector{Union{Missing, Float64}}()
     out_miss_r = Vector{Union{Missing, Float64}}()
-    out_ng = Int[]
-    out_nr = Int[]
+    out_ng     = Int[]
+    out_nr     = Int[]
 
-    ccodes = country_features_df[!, :ident_ccode]
+    ccodes  = country_features_df[!, :ident_ccode]
+    cregion = Int.(country_features_df[!, :ggis_region])
     n_c = length(ccodes)
 
-    for (pi, pname) in enumerate(period_names)
+    for pname in period_names
         gcols = global_cols_by_period[pname]
-        rcols = regional_cols_by_period[pname]
+        rmap  = regional_cols_by_period_region[pname]
 
         for i in 1:n_c
             push!(out_ccode, Int(ccodes[i]))
@@ -1046,7 +1136,10 @@ function build_country_period_missingness_baseline_df(
                 push!(out_ng, k)
             end
 
-            # Regional baseline missingness (avg across applicable regional missrate cols, ignoring missing)
+            # Regional baseline missingness: region-specific pool for this country
+            r = cregion[i]
+            rcols = get(rmap, r, Symbol[])
+
             if isempty(rcols)
                 push!(out_miss_r, missing); push!(out_nr, 0)
             else
@@ -1058,7 +1151,8 @@ function build_country_period_missingness_baseline_df(
                     end
                 end
                 push!(out_miss_r, k == 0 ? missing : (s / k))
-                push!(out_nr, k)
+                # NOTE: n_regional_used is the size of the (period, region) slug pool (varies by region & period)
+                push!(out_nr, length(rcols))
             end
         end
     end
@@ -1083,12 +1177,13 @@ function build_country_period_missingness_baseline_df(
         for pname in period_names
             println("  ", pname, ": ", length(global_cols_by_period[pname]))
         end
-        println("Regional missrate columns found (by period):")
+        println("Regional pool sizes (by period, region):")
         for pname in period_names
-            println("  ", pname, ": ", length(regional_cols_by_period[pname]))
+            rmap = regional_cols_by_period_region[pname]
+            for r in sort(collect(keys(rmap)))
+                println("  ", pname, "  r=", r, "  n=", length(rmap[r]))
+            end
         end
-        println("Example global slugs:   ", join(first(global_slugs, min(10, length(global_slugs))), ", "))
-        println("Example regional slugs: ", join(first(regional_slugs, min(10, length(regional_slugs))), ", "))
         println("="^72 * "\n")
     end
 
