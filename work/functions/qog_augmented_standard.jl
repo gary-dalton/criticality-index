@@ -7,6 +7,8 @@
 # 3. [src]_ : Analytical Sensors (Source Observations - e.g., wdi_, vdem_).
 # 
 # Note: ht_region remains prefix-free as the primary Anchor Cluster.
+#
+# File: qog_augmented_standard.jl
 # ==============================================================================
 
 using Arrow
@@ -66,6 +68,9 @@ const PATH_ARROW_SLUGS = "data/ggis_arrow_slugs.csv"
 """Path to extracted PDF slugs CSV (all QoG codes form Section 4.*)."""
 const PATH_PDF_SLUGS = "./data/qog_slugs.csv"
 
+"""CSV geographic lookup table for mapping QoG country codes to UN Subregion codes."""
+const PATH_GEO_LOOKUP = joinpath(PATH_DATA_DIR, "ggis_geographic_lookup.csv")
+
 
 # --- Source URLs ---
 
@@ -112,6 +117,10 @@ const REGION_LABELS = DataFrame(
     ]
 )
 
+# Define manual mappings for historical/non-UN entities
+const GHOST_REGION_MAP = Dict(
+    9156 => (name = "Tibet", code = 145) # Eastern Asia
+)
 
 # --- Identity Mapping ---
 
@@ -1865,6 +1874,63 @@ end
 
 
 """
+Injects a geographic sub-region coordinate into the QoG time-series using the UN M49 standard.
+
+This function acts as a Phase 0 saturation gate. It maps every observation to a UN sub-region 
+code under the `ggis_` namespace. It relies on the global `GHOST_REGION_MAP` to resolve 
+historical or non-standard entities (e.g., Tibet 9156) that are absent from modern UN lookups.
+
+Usage:
+    df_ungeo = apply_georegion_layer(df, geo_df)
+
+# Arguments
+- `df::DataFrame`: The rescued QoG time-series containing `ident_ccode`.
+- `geo_df::DataFrame`: The geographic lookup table containing `ident_ccode` and `un_subregion_code`.
+
+# Returns
+- `df_enriched::DataFrame`: A copy of the input DataFrame with the added `:ggis_un_subregion_code` column.
+
+# Invariants
+- **Immutability:** The input `df` is not modified in-place.
+- **Saturation:** Every row MUST resolve to a sub-region code; otherwise, a `Phase 0 Failure` error is thrown.
+- **Namespace:** The raw `un_subregion_code` is dropped to prevent collision with engineered `ggis_` variables.
+"""
+function apply_georegion_layer(df::DataFrame, geo_df::DataFrame)
+    df_enriched = copy(df)
+    
+    # 1. Standard Join
+    map_ref = select(geo_df, [:ident_ccode, :un_subregion_code])
+    df_enriched = leftjoin(df_enriched, map_ref, on = :ident_ccode)
+    
+    # 2. Mapping Function with corrected key
+    function resolve_code(ccode, un_code)
+        if !ismissing(ccode) && haskey(GHOST_REGION_MAP, ccode)
+            return Int64(GHOST_REGION_MAP[ccode].code)
+        end
+        return un_code
+    end
+    
+    df_enriched[!, :ggis_un_subregion_code] = map(
+        (c, u) -> resolve_code(c, u), 
+        df_enriched.ident_ccode, 
+        df_enriched.un_subregion_code
+    )
+    
+    # 3. Final Verification
+    missing_indices = findall(ismissing, df_enriched.ggis_un_subregion_code)
+    if !isempty(missing_indices)
+        bad_entities = unique(df_enriched[missing_indices, [:ident_ccode, :ident_cname]])
+        @error "Phase 0 Failure: Spine not saturated." Unmapped=bad_entities
+        error("Process Halted.")
+    end
+    
+    select!(df_enriched, Not(:un_subregion_code))
+    println("✅ Phase 0: 100% Saturation. All rows mapped to UN Sub-regions.")
+    return df_enriched
+end
+
+
+"""
 Comprehensive loader for QoG time-series data with full processing pipeline. Executes the complete data preparation workflow: load raw Arrow with rowid assignment, preview rescue collisions (optional), apply historical ccode rescue, standardize regions, report coverage diagnostics, and list orphan entities.
 Usage:
     df = load_qog_timeseries()
@@ -1902,7 +1968,8 @@ Notes:
 function load_qog_timeseries(timeseries_path::AbstractString=PATH_TS_RAW; 
                              preview_collisions::Bool=true,
                              show_collision_years::Bool=true,
-                             verbose::Bool=true)
+                             verbose::Bool=true,
+                             geo_lookup_path::AbstractString=PATH_GEO_LOOKUP)
     
     println("="^80)
     println("QoG Time-Series Loader Pipeline")
@@ -1976,12 +2043,17 @@ function load_qog_timeseries(timeseries_path::AbstractString=PATH_TS_RAW;
     end
     
     # -------------------------------------------------------------------------
-    # Final summary
+    # Step 6: Apply UN geographic sub-region layer
     # -------------------------------------------------------------------------
+    println(">>> Step 6: Applying UN geographic sub-region layer...")
+    geo_df = CSV.read(geo_lookup_path, DataFrame)
+    df_final = apply_georegion_layer(df_regions, geo_df)
+    println()
+    # Final summary
     println("="^80)
     println("Pipeline Complete!")
     println("="^80)
-    println("Output DataFrame: $(nrow(df_regions)) rows × $(ncol(df_regions)) columns")
+    println("Output DataFrame: $(nrow(df_final)) rows × $(ncol(df_final)) columns")
     println()
     println("Key columns:")
     println("  - ggis_rowid:          Unique row identifier")
@@ -1990,12 +2062,12 @@ function load_qog_timeseries(timeseries_path::AbstractString=PATH_TS_RAW;
     println("  - ggis_region:         Standardized region (1-6)")
     println("  - ggis_ccode_rescued:  Historical rescue flag")
     println("  - ggis_spine_collision: Duplicate spine flag")
+    println("  - ggis_un_subregion_code: UN sub-region code")
     println()
     println("Ready for analysis! 🚀")
     println("="^80)
     println()
-    
-    return df_regions
+    return df_final
 end
 
 
