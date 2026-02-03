@@ -225,8 +225,8 @@ Geographic coverage thresholds for global/regional classification.
 """
 const GLOBAL_PENETRATION_UPPER_BOUND   = 0.95
 const REGIONAL_PENETRATION_UPPER_BOUND = 0.80
-const REGIONAL_PENETRATION_LOWER_BOUND = 0.05
-const REGIONAL_EXCLUSION_TOLERANCE     = 3   # "all but at most 3 regions"
+const REGIONAL_PENETRATION_LOWER_BOUND = 0.10
+const REGIONAL_EXCLUSION_TOLERANCE     = 4  # "all but at most 3 regions"
 const TOTAL_REGIONS_COUNT              = 10  # Total QoG regions
 
 # ============================================================================
@@ -299,6 +299,36 @@ function compute_regional_country_universe(df::DataFrame)
     
     return regional_universe
 end
+
+"""
+    find_peak_year(df::DataFrame, slug_sym::Symbol)
+
+Identifies the year with the maximum number of non-missing observations for a slug.
+Used to classify geographic intent at the variable's most robust data point.
+
+Arguments:
+- df::DataFrame: Main timeseries DataFrame
+- slug_sym::Symbol: Variable slug to analyze
+
+Returns:
+- Int or Nothing: The year with maximum reporting, or nothing if no data exists.
+"""
+function find_peak_year(df::DataFrame, slug_sym::Symbol)
+    # Group by year and count non-missing values for the slug [cite: 30]
+    counts_by_year = combine(groupby(df, :ident_year), 
+        slug_sym => (x -> sum(.!ismissing.(x))) => :count)
+    
+    max_val, max_idx = findmax(counts_by_year.count)
+    
+    # If the maximum count is 0, the variable has no data in the timeseries [cite: 7]
+    if max_val == 0
+        return nothing
+    end
+    
+    return counts_by_year.ident_year[max_idx]
+end
+
+
 
 """
 Computes global population penetration for a single slug at its death year.
@@ -430,18 +460,19 @@ function classify_geographic_profile(
 end
 
 """
-Computes geographic coverage metrics for all variables based on their empirical death year.
+Computes geographic coverage metrics for all variables based on their peak reporting year.
 
 Arguments:
-- df::DataFrame: Main timeseries DataFrame (must have :ident_year, :wpp_pop, :ggis_region)
-- lifespan_df::DataFrame: Lifespan audit results (must have :slug and :ggis_death_year)
+- df::DataFrame: Main timeseries DataFrame (must have :ident_year, :wpp_pop, :ggis_region) [cite: 37]
+- lifespan_df::DataFrame: Lifespan audit results (must have :slug) [cite: 37]
 
 Returns:
-- DataFrame: Results with columns [slug, ggis_global_penetration, ggis_geo_classification, ggis_region_penetration]
+- DataFrame: Results with columns [slug, ggis_peak_year, ggis_global_penetration, 
+             ggis_geo_classification, ggis_region_penetration] [cite: 37]
 
 Notes:
-- ggis_region_penetration is a Vector{Float64} of length TOTAL_REGIONS_COUNT
-- Prints classification summary to console
+- Uses find_peak_year to avoid recency bias from reporting lags 
+- ggis_region_penetration is stored as a copy to ensure data isolation [cite: 42]
 """
 function compute_geographic_coverage(df::DataFrame, lifespan_df::DataFrame)
     # Validation
@@ -451,59 +482,57 @@ function compute_geographic_coverage(df::DataFrame, lifespan_df::DataFrame)
         error("DataFrame missing required columns for geographic coverage: $missing_cols")
     end
     
-    if !(:slug in propertynames(lifespan_df)) || !(:ggis_death_year in propertynames(lifespan_df))
-        error("lifespan_df must contain :slug and :ggis_death_year columns")
-    end
-    
     println("\n>>> Computing Geographic Coverage (Step 8)")
+    println("    Method: Peak Year Analysis")
     println("    Global Threshold:   ≥ $(GLOBAL_PENETRATION_UPPER_BOUND)")
-    println("    Regional Threshold: ≥ $(REGIONAL_PENETRATION_UPPER_BOUND) (Core) AND ≤ $(REGIONAL_PENETRATION_LOWER_BOUND) (Exclusion in $(TOTAL_REGIONS_COUNT - REGIONAL_EXCLUSION_TOLERANCE)+ regions)")
+    println("    Regional Threshold: ≥ $(REGIONAL_PENETRATION_UPPER_BOUND)")
     
-    # Pre-compute denominators once
+    # Pre-compute denominators once [cite: 39]
     println("    Pre-computing geographic universes...")
     global_pop_universe = compute_global_population_universe(df)
     regional_universe = compute_regional_country_universe(df)
-    
-    # Prepare results DataFrame
+   
+    # Prepare results DataFrame [cite: 39]
     results = DataFrame(
         slug = String[],
+        ggis_peak_year = Union{Int, Nothing}[],
         ggis_global_penetration = Float64[],
         ggis_geo_classification = Symbol[],
         ggis_region_penetration = Vector{Float64}[]
     )
     
-    # Process each slug
-    total_slugs = nrow(lifespan_df)
-    
-    for (i, row) in enumerate(eachrow(lifespan_df))
+    for row in eachrow(lifespan_df)
         slug_sym = Symbol(row.slug)
-        target_year = row.ggis_death_year
-        
-        # Check if slug exists in df
         if !(slug_sym in propertynames(df))
             continue
         end
         
-        # Compute global penetration
-        global_pen = compute_global_penetration(df, slug_sym, target_year, global_pop_universe)
+        # Determine the year of maximum data density 
+        target_year = find_peak_year(df, slug_sym)
         
-        # Compute regional penetrations
+        if isnothing(target_year)
+            continue
+        end
+        
+        # Compute penetrations specifically at that peak year [cite: 41]
+        global_pen = compute_global_penetration(df, slug_sym, target_year, global_pop_universe)
         regional_pens = compute_regional_penetrations(df, slug_sym, target_year, regional_universe)
         
-        # Classify geographic profile
+        # Classify geographic profile based on peak performance [cite: 41]
         classification = classify_geographic_profile(global_pen, regional_pens)
         
-        # Store results
+        # Store results with a copy of the vector to avoid reference bugs [cite: 42]
         push!(results, (
             slug = row.slug,
+            ggis_peak_year = target_year,
             ggis_global_penetration = global_pen,
             ggis_geo_classification = classification,
-            ggis_region_penetration = regional_pens
+            ggis_region_penetration = copy(regional_pens)
         ))
     end
     
-    # Print summary
-    println("\n>>> Geographic Classification Summary")
+    # Print summary [cite: 43]
+    println("\n>>> Geographic Classification Summary (Peak-Based)")
     summary = combine(groupby(results, :ggis_geo_classification), nrow => :count)
     sort!(summary, :count, rev=true)
     for row in eachrow(summary)
@@ -515,28 +544,27 @@ end
 
 """
 Enriches the metadata DataFrame with geographic coverage metrics for each variable.
+Utilizes peak-year analysis to determine the geographic nature of the data.
 
 Arguments:
-- enriched_df::DataFrame: Metadata DataFrame already enriched with temporal lifespan
+- enriched_df::DataFrame: Metadata DataFrame already enriched with temporal lifespan [cite: 44]
 
 Returns:
-- DataFrame: enriched_df with new columns [ggis_global_penetration, ggis_geo_classification, ggis_region_penetration]
+- DataFrame: enriched_df with new columns [ggis_peak_year, ggis_global_penetration, 
+             ggis_geo_classification, ggis_region_penetration] [cite: 44]
 """
 function enrich_metadata_with_geographic_coverage(enriched_df::DataFrame)
-    # Extract lifespan data needed for geographic computation
-    lifespan_cols = [:slug, :ggis_death_year]
-    missing_cols = setdiff(lifespan_cols, propertynames(enriched_df))
-    
-    if !isempty(missing_cols)
-        error("enriched_df must contain temporal lifespan columns: $missing_cols. Run enrich_metadata_with_lifespan() first.")
+    if !(:slug in propertynames(enriched_df))
+        error("enriched_df must contain :slug column. Run enrich_metadata_with_lifespan() first.")
     end
     
-    lifespan_data = enriched_df[:, lifespan_cols]
+    # Passing only slugs as compute_geographic_coverage now finds the peak year internally [cite: 45]
+    lifespan_data = select(enriched_df, :slug)
     
-    # Compute geographic coverage
+    # Compute geographic coverage [cite: 45]
     geo_audit_df = compute_geographic_coverage(df, lifespan_data)
     
-    # Join back to enriched metadata
+    # Join back to enriched metadata [cite: 45]
     enriched_with_geo = leftjoin(enriched_df, geo_audit_df, on=:slug)
     
     return enriched_with_geo
