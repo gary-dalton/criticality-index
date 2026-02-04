@@ -43,6 +43,7 @@ const PATH_DATA_DIR = "data/"
 
 """Arrow-converted QoG Standard Time-Series (primary raw time-series input after conversion)."""
 const PATH_TS_RAW = "data/qog_std_ts_jan25.arrow"
+const PATH_TS_RAW_AUG = "data/qog_std_ts_jan25_aug.arrow"
 
 """DEPRECATED: CSV adjunct: per-row validity flag(s) used to mask/ignore structurally invalid observations."""
 const PATH_VALIDITY_MASK = "data/ggis_validity_mask.csv"
@@ -1969,7 +1970,8 @@ function load_qog_timeseries(timeseries_path::AbstractString=PATH_TS_RAW;
                              preview_collisions::Bool=true,
                              show_collision_years::Bool=true,
                              verbose::Bool=true,
-                             geo_lookup_path::AbstractString=PATH_GEO_LOOKUP)
+                             geo_lookup_path::AbstractString=PATH_GEO_LOOKUP,
+                             force_rebuild::Bool=false)
     
     println("="^80)
     println("QoG Time-Series Loader Pipeline")
@@ -1983,12 +1985,30 @@ function load_qog_timeseries(timeseries_path::AbstractString=PATH_TS_RAW;
     println(">>> Step 1/5: Loading raw data with identity promotion...")
     df_ident = load_raw_ident(timeseries_path)
     println("    Loaded: $(nrow(df_ident)) rows × $(ncol(df_ident)) columns")
+    if isfile(PATH_TS_RAW_AUG) && !force_rebuild
+        println("="^80)
+        println("QoG Time-Series Loader Pipeline")
+        println("="^80)
+        println("Detected pre-augmented Arrow file: $(PATH_TS_RAW_AUG)")
+        println("Loading augmented data directly...")
+        df_final = Arrow.Table(PATH_TS_RAW_AUG) |> DataFrame
+        println("Loaded: $(nrow(df_final)) rows × $(ncol(df_final)) columns")
+        println("="^80)
+        return df_final
+    end
+    # ...existing code...
+    println("="^80)
+    println("QoG Time-Series Loader Pipeline")
+    println("="^80)
+    println("Input: $timeseries_path")
+    println()
+    # Step 1: Load with rowid assignment
+    println(">>> Step 1/5: Loading raw data with identity promotion...")
+    df_ident = load_raw_ident(timeseries_path)
+    println("    Loaded: $(nrow(df_ident)) rows × $(ncol(df_ident)) columns")
     println("    ✓ ggis_rowid assigned")
     println()
-    
-    # -------------------------------------------------------------------------
     # Step 2: Preview rescue collisions
-    # -------------------------------------------------------------------------
     if preview_collisions
         println(">>> Step 2/5: Previewing rescue collisions...")
         collision_preview = preview_rescue_collisions(df_ident; show_years=show_collision_years)
@@ -2003,36 +2023,24 @@ function load_qog_timeseries(timeseries_path::AbstractString=PATH_TS_RAW;
         println(">>> Step 2/5: Skipping collision preview")
         println()
     end
-    
-    # -------------------------------------------------------------------------
     # Step 3: Apply rescue
-    # -------------------------------------------------------------------------
     println(">>> Step 3/5: Rescuing historical ccodes...")
     df_rescued = rescue_historical_ccodes(df_ident; verbose=verbose)
     println()
-    
-    # -------------------------------------------------------------------------
     # Step 4: Standardize regions
-    # -------------------------------------------------------------------------
     println(">>> Step 4/5: Standardizing regions...")
     df_regions = standardize_regions(df_rescued; verbose=verbose)
     println()
-    
-    # -------------------------------------------------------------------------
     # Step 5: Coverage diagnostics and orphan report
-    # -------------------------------------------------------------------------
     println(">>> Step 5/5: Coverage diagnostics...")
     n_total = nrow(df_regions)
     n_missing = count(ismissing, df_regions.ggis_region)
     n_assigned = n_total - n_missing
     coverage_pct = round(100 * n_assigned / n_total, digits=2)
-    
     println("    Total rows: $n_total")
     println("    Regions assigned: $n_assigned ($coverage_pct%)")
     println("    Missing regions: $n_missing")
     println()
-    
-    # List orphans if any
     if n_missing > 0
         println(">>> Orphan entities (no region assignment):")
         orphans = list_region_orphans(df_regions)
@@ -2041,10 +2049,7 @@ function load_qog_timeseries(timeseries_path::AbstractString=PATH_TS_RAW;
         println(">>> ✓ No orphan entities — full region coverage achieved!")
         println()
     end
-    
-    # -------------------------------------------------------------------------
-    # Step 6: Apply UN geographic sub-region layer
-    # -------------------------------------------------------------------------
+    # Step 6: Apply geographic sub-region layer
     println(">>> Step 6: Applying UN geographic sub-region layer...")
     geo_df = CSV.read(geo_lookup_path, DataFrame)
     df_final = apply_georegion_layer(df_regions, geo_df)
@@ -2060,6 +2065,18 @@ function load_qog_timeseries(timeseries_path::AbstractString=PATH_TS_RAW;
     println("  - ident_ccode:         Country code (with historical rescue)")
     println("  - ident_year:          Year")
     println("  - ggis_region:         Standardized region (1-6)")
+    println("  - ggis_ccode_rescued:  Historical rescue flag")
+    println("  - ggis_spine_collision: Duplicate spine flag")
+    println("  - ggis_un_subregion_code: UN sub-region code")
+    println()
+    println("Ready for analysis! 🚀")
+    println("="^80)
+    println()
+    println("To save this augmented DataFrame for fast future loads, run:")
+    println("    using Arrow")
+    println("    Arrow.write(\"$(PATH_TS_RAW_AUG)\", df_final)")
+    println("="^80)
+    return df_final
     println("  - ggis_ccode_rescued:  Historical rescue flag")
     println("  - ggis_spine_collision: Duplicate spine flag")
     println("  - ggis_un_subregion_code: UN sub-region code")
