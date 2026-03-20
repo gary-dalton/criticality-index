@@ -1925,7 +1925,7 @@ STEP 1: Load Required Packages
 
 ```julia
 using PDFIO, DataFrames, CSV, StatsBase, Statistics
-include("work/functions/qog_pdf_extract.jl")
+include("phase0/functions/qog_pdf_extract.jl")
 ```
 
 ════════════════════════════════════════════════════════════════════════════
@@ -2335,7 +2335,7 @@ data that appears AFTER the "Type of variable" line in the PDF.
 using PDFIO, DataFrames, CSV, StatsBase
 
 # Load the updated functions
-include("work/functions/qog_pdf_extract.jl")
+include("phase0/functions/qog_pdf_extract.jl")
 
 # Step 1: Extract prefix metadata (optional if you already have it)
 prefix_df = extract_qog_prefix(

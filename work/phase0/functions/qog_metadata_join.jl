@@ -1309,7 +1309,7 @@ function show_usage()
     
     ```julia
     # Load the module
-    include("functions/qog_metadata_join.jl")
+    include("phase0/functions/qog_metadata_join.jl")
     
     # Run complete pipeline (single isomorphism check; fails if full PDF not isomorphic)
     metadata = join_metadata()

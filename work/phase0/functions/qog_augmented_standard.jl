@@ -1468,7 +1468,7 @@ end
 DEPRECATED (moved): `compare_slug_alignment` is comparison logic and now lives in
 `qog_metadata_enrichment.jl`.
 Usage:
-    include("functions/qog_metadata_enrichment.jl")
+    include("phase0/functions/qog_metadata_enrichment.jl")
     result = compare_slug_alignment(df_aug, manifest; strict=false)
 
 This wrapper remains only to avoid breaking older notebooks.
@@ -2476,7 +2476,7 @@ function aug_print_section_prereq()
     using ReadStatTables, HTTP, JSON, Downloads
     
     # Load the augmentation functions
-    include("functions/qog_augmented_standard.jl")
+    include("phase0/functions/qog_augmented_standard.jl")
     
     # Verify working directory
     println("Working directory: ", pwd())
@@ -2925,7 +2925,7 @@ function aug_print_section_summary()
     using Arrow, DataFrames, CSV, Statistics, StatsBase, ReadStatTables
     
     # 1. Load functions
-    include("functions/qog_augmented_standard.jl")
+    include("phase0/functions/qog_augmented_standard.jl")
     
     # 2. Download and convert (if needed)
     download_qog_sources()

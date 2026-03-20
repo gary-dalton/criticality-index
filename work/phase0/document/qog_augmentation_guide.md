@@ -52,8 +52,8 @@ This loads the files we need to run our functions and keeps the notebook reloadi
 For non-notebook usage:
 
 ```julia
-include("functions/qog_augmented_standard.jl")
-include("functions/extract_qog.jl")
+include("phase0/functions/qog_augmented_standard.jl")
+include("phase0/functions/extract_qog.jl")
 ```
 
 # II Acquiring the Quality of Governance Data
