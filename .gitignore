@@ -1,0 +1,6 @@
+work/.ipynb_checkpoints/
+work/data/
+work/lpi/
+work/plots/
+work/functions/cluster_analysis copy.jl
+work/functions/qog_metadata_enrichment copy.jl
