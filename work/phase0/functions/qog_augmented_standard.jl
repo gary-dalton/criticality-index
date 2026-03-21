@@ -120,7 +120,8 @@ const REGION_LABELS = DataFrame(
 
 # Define manual mappings for historical/non-UN entities
 const GHOST_REGION_MAP = Dict(
-    9156 => (name = "Tibet", code = 145) # Eastern Asia
+    9156 => (name = "Tibet", code = 145),      # Eastern Asia (synthetic ccode)
+    891  => (name = "Yugoslavia", code = 39),   # Southern Europe (dissolved)
 )
 
 # --- Identity Mapping ---
