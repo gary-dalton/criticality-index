@@ -16,6 +16,9 @@
 - Slug independence: grounding validations must use slugs NOT in the main index (circularity prevention)
 - If QoG coverage is insufficient for a concept, must identify and recommend external sources
 
+## Slug Group Selection
+Placeholder for slug group selection methodology. This work begins once Phase 1 model concepts are locked and Phase 0 clustering is complete.
+
 ## Outputs
 - Locked variable-to-concept mapping
 - Gap analysis identifying where external data is needed

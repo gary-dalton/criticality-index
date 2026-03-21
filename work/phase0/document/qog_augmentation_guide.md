@@ -37,8 +37,8 @@ If we are running this in **jupyter**, we can setup the kernel and notebook thus
 ```julia
 using Revise
 using InteractiveUtils
-const PATH_AUGMENT_QOG_JL = "functions/qog_augmented_standard.jl"
-const PATH_EXTRACT_QOG_JL = "functions/extract_qog.jl"
+const PATH_AUGMENT_QOG_JL = "phase0/functions/qog_augmented_standard.jl"
+const PATH_EXTRACT_QOG_JL = "phase0/functions/qog_pdf_extract.jl"
 includet(PATH_AUGMENT_QOG_JL)   # functions for augmenting the data
 includet(PATH_EXTRACT_QOG_JL)   # functions for extracting from PDF
 ```
@@ -684,12 +684,6 @@ The process generates two primary CSV files with the following key fields:
 ## Note on slug -- prefix classification disagreement
 
 Relying solely on the prefix classification leads to a "Parent-Source Bias," where administrative data is mistaken for expert opinion or vice-versa. Our resultant ~25% disagreement rate proves that the slug-level audit is necessary to ensure that a PHYSICAL variable isn't being modeled as if it were a SURVEY perception. These findings are highly consistent with the warnings found in the codebook's metadata.
-
-
-
-
-
-# Selecting Slug Groups
 
 
 
