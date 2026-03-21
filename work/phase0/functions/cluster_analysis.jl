@@ -56,9 +56,12 @@ const DEFAULT_PERIODS = [
     (name = "P4", lo = 2015, hi = 2023),
 ]
 
-const REGIONAL_PENETRATION_UPPER_BOUND = 0.95
-const REGIONAL_EXCLUSION_TOLERANCE     = 3
-const TOTAL_REGIONS_COUNT              = 10
+"""Minimum penetration for a slug to be considered 'strong' in a region (clustering context)."""
+const CLUSTER_REGIONAL_STRONG_THRESHOLD = 0.95
+"""Maximum number of strong regions for a slug to qualify as 'concentrated' (clustering context)."""
+const CLUSTER_REGIONAL_MAX_STRONG       = 3
+"""Total number of QoG regions (clustering context)."""
+const CLUSTER_TOTAL_REGIONS             = 10
 
 # ==============================================================================
 # DATA LOADING
@@ -996,7 +999,7 @@ function build_country_period_missingness_baseline_df(
     # Global baseline: average missrate across slugs tagged "global" (existing behavior).
     # Regional baseline: average missrate across slugs tagged "regional" that are applicable
     # to the country's region AND alive during the period (birth/death overlap), with a
-    # concentration constraint (strong in ≤ REGIONAL_EXCLUSION_TOLERANCE regions).
+    # concentration constraint (strong in ≤ CLUSTER_REGIONAL_MAX_STRONG regions).
 
     period_names = [p.name for p in periods]
     global_slugs   = slugs_by_geo(meta_df, "global")
@@ -1025,7 +1028,7 @@ function build_country_period_missingness_baseline_df(
             isempty(t) && continue
             push!(vals, parse(Float64, t))
         end
-        length(vals) == TOTAL_REGIONS_COUNT || return missing
+        length(vals) == CLUSTER_TOTAL_REGIONS || return missing
         return vals
     end
 
@@ -1049,7 +1052,7 @@ function build_country_period_missingness_baseline_df(
             if ismissing(pen)
                 regional_meta[slug] = (pen=missing, by=by, dy=dy, nstrong=0)
             else
-                nstrong = count(>=(REGIONAL_PENETRATION_UPPER_BOUND), pen)
+                nstrong = count(>=(CLUSTER_REGIONAL_STRONG_THRESHOLD), pen)
                 regional_meta[slug] = (pen=pen, by=by, dy=dy, nstrong=nstrong)
             end
         end
@@ -1087,8 +1090,8 @@ function build_country_period_missingness_baseline_df(
                 meta = get(regional_meta, _as_string(s), nothing)
                 meta === nothing && continue
                 ismissing(meta.pen) && continue
-                meta.nstrong <= REGIONAL_EXCLUSION_TOLERANCE || continue
-                meta.pen[r] >= REGIONAL_PENETRATION_UPPER_BOUND || continue
+                meta.nstrong <= CLUSTER_REGIONAL_MAX_STRONG || continue
+                meta.pen[r] >= CLUSTER_REGIONAL_STRONG_THRESHOLD || continue
                 _alive_in_period(meta.by, meta.dy, lo, hi) || continue
 
                 c = Symbol(string(s, "__", pname, "_missrate"))
