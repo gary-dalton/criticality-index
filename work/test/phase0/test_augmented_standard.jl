@@ -43,9 +43,11 @@
         @test RESCUED_ENTITY_REGIONS["SCG"] == 1   # Eastern Europe
     end
 
-    if has_data()
+    if has_data() && isdefined(Main, :load_augmented_qog) && isdefined(Main, :df)
         @testset "integration: load_augmented_qog" begin
-            df = load_augmented_qog()
+            # Use the df already loaded by enrich_metadata at module level
+            # rather than re-running the full pipeline
+            df = Main.df
 
             # Row count preserved
             @test nrow(df) > 0

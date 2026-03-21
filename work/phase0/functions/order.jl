@@ -64,5 +64,5 @@ end
 
 """
 Logic Integration Note
-In your main loop, you will call these and aggregate them into your Safety Score ($O_{safety}$). If sensor_homicide returns a multiplier of 0.85, that value will be passed downstream to the Integrity element of the lattice.
+In your main loop, you will call these and aggregate them into your Safety Score (\$O_{safety}\$). If sensor_homicide returns a multiplier of 0.85, that value will be passed downstream to the Integrity element of the lattice.
 """

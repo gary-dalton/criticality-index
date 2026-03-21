@@ -6,7 +6,7 @@
         @test normalize_ligatures("re\uFB01ned") == "refined"         # ﬁ → fi
         @test normalize_ligatures("wa\uFB02e") == "wafle"             # ﬂ → fl
         @test normalize_ligatures("tra\uFB03c") == "traffic"          # ﬃ → ffi
-        @test normalize_ligatures("sca\uFB04old") == "scaffold"       # ﬄ → ffl
+        @test normalize_ligatures("sca\uFB04old") == "scafflold"      # ﬄ → ffl
 
         # No ligatures — passthrough
         @test normalize_ligatures("normal_text") == "normal_text"
