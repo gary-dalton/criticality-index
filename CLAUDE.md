@@ -36,8 +36,9 @@ A multi-phase research project applying Self-Organized Criticality (SOC) theory 
 ## Directory Structure
 - `work/phase0/` — All Phase 0 functions and documents
 - `work/data/` — Data files (gitignored)
-- `work/*.ipynb` — Jupyter notebooks
+- `work/p00_*.ipynb` — Phase 0 notebooks (pNN_SS_name convention)
 - `document/` — Cross-phase documentation
+- `test/` — Test suite (all phases); run with `julia test/runtests.jl`
 
 ## Phase Files
 Phase-specific context lives in `.claude/phases/`:

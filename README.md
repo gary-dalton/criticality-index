@@ -14,6 +14,9 @@ criticality-index/
 │   └── phase0/                       # Phase 0: Preprocessing
 │       ├── document/                 # Phase 0 documentation
 │       └── functions/                # Phase 0 Julia modules
+├── test/                              # Test suite (all phases)
+│   ├── runtests.jl                   # Entry point
+│   └── phase0/                       # Phase 0 unit & integration tests
 ├── .claude/phases/                   # Phase-specific context files
 ├── CLAUDE.md                         # AI collaboration context
 ├── docker-compose.yml                # JupyterLab container config
@@ -45,6 +48,15 @@ Notebooks are named `pNN_SS_name.ipynb` where `NN` is the two-digit phase number
 | `p00_06_clustering` | Variable clustering (in development) |
 | `p00_ref_reference` | Function reference & diagnostics |
 | `p00_xx_early_explore` | Initial data exploration (exploratory) |
+
+## Running Tests
+
+```sh
+cd ~/projects/criticality-index
+julia test/runtests.jl
+```
+
+Unit tests run without data files. Integration tests (marked with `has_data()`) require the QoG data in `work/data/` and are skipped when absent.
 
 ## Prerequisites
 - Docker + Docker Compose installed
