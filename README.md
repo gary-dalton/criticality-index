@@ -35,7 +35,10 @@ criticality-index/
 
 ## Start JupyterLab
 
+From the repository root:
+
 ```sh
+cd ~/projects/criticality-index
 docker compose up -d
 ```
 
