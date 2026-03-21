@@ -13,5 +13,6 @@ services:
       - JUPYTER_TOKEN=my-prosperity-token
       - JUPYTER_ENABLE_LAB=yes
       - GRANT_SUDO=yes
+      - JULIA_DEPOT_PATH=/home/jovyan/.julia
     user: root
     restart: always
