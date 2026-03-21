@@ -1,6 +1,6 @@
-@testset "order" begin
+@testset verbose=true "order" begin
 
-    @testset "sensor_pts" begin
+    @testset verbose=true "sensor_pts" begin
         # PTS scale: 1 (best) → 100, 5 (worst) → 0
         @test sensor_pts(1) == 100.0
         @test sensor_pts(2) == 75.0
@@ -12,7 +12,7 @@
         @test ismissing(sensor_pts(missing))
     end
 
-    @testset "sensor_peasfrel" begin
+    @testset verbose=true "sensor_peasfrel" begin
         # Min-max normalization to 0-100
         @test sensor_peasfrel(0.0, -5.0, 5.0) == 50.0
         @test sensor_peasfrel(-5.0, -5.0, 5.0) == 0.0
@@ -25,7 +25,7 @@
         @test ismissing(sensor_peasfrel(missing, -5.0, 5.0))
     end
 
-    @testset "sensor_homicide" begin
+    @testset verbose=true "sensor_homicide" begin
         # Data available: normalize homicide rate
         df = DataFrame(year=[2020, 2021, 2022, 2023],
                        wdi_homs=[15.0, 16.0, 17.0, 18.0])

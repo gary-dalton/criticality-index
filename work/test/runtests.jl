@@ -4,11 +4,11 @@
 #
 # Usage (from project root):
 #   cd ~/projects/criticality-index
-#   julia test/runtests.jl
+#   docker compose exec -w /home/jovyan/work jupyter julia test/runtests.jl
 #
-# Or from work/ directory:
-#   cd ~/projects/criticality-index/work
-#   julia ../test/runtests.jl
+# From notebook:
+#   using Test
+#   include("test/runtests.jl")
 #
 # ==============================================================================
 
@@ -30,21 +30,23 @@ println("  Working directory: $(pwd())")
 println("  Data available:    $data_available")
 println("=" ^ 70)
 
-# --- Load Phase 0 modules via single loader ---
+# --- Load Phase 0 modules (suppress verbose output) ---
 println("\n>>> Loading Phase 0 modules...")
-include(joinpath(PHASE0_FUNCTIONS, "load_phase0.jl"))
+original_stdout = stdout
+redirect_stdout(devnull) do
+    include(joinpath(PHASE0_FUNCTIONS, "load_phase0.jl"))
+end
 if !data_available
     println("    ⚠️  Data-dependent modules skipped (no data files)")
-    println("       enrich_metadata, cluster_analysis, xcluster_analysis tests will be skipped")
 else
-    println("    ✓ All Phase 0 modules loaded (including data-dependent)")
+    println("    ✓ All Phase 0 modules loaded")
 end
 
 println("\n>>> Running tests...\n")
 
-@testset "Criticality Index" begin
+@testset verbose=true "Criticality Index" begin
 
-    @testset "Phase 0: Preprocessing" begin
+    @testset verbose=true "Phase 0: Preprocessing" begin
         include(joinpath(@__DIR__, "phase0", "test_augmented_standard.jl"))
         include(joinpath(@__DIR__, "phase0", "test_pdf_extract.jl"))
         include(joinpath(@__DIR__, "phase0", "test_metadata_join.jl"))

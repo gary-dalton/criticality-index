@@ -1,6 +1,6 @@
-@testset "qog_augmented_standard" begin
+@testset verbose=true "qog_augmented_standard" begin
 
-    @testset "constants defined" begin
+    @testset verbose=true "constants defined" begin
         # Key path constants exist
         @test isdefined(Main, :PATH_DATA_DIR)
         @test isdefined(Main, :PATH_TS_RAW)
@@ -28,7 +28,7 @@
         @test HISTORICAL_CCODE_MAP["DEU"] == 276
     end
 
-    @testset "COLLISION_PRIORITY_ALPHAS" begin
+    @testset verbose=true "COLLISION_PRIORITY_ALPHAS" begin
         @test "VNM" in COLLISION_PRIORITY_ALPHAS
         @test "DEU" in COLLISION_PRIORITY_ALPHAS
         @test "YEM" in COLLISION_PRIORITY_ALPHAS
@@ -36,7 +36,7 @@
         @test !("VDR" in COLLISION_PRIORITY_ALPHAS)
     end
 
-    @testset "RESCUED_ENTITY_REGIONS" begin
+    @testset verbose=true "RESCUED_ENTITY_REGIONS" begin
         @test RESCUED_ENTITY_REGIONS["VDR"] == 7   # Southeast Asia
         @test RESCUED_ENTITY_REGIONS["XTI"] == 6   # East Asia
         @test RESCUED_ENTITY_REGIONS["DDR"] == 1   # Eastern Europe
@@ -44,7 +44,7 @@
     end
 
     if has_data() && isdefined(Main, :load_augmented_qog) && isdefined(Main, :df)
-        @testset "integration: load_augmented_qog" begin
+        @testset verbose=true "integration: load_augmented_qog" begin
             # Use the df already loaded by enrich_metadata at module level
             # rather than re-running the full pipeline
             df = Main.df

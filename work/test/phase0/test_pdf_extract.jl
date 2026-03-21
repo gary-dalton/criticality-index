@@ -1,6 +1,6 @@
-@testset "qog_pdf_extract" begin
+@testset verbose=true "qog_pdf_extract" begin
 
-    @testset "parse_year_value" begin
+    @testset verbose=true "parse_year_value" begin
         # Standard years
         @test parse_year_value("1990") == 1990
         @test parse_year_value("2022") == 2022
@@ -35,7 +35,7 @@
         @test ismissing(parse_year_value("12"))
     end
 
-    @testset "extract_first_paragraph" begin
+    @testset verbose=true "extract_first_paragraph" begin
         # Empty input
         @test extract_first_paragraph("") == ""
 
@@ -50,7 +50,7 @@
         @test occursin("First sentence here.", result4)
     end
 
-    @testset "classify_provenance" begin
+    @testset verbose=true "classify_provenance" begin
         # PHYSICAL
         @test classify_provenance((source_name="Geographic data", description="Latitude and longitude from satellite")) == "PHYSICAL"
         @test classify_provenance((source_name="", description="Land area measurements from NASA")) == "PHYSICAL"

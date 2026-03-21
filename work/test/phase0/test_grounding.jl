@@ -1,6 +1,6 @@
-@testset "grounding" begin
+@testset verbose=true "grounding" begin
 
-    @testset "validate_power_law" begin
+    @testset verbose=true "validate_power_law" begin
         # Insufficient data: < 10 events
         df_small = DataFrame(year=[2024, 2025], vdem_subvrs=[10.0, 20.0])
         result = validate_power_law(df_small, 2025, 20)
@@ -18,7 +18,7 @@
         @test result.alpha > 0
     end
 
-    @testset "validate_correlation_divergence" begin
+    @testset verbose=true "validate_correlation_divergence" begin
         # Insufficient data: < 6 pairs
         df_small = DataFrame(year=[2023, 2024, 2025],
                              vdem_labvrs=[1.0, 2.0, 3.0],
@@ -48,7 +48,7 @@
         @test result.is_diverging == true  # |ρ| > 0.70 even when negative
     end
 
-    @testset "validate_scale_invariance" begin
+    @testset verbose=true "validate_scale_invariance" begin
         # Insufficient data
         df_small = DataFrame(year=[2024, 2025],
                              vdem_localgov=[50.0, 51.0],
@@ -67,7 +67,7 @@
         @test result.similarity isa Float64
     end
 
-    @testset "validate_event_scaling" begin
+    @testset verbose=true "validate_event_scaling" begin
         # Insufficient data: < 10 jumps
         df_small = DataFrame(year=[2023, 2024, 2025],
                              vdem_v3polsoc=[50.0, 55.0, 60.0])

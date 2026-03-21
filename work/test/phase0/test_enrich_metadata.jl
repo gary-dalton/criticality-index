@@ -1,6 +1,6 @@
-@testset "enrich_metadata" begin
+@testset verbose=true "enrich_metadata" begin
 
-    @testset "classify_temporal_profile" begin
+    @testset verbose=true "classify_temporal_profile" begin
         # Common kwargs to avoid dependency on data-loaded constants
         kw = (data_start=1946, data_end=2022, current_year=2020, active_lag=3,
               thresholds=(anchor=0.97, experimental=0.15, legacy=0.50, recent_pct=0.25))
@@ -27,7 +27,7 @@
         @test classify_temporal_profile(1980, 2022; kw...) == :modern  # 43/77 ≈ 0.56, birth < 2003
     end
 
-    @testset "classify_geographic_profile" begin
+    @testset verbose=true "classify_geographic_profile" begin
         # Global: >= 95% global penetration
         @test classify_geographic_profile(0.96, fill(0.5, 10)) == :global
         @test classify_geographic_profile(0.95, fill(0.5, 10)) == :global

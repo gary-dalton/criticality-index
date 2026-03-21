@@ -1,6 +1,6 @@
-@testset "qog_metadata_join" begin
+@testset verbose=true "qog_metadata_join" begin
 
-    @testset "normalize_ligatures" begin
+    @testset verbose=true "normalize_ligatures" begin
         # Standard ligature replacements (Unicode U+FB00-U+FB04)
         @test normalize_ligatures("o\uFB00ensive") == "offensive"     # ﬀ → ff
         @test normalize_ligatures("re\uFB01ned") == "refined"         # ﬁ → fi
@@ -16,7 +16,7 @@
         @test normalize_ligatures("o\uFB00icial_a\uFB03liation") == "official_affiliation"
     end
 
-    @testset "has_proper_temporal_data" begin
+    @testset verbose=true "has_proper_temporal_data" begin
         # Valid temporal data
         @test has_proper_temporal_data((min_year=1990, max_year=2022)) == true
         @test has_proper_temporal_data((min_year=2000, max_year=2000)) == true  # same year
