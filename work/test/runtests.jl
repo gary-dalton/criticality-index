@@ -21,29 +21,23 @@ if !isdir("data") && isdir(WORK_DIR)
     cd(WORK_DIR)
 end
 
+data_available = has_data()
+
 println("=" ^ 70)
 println("  CRITICALITY INDEX — TEST SUITE")
 println("=" ^ 70)
 println("  Working directory: $(pwd())")
-println("  Data available:    $(has_data())")
+println("  Data available:    $data_available")
 println("=" ^ 70)
 
-# --- Load Phase 0 modules (order matters: augmented_standard first) ---
+# --- Load Phase 0 modules via single loader ---
 println("\n>>> Loading Phase 0 modules...")
-include(joinpath(PHASE0_FUNCTIONS, "qog_augmented_standard.jl"))
-include(joinpath(PHASE0_FUNCTIONS, "qog_pdf_extract.jl"))
-include(joinpath(PHASE0_FUNCTIONS, "qog_metadata_join.jl"))
-include(joinpath(PHASE0_FUNCTIONS, "grounding.jl"))
-include(joinpath(PHASE0_FUNCTIONS, "order.jl"))
-println("    ✓ Modules loaded")
-
-# Note: enrich_metadata.jl includes qog_augmented_standard.jl internally,
-# but since it's already loaded, Julia will skip the re-include.
-# We load classify_temporal_profile and classify_geographic_profile
-# by including enrich_metadata.jl only if the functions aren't defined yet.
-if !isdefined(Main, :classify_temporal_profile)
-    include(joinpath(PHASE0_FUNCTIONS, "enrich_metadata.jl"))
-    println("    ✓ enrich_metadata loaded separately")
+include(joinpath(PHASE0_FUNCTIONS, "load_phase0.jl"))
+if !data_available
+    println("    ⚠️  Data-dependent modules skipped (no data files)")
+    println("       enrich_metadata, cluster_analysis, xcluster_analysis tests will be skipped")
+else
+    println("    ✓ All Phase 0 modules loaded (including data-dependent)")
 end
 
 println("\n>>> Running tests...\n")
@@ -54,9 +48,16 @@ println("\n>>> Running tests...\n")
         include(joinpath(@__DIR__, "phase0", "test_augmented_standard.jl"))
         include(joinpath(@__DIR__, "phase0", "test_pdf_extract.jl"))
         include(joinpath(@__DIR__, "phase0", "test_metadata_join.jl"))
-        include(joinpath(@__DIR__, "phase0", "test_enrich_metadata.jl"))
         include(joinpath(@__DIR__, "phase0", "test_grounding.jl"))
         include(joinpath(@__DIR__, "phase0", "test_order.jl"))
+
+        if data_available
+            include(joinpath(@__DIR__, "phase0", "test_enrich_metadata.jl"))
+        else
+            @testset "enrich_metadata (SKIPPED — no data)" begin
+                @test_skip true
+            end
+        end
     end
 
     # Future phases:

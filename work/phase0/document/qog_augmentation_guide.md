@@ -37,13 +37,10 @@ If we are running this in **jupyter**, we can setup the kernel and notebook thus
 ```julia
 using Revise
 using InteractiveUtils
-const PATH_AUGMENT_QOG_JL = "phase0/functions/qog_augmented_standard.jl"
-const PATH_EXTRACT_QOG_JL = "phase0/functions/qog_pdf_extract.jl"
-includet(PATH_AUGMENT_QOG_JL)   # functions for augmenting the data
-includet(PATH_EXTRACT_QOG_JL)   # functions for extracting from PDF
+includet("phase0/functions/load_phase0.jl")
 ```
 
-This loads the files we need to run our functions and keeps the notebook reloading any changes to the files. 
+This loads all Phase 0 modules in the correct dependency order and keeps the notebook reloading any changes to the files.
 
 > ⚠️ **Note:** Constants do not hot-reload with `Revise`. You must restart the kernel to pick up changes to `const` declarations.
 
@@ -52,8 +49,7 @@ This loads the files we need to run our functions and keeps the notebook reloadi
 For non-notebook usage:
 
 ```julia
-include("phase0/functions/qog_augmented_standard.jl")
-include("phase0/functions/extract_qog.jl")
+include("phase0/functions/load_phase0.jl")
 ```
 
 # II Acquiring the Quality of Governance Data
