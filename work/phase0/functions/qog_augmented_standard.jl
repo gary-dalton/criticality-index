@@ -1620,10 +1620,10 @@ end
 """
 Demonstration of the standard augmentation pipeline.
 Usage:
-    run_examples()
+    run_augmented_standard_samples()
 Note: This function is for testing/demonstration only.
 """
-function run_examples()
+function run_augmented_standard_samples()
     # Example: Download QoG sources
     download_summary = download_qog_sources()
     println(download_summary)
@@ -2334,10 +2334,10 @@ end
 """
 Demonstration of the standard augmentation pipeline.
 Usage:
-    run_examples()
+    run_augmented_standard_samples()
 Note: This function is for testing/demonstration only.
 """
-function run_examples()
+function run_augmented_standard_samples()
     println("=" ^ 60)
     println("QoG Augmented Standard - Pipeline Demo")
     println("=" ^ 60)
@@ -2389,20 +2389,20 @@ This function prints methodology and code examples for reference.
 It does NOT execute any code — use it as a quick reference guide.
 
 Usage:
-    run_aug_examples()                  # Print all documentation
-    run_aug_examples(section=:all)      # Same as above
-    run_aug_examples(section=:prereq)   # Prerequisites only
-    run_aug_examples(section=:acquire)  # Data acquisition
-    run_aug_examples(section=:manifest) # Manifest extraction
-    run_aug_examples(section=:spine)    # Spine diagnostics
-    run_aug_examples(section=:rescue)   # Historical rescue
-    run_aug_examples(section=:region)   # Region standardization
-    run_aug_examples(section=:carto)    # Cartographic lookup
-    run_aug_examples(section=:slugs)    # Arrow slug extraction
-    run_aug_examples(section=:validate) # Validation utilities
-    run_aug_examples(section=:summary)  # Minimal pipeline
+    run_augmented_standard_samples()                  # Print all documentation
+    run_augmented_standard_samples(section=:all)      # Same as above
+    run_augmented_standard_samples(section=:prereq)   # Prerequisites only
+    run_augmented_standard_samples(section=:acquire)  # Data acquisition
+    run_augmented_standard_samples(section=:manifest) # Manifest extraction
+    run_augmented_standard_samples(section=:spine)    # Spine diagnostics
+    run_augmented_standard_samples(section=:rescue)   # Historical rescue
+    run_augmented_standard_samples(section=:region)   # Region standardization
+    run_augmented_standard_samples(section=:carto)    # Cartographic lookup
+    run_augmented_standard_samples(section=:slugs)    # Arrow slug extraction
+    run_augmented_standard_samples(section=:validate) # Validation utilities
+    run_augmented_standard_samples(section=:summary)  # Minimal pipeline
 """
-function run_aug_examples(; section::Symbol = :all, execute::Bool = false)
+function run_augmented_standard_samples(; section::Symbol = :all, execute::Bool = false)
     sections = Dict(
         :prereq => aug_print_section_prereq,
         :acquire => aug_print_section_acquire,

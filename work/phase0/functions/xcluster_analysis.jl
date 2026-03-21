@@ -491,11 +491,11 @@ Prints function intent and usage for cluster_analysis.jl (Step 1: country-level 
 Call this to see how to load data, build country features, and run QA.
 
 Usage:
-    run_cluster_samples()
+    run_xcluster_analysis_samples()
 Returns:
 - Nothing (prints to console)
 """
-function run_cluster_samples()
+function run_xcluster_analysis_samples()
     println("\n" * "="^76)
     println("  cluster_analysis.jl — Function intent and usage (Step 1: country-level features)")
     println("="^76)
