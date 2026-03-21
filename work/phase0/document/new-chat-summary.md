@@ -13,7 +13,7 @@
 
 ---
 
-## Key File: `work/functions/qog_metadata_enrichment.jl`
+## Key File: `work/phase0/functions/qog_metadata_enrichment.jl`
 
 **Purpose:** Phase 0 metadata pipeline: ingestion → normalization → ID alignment → isomorphism validation → unification & enrichment.
 
@@ -79,9 +79,10 @@ function function_name(args...)
 
 ## Related Files
 
-- **`work/functions/qog_augmented_standard.jl`** — Augmentation/standardization; defines `PATH_TS_RAW`, `PATH_DATA_DIR`, `PATH_MANIFEST_RESULT`, `convert_csv_to_arrow`, etc. Docstrings there follow the same style (brief summary, no signature line, structured sections).
+- **`work/phase0/functions/qog_augmented_standard.jl`** — Augmentation/standardization; defines `PATH_TS_RAW`, `PATH_DATA_DIR`, `PATH_MANIFEST_RESULT`, `convert_csv_to_arrow`, etc. Docstrings there follow the same style (brief summary, no signature line, structured sections).
 - **`work/data/`** — CSVs and Arrow files; paths in enrichment script are relative (e.g. from `work/` when run from notebook).
-- **`document/`** — `ai-instructions.md`, `grounding.md`, `qog_augmentation_guide.md`, etc.
+- **`document/ai-instructions.md`** — Cross-phase collaboration rules.
+- **`work/phase0/document/`** — `grounding.md`, `order.md`, `qog_augmentation_guide.md`, etc.
 
 ---
 

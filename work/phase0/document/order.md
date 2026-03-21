@@ -3,7 +3,7 @@
 This document describes the **Order** subsystem of the model and serves two purposes:
 
 1. **Supporting-article narrative:** what “Order” means in the criticality framing and why these indicators were chosen.  
-2. **Developer documentation:** a clear contract for the functions that will live in `work/functions/order.jl`.
+2. **Developer documentation:** a clear contract for the functions that will live in `work/phase0/functions/order.jl`.
 
 
 ---
@@ -131,7 +131,7 @@ where:
 
 ---
 
-## 6) Function contracts (for `work/functions/order.jl`)
+## 6) Function contracts (for `work/phase0/functions/order.jl`)
 
 These are the intended behaviors. If the code differs, update either the implementation or this document so they match.
 

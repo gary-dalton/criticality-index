@@ -6,10 +6,10 @@
 
 **Data Handling:** Cite Variable Definitions/Codebooks. Do not modify source data.
 
-**Status:** Not started. Grounding functions prototyped in `work/functions/grounding.jl`.
+**Status:** Not started. Grounding functions prototyped in `work/phase0/functions/grounding.jl`.
 
 ## Theoretical Foundation
-Five empirical signatures of criticality (see `document/grounding.md`):
+Five empirical signatures of criticality (see `work/phase0/document/grounding.md`):
 1. Power-law distribution of events
 2. Diverging correlation length across sectors
 3. Scale invariance (local vs national governance)
@@ -17,7 +17,7 @@ Five empirical signatures of criticality (see `document/grounding.md`):
 5. No characteristic event size (fat-tailed distributions)
 
 ## Prototyped Validation Functions
-In `work/functions/grounding.jl`:
+In `work/phase0/functions/grounding.jl`:
 - `validate_power_law()` — α near 1.0 (scale-free)
 - `validate_correlation_divergence()` — ρ > 0.70 (coupling)
 - `validate_scale_invariance()` — Similarity > 0.85
@@ -28,5 +28,5 @@ In `work/functions/grounding.jl`:
 - Variable selection feeds into Phase 2
 
 ## Key Reference
-- `document/grounding.md` — Full theoretical grounding
-- `document/order.md` — Order/damping subsystem (safety sensors, lattice failure multiplier)
+- `work/phase0/document/grounding.md` — Full theoretical grounding
+- `work/phase0/document/order.md` — Order/damping subsystem (safety sensors, lattice failure multiplier)
