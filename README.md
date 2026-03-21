@@ -9,7 +9,7 @@ criticality-index/
 ├── document/
 │   └── ai-instructions.md           # Cross-phase collaboration rules
 ├── work/
-│   ├── *.ipynb                       # Jupyter notebooks
+│   ├── p00_*.ipynb                   # Phase 0 notebooks (see below)
 │   ├── data/                         # Data files (gitignored)
 │   └── phase0/                       # Phase 0: Preprocessing
 │       ├── document/                 # Phase 0 documentation
@@ -29,6 +29,22 @@ criticality-index/
 | 2 | Variable Mapping (Slug Selection) | Not started |
 | 3 | Locked Analysis | Not started |
 | 4 | Synthesis & Writing | Not started |
+
+## Notebook Convention
+
+Notebooks are named `pNN_SS_name.ipynb` where `NN` is the two-digit phase number and `SS` is the sequence order. Special prefixes: `ref` for reference/utility, `xx` for exploratory.
+
+| Notebook | Role |
+|----------|------|
+| `p00_00_julia_setup` | Package installation & environment setup |
+| `p00_01_std_dataset` | Load & standardize QoG data |
+| `p00_02_pdf_work` | PDF codebook extraction |
+| `p00_03_metadata` | 3-way metadata unification |
+| `p00_04_enrich_meta` | Temporal & geographic enrichment |
+| `p00_05_geo_region` | UN geographic region assignment |
+| `p00_06_clustering` | Variable clustering (in development) |
+| `p00_ref_reference` | Function reference & diagnostics |
+| `p00_xx_early_explore` | Initial data exploration (exploratory) |
 
 ## Prerequisites
 - Docker + Docker Compose installed
