@@ -55,8 +55,12 @@ println("\n>>> Running tests...\n")
 
         if data_available
             include(joinpath(@__DIR__, "phase0", "test_enrich_metadata.jl"))
+            include(joinpath(@__DIR__, "phase0", "test_output_integrity.jl"))
         else
             @testset "enrich_metadata (SKIPPED — no data)" begin
+                @test_skip true
+            end
+            @testset "output integrity (SKIPPED — no data)" begin
                 @test_skip true
             end
         end
