@@ -29,7 +29,34 @@ Catches both the dissolution event and the pre-dissolution data decline (typical
 
 **Pre-dissolution data is valid.** DDR data from 1960-1984 is classified as reporting/strong, not dissolved. Only the final decline period is flagged.
 
-### 2. Nascent
+### 2. Political Exclusion
+
+**Rule:** `ident_ccode` in `CM_POLITICAL_EXCLUSION` AND `ident_year >= from_year` AND `global_coverage_pct < CM_FAILED_THRESHOLD`
+
+Entities excluded from international data programs by external political pressure. The state functions normally but data providers stop including it.
+
+| Entity | ccode | From | Reason |
+|--------|-------|------|--------|
+| Taiwan | 158 | 1950 | One China policy — UN agencies and international bodies progressively drop Taiwan from datasets |
+
+Taiwan's coverage declined from 47% (2010) to 21% (2022) — losing 169 global slugs across IAEP, PWT, CIRI, IHME, and others. This reflects political exclusion, not institutional failure. Taiwan's GDP per capita is comparable to Germany.
+
+Only triggers when coverage is below the failed threshold — if Taiwan somehow achieved high coverage in a year, it would be classified normally.
+
+### 3. Self-Exclusion
+
+**Rule:** `ident_ccode` in `CM_SELF_EXCLUSION` AND `ident_year >= from_year` AND `global_coverage_pct < CM_FAILED_THRESHOLD`
+
+Entities that limit their own participation in international data programs, typically isolationist or authoritarian states.
+
+| Entity | ccode | From | Reason |
+|--------|-------|------|--------|
+| USSR | 810 | 1950 | Limited engagement with Western data programs during Cold War |
+| North Korea | 408 | 1950 | Isolationist — minimal data reporting to international bodies |
+
+For USSR: dissolved (priority 1) takes precedence from 1986 onward. Self-exclusion applies only to the pre-dissolution period (1950-1985) when coverage was low due to Soviet non-participation in Western data systems.
+
+### 4. Nascent
 
 **Rule:** `ident_year < country_birth_year + CM_NASCENT_YEARS` (default 5 years)
 
@@ -41,7 +68,7 @@ Examples:
 - Zimbabwe (ZWE) 1960-1965 — pre-independence era (Rhodesia), limited international data
 - South Sudan (SSD) 2011-2015 — newest state, data programs still onboarding
 
-### 3. Collision
+### 5. Collision
 
 **Rule:** `ident_year` is in the country's `collision_years` set (from `ggis_spine_collision`)
 
@@ -53,7 +80,7 @@ Examples:
 
 Collision years should not contribute to penetration denominators because we cannot cleanly attribute the data to a single sovereign entity.
 
-### 4. Microstate
+### 6. Microstate
 
 **Rule:** `max(wpp_pop) < CM_MICROSTATE_POP_THRESHOLD` (default 100 = 100,000 people)
 
@@ -61,7 +88,7 @@ States below the population threshold are excluded because most international da
 
 Microstates identified (~11): Monaco, Liechtenstein, San Marino, Palau, Nauru, Tuvalu, Marshall Islands, Andorra, and similar entities with peak populations under 100,000.
 
-### 5. Failed
+### 7. Failed
 
 **Rule:** `global_coverage_pct < CM_FAILED_THRESHOLD` (default 0.40) AND `peer_deviation < CM_FAILED_DEVIATION` (default -0.20)
 
@@ -73,7 +100,7 @@ This dual threshold prevents false positives. A country in a low-coverage subreg
 
 Examples: Truly failed or isolated states where institutional reporting has broken down.
 
-### 6. Degraded
+### 8. Degraded
 
 **Rule:** Rolling 3-year coverage average dropped ≥ `CM_DEGRADED_DROP` (default 0.15) from prior 3-year average AND peer deviation also worsened by ≥ half that amount.
 
@@ -81,13 +108,13 @@ Examples: Truly failed or isolated states where institutional reporting has brok
 
 This catches countries going dark gradually (e.g., a state experiencing institutional decline over several years) without false-flagging the universal 2020s reporting lag.
 
-### 7. Reporting
+### 9. Reporting
 
 **Rule:** Does not meet any exclusion criteria above, but `peer_deviation < 0` (below subregion average).
 
 Normal reporting country with adequate data. Below peer average but not pathologically so.
 
-### 8. Strong
+### 10. Strong
 
 **Rule:** `peer_deviation >= 0` (at or above subregion average).
 
