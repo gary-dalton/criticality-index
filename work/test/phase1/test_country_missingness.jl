@@ -7,7 +7,8 @@
             ident_ccodealp = vcat(fill("AAA", 10), fill("BBB", 5), fill("CCC", 10)),
             ident_cname = vcat(fill("Country A", 10), fill("Country B", 5), fill("Country C", 10)),
             ident_year = vcat(collect(2010:2019), collect(2010:2014), collect(2010:2019)),
-            wpp_pop = vcat(fill(1e6, 10), fill(50_000.0, 5), fill(5e6, 10)),
+            # wpp_pop is in thousands: 1000 = 1M people, 50 = 50K people, 5000 = 5M people
+            wpp_pop = vcat(fill(1000.0, 10), fill(50.0, 5), fill(5000.0, 10)),
             ggis_un_subregion_code = vcat(fill(151, 10), fill(151, 5), fill(202, 10)),
         )
 
@@ -58,7 +59,8 @@
             is_dissolved = [false, false, false, true, false],
             dissolution_year = [missing, missing, missing, 1990, missing],
             is_microstate = [false, false, true, false, false],
-            max_pop = [50e6, 10e6, 50_000.0, 16e6, 5e6],
+            # wpp_pop in thousands: 50K=50M, 10K=10M, 50=50K (microstate), 16K=16M, 5K=5M
+            max_pop = [50_000.0, 10_000.0, 50.0, 16_000.0, 5_000.0],
             un_subregion_code = [155, 202, 155, 151, 155],
         )
 

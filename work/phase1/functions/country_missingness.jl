@@ -29,8 +29,8 @@ const CM_DISSOLVED_STATES = Dict{Int, NamedTuple{(:name, :year), Tuple{String, I
 """Years after dissolution to still expect trailing data."""
 const CM_DISSOLUTION_LAG = 5
 
-"""Population below this = microstate (excluded from peer comparisons)."""
-const CM_MICROSTATE_POP_THRESHOLD = 100_000
+"""Population below this = microstate (excluded from peer comparisons). wpp_pop is in thousands."""
+const CM_MICROSTATE_POP_THRESHOLD = 100  # 100 thousand = 100,000 people
 
 """Recent years with expected incomplete reporting (lag artifact, not signal)."""
 const CM_REPORTING_LAG_YEARS = 4
