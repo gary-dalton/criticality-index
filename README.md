@@ -49,9 +49,13 @@ Notebooks are named `pNN_SS_name.ipynb` where `NN` is the two-digit phase number
 | `p00_03_metadata` | 3-way metadata unification |
 | `p00_04_enrich_meta` | Temporal & geographic enrichment |
 | `p00_05_geo_region` | UN geographic region assignment |
-| `p00_06_clustering` | Variable clustering (in development) |
+| `p00_06_clustering` | Legacy variable clustering (superseded by Phase 1) |
 | `p00_ref_reference` | Function reference & diagnostics |
 | `p00_xx_early_explore` | Initial data exploration (exploratory) |
+| `p00_xx_maps` | UN region/subregion/continent choropleth maps |
+| `p01_01_slug_clustering` | Slug clustering by country coverage (Jaccard/binary) |
+| `p01_02_country_missingness` | Country missingness scoring & status classification |
+| `pALL_test` | Test runner notebook |
 
 ## Running Tests
 
