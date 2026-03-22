@@ -144,6 +144,84 @@ EXPECTED_RAW_COLS = 2009
     end
 
     # =========================================================================
+    # PERSISTED AUGMENTED FILE
+    # =========================================================================
+    # This validates the saved Arrow file that Phase 1+ loads via
+    # load_augmented(). Once these tests pass, the checksum becomes
+    # the trusted fast-path validator for all future loads.
+
+    AUG_ARROW_PATH = PATH_TS_RAW_AUG  # "data/qog_std_ts_jan25_aug.arrow"
+
+    if isfile(AUG_ARROW_PATH)
+        @testset verbose=true "augmented Arrow file" begin
+            # --- Checksum verification ---
+            checksum_path = AUG_ARROW_PATH * ".sha256"
+            @testset verbose=true "checksum" begin
+                @test isfile(checksum_path)
+                if isfile(checksum_path)
+                    expected = strip(read(checksum_path, String))
+                    actual = _file_sha256(AUG_ARROW_PATH)
+                    @test actual == expected
+                end
+            end
+
+            # --- Load and verify structure ---
+            df_aug_file = Arrow.Table(AUG_ARROW_PATH) |> DataFrame
+            df_raw = Arrow.Table(RAW_ARROW_PATH) |> DataFrame
+
+            @testset verbose=true "row preservation" begin
+                @test nrow(df_aug_file) == EXPECTED_RAW_ROWS
+                @test nrow(df_aug_file) == nrow(df_raw)
+            end
+
+            @testset verbose=true "column preservation" begin
+                @test ncol(df_aug_file) >= ncol(df_raw)
+
+                # Every raw column survives (renamed or original)
+                raw_cols = Set(lowercase.(string.(names(df_raw))))
+                aug_cols = Set(lowercase.(string.(names(df_aug_file))))
+                for raw_col in raw_cols
+                    renamed = get(IDENT_MAPPING, raw_col, nothing)
+                    if renamed !== nothing
+                        @test lowercase(renamed) in aug_cols
+                    else
+                        @test raw_col in aug_cols
+                    end
+                end
+            end
+
+            @testset verbose=true "augmentation columns" begin
+                for col in [:ggis_rowid, :ggis_region, :ggis_ccode_rescued,
+                            :ggis_spine_collision, :ggis_un_subregion_code]
+                    @test col in propertynames(df_aug_file)
+                end
+            end
+
+            @testset verbose=true "ggis_rowid integrity" begin
+                @test allunique(df_aug_file.ggis_rowid)
+                @test minimum(df_aug_file.ggis_rowid) == 1
+                @test maximum(df_aug_file.ggis_rowid) == nrow(df_aug_file)
+            end
+
+            @testset verbose=true "no missing regions" begin
+                @test count(ismissing, df_aug_file.ggis_region) == 0
+                @test count(ismissing, df_aug_file.ident_ccode) == 0
+                @test count(ismissing, df_aug_file.ggis_un_subregion_code) == 0
+            end
+
+            @testset verbose=true "matches pipeline output" begin
+                # The saved file must be identical to what the pipeline produces
+                df_pipeline = redirect_stdout(devnull) do
+                    load_qog_timeseries()
+                end
+                @test nrow(df_aug_file) == nrow(df_pipeline)
+                @test ncol(df_aug_file) == ncol(df_pipeline)
+                @test Set(names(df_aug_file)) == Set(names(df_pipeline))
+            end
+        end
+    end
+
+    # =========================================================================
     # CROSS-FILE CONSISTENCY
     # =========================================================================
 
