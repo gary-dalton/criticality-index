@@ -12,6 +12,9 @@
 #   using Revise
 #   includet("phase1/functions/load_phase1.jl")
 #
+# Load data (uses cached augmented file if available):
+#   df = load_augmented_or_build()
+#
 # ==============================================================================
 
 const _PHASE1_DIR = @__DIR__

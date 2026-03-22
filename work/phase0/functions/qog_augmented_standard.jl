@@ -22,6 +22,7 @@ using JSON
 using Downloads
 using Logging
 using Markdown
+using SHA
 using VegaLite, VegaDatasets
 
 # ==============================================================================
@@ -2073,19 +2074,161 @@ function load_qog_timeseries(timeseries_path::AbstractString=PATH_TS_RAW;
     println("Ready for analysis! 🚀")
     println("="^80)
     println()
-    println("To save this augmented DataFrame for fast future loads, run:")
-    println("    using Arrow")
-    println("    Arrow.write(\"$(PATH_TS_RAW_AUG)\", df_final)")
+    println("To save for fast future loads: save_augmented(df_final)")
     println("="^80)
     return df_final
-    println("  - ggis_ccode_rescued:  Historical rescue flag")
-    println("  - ggis_spine_collision: Duplicate spine flag")
-    println("  - ggis_un_subregion_code: UN sub-region code")
-    println()
-    println("Ready for analysis! 🚀")
-    println("="^80)
-    println()
-    return df_final
+end
+
+
+"""Path for the checksum sidecar file."""
+const PATH_TS_RAW_AUG_CHECKSUM = PATH_TS_RAW_AUG * ".sha256"
+
+"""
+Compute a SHA-256 checksum of a file.
+"""
+function _file_sha256(path::String)
+    open(path, "r") do io
+        bytes2hex(SHA.sha256(io))
+    end
+end
+
+"""
+Save the augmented DataFrame to Arrow for fast future loads.
+
+Arguments:
+- df::DataFrame: The augmented DataFrame from load_qog_timeseries()
+- path::String: Output path (default: PATH_TS_RAW_AUG)
+
+Returns:
+- Nothing
+
+Rules:
+- Runs integrity checks before saving (row count, ggis_rowid uniqueness, required columns)
+- Writes a .sha256 sidecar file for verification on load
+- Overwrites existing file if present
+"""
+function save_augmented(df::DataFrame; path::String = PATH_TS_RAW_AUG)
+    # Integrity checks before saving
+    required_cols = [:ggis_rowid, :ident_ccode, :ident_year, :ident_ccodealp, :ggis_region, :ggis_un_subregion_code]
+    for col in required_cols
+        if !(col in propertynames(df))
+            error("Cannot save: missing required column :$col")
+        end
+    end
+    if !allunique(df.ggis_rowid)
+        error("Cannot save: ggis_rowid is not unique")
+    end
+    if count(ismissing, df.ggis_region) > 0
+        error("Cannot save: ggis_region has missing values")
+    end
+
+    Arrow.write(path, df)
+
+    # Write checksum sidecar
+    checksum = _file_sha256(path)
+    checksum_path = path * ".sha256"
+    open(checksum_path, "w") do io
+        println(io, checksum)
+    end
+
+    println("✅ Saved augmented DataFrame: $(nrow(df)) rows × $(ncol(df)) cols → $path")
+    println("   Checksum: $checksum → $checksum_path")
+end
+
+
+"""
+Load the pre-built augmented DataFrame from Arrow, with integrity verification.
+
+Arguments:
+- path::String: Path to augmented Arrow file (default: PATH_TS_RAW_AUG)
+
+Returns:
+- DataFrame: The augmented QoG timeseries
+
+Rules:
+- Verifies row count, ggis_rowid uniqueness, required columns, and no missing regions
+- Errors if any check fails (forces re-run of full pipeline)
+
+Usage:
+    df = load_augmented()                    # load cached file
+    df = load_augmented_or_build()           # load cached, or build if missing
+"""
+function load_augmented(; path::String = PATH_TS_RAW_AUG, verbose::Bool = true)
+    if !isfile(path)
+        error("Augmented file not found: $path\nRun the full pipeline: df = load_qog_timeseries(); save_augmented(df)")
+    end
+
+    # --- Checksum verification ---
+    checksum_path = path * ".sha256"
+    if isfile(checksum_path)
+        expected = strip(read(checksum_path, String))
+        actual = _file_sha256(path)
+        if actual != expected
+            error("Checksum mismatch for $path\n  Expected: $expected\n  Actual:   $actual\nFile may be corrupted. Re-run pipeline and save_augmented()")
+        end
+        if verbose
+            println("✓ Checksum verified: $path")
+        end
+    else
+        if verbose
+            println("⚠️  No checksum file found — skipping verification")
+        end
+    end
+
+    df = Arrow.Table(path) |> DataFrame
+
+    # --- Structural integrity checks ---
+    required_cols = [:ggis_rowid, :ident_ccode, :ident_year, :ident_ccodealp, :ggis_region, :ggis_un_subregion_code]
+    missing_cols = [col for col in required_cols if !(col in propertynames(df))]
+    if !isempty(missing_cols)
+        error("Integrity failure: missing columns $(missing_cols) in $path\nRe-run pipeline and save_augmented()")
+    end
+
+    if !allunique(df.ggis_rowid)
+        error("Integrity failure: ggis_rowid not unique in $path\nRe-run pipeline and save_augmented()")
+    end
+
+    n_missing_regions = count(ismissing, df.ggis_region)
+    if n_missing_regions > 0
+        error("Integrity failure: $n_missing_regions missing regions in $path\nRe-run pipeline and save_augmented()")
+    end
+
+    if verbose
+        println("✓ Loaded: $(nrow(df)) rows × $(ncol(df)) cols from $path")
+        println("  ggis_rowid unique: ✓ | Required columns: ✓ | Missing regions: 0 ✓")
+    end
+
+    return df
+end
+
+
+"""
+Load the augmented DataFrame from cache if available, otherwise build from scratch.
+
+Returns:
+- DataFrame: The augmented QoG timeseries
+
+Usage:
+    df = load_augmented_or_build()
+"""
+function load_augmented_or_build(; verbose::Bool = true)
+    if isfile(PATH_TS_RAW_AUG)
+        try
+            return load_augmented(; verbose=verbose)
+        catch e
+            if verbose
+                println("⚠️  Cached file failed integrity: $(e.msg)")
+                println("    Rebuilding from scratch...")
+            end
+        end
+    end
+
+    if verbose
+        println(">>> Running full pipeline...")
+    end
+    df = load_qog_timeseries(; verbose=verbose)
+    save_augmented(df)
+    return df
 end
 
 
