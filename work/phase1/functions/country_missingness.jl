@@ -26,8 +26,11 @@ const CM_DISSOLVED_STATES = Dict{Int, NamedTuple{(:name, :year), Tuple{String, I
     9156 => (name="Tibet", year=1959),
 )
 
-"""Years after dissolution to still expect trailing data."""
+"""Years before dissolution where data starts degrading (catch the decline period)."""
 const CM_DISSOLUTION_LAG = 5
+
+"""Years after a country's birth_year to classify as nascent (newly independent, building data infrastructure)."""
+const CM_NASCENT_YEARS = 5
 
 """Population below this = microstate (excluded from peer comparisons). wpp_pop is in thousands."""
 const CM_MICROSTATE_POP_THRESHOLD = 100  # 100 thousand = 100,000 people
@@ -94,6 +97,15 @@ function build_country_profiles(df::DataFrame; verbose::Bool = true)
         max_pop = isempty(pop_vals) ? missing : maximum(pop_vals)
         is_microstate = !ismissing(max_pop) && max_pop < CM_MICROSTATE_POP_THRESHOLD
 
+        # Collision: does this country have spine collision rows?
+        has_collision = :ggis_spine_collision in propertynames(sdf) && any(coalesce.(sdf.ggis_spine_collision, false))
+        # Collision years
+        collision_years = if has_collision
+            Int.(sdf[coalesce.(sdf.ggis_spine_collision, false), :ident_year])
+        else
+            Int[]
+        end
+
         # Subregion
         un_sub = first(sdf.ggis_un_subregion_code)
 
@@ -110,6 +122,8 @@ function build_country_profiles(df::DataFrame; verbose::Bool = true)
             dissolution_year = dissolution_year,
             is_microstate = is_microstate,
             max_pop = max_pop,
+            has_collision = has_collision,
+            collision_years = collision_years,
             un_subregion_code = un_sub,
         ))
     end
@@ -246,14 +260,24 @@ end
 # ==============================================================================
 
 """
-Classify each (country, year) as dissolved, microstate, failed, degraded, reporting, or strong.
+Classify each (country, year) as dissolved, nascent, collision, microstate, failed, degraded, reporting, or strong.
 
 Arguments:
-- profiles_df::DataFrame: Country profiles
+- profiles_df::DataFrame: Country profiles (with has_collision, collision_years)
 - scores_df::DataFrame: Missingness scores from Step 1
 
 Returns:
 - DataFrame with ident_ccode, ident_year, country_status
+
+Status priority order:
+1. dissolved — known dissolved state, year >= dissolution_year - DISSOLUTION_LAG
+2. nascent — country within first NASCENT_YEARS of its data (newly independent)
+3. collision — year is a spine collision year (multiple entities sharing ccode)
+4. microstate — population below threshold
+5. failed — low coverage AND far below peers
+6. degraded — coverage dropping in rolling window
+7. reporting — normal
+8. strong — above peer average
 """
 function classify_country_status(
     profiles_df::DataFrame,
@@ -262,6 +286,7 @@ function classify_country_status(
     failed_deviation::Float64 = CM_FAILED_DEVIATION,
     degraded_drop::Float64 = CM_DEGRADED_DROP,
     rolling_window::Int = CM_ROLLING_WINDOW,
+    nascent_years::Int = CM_NASCENT_YEARS,
     verbose::Bool = true
 )
     # Build lookups
@@ -272,14 +297,13 @@ function classify_country_status(
             dissolution_year = r.dissolution_year,
             is_microstate = r.is_microstate,
             birth = r.country_birth_year,
+            has_collision = r.has_collision,
+            collision_years = Set(r.collision_years),
         )
     end
 
     # Sort scores for rolling window computation
     sorted_scores = sort(scores_df, [:ident_ccode, :ident_year])
-
-    # Pre-compute rolling averages per country
-    # Group by country, compute rolling mean of global_coverage_pct
     country_groups = groupby(sorted_scores, :ident_ccode)
 
     statuses = String[]
@@ -296,17 +320,32 @@ function classify_country_status(
             cov = covs[i]
             dev = sdf.peer_deviation[i]
 
-            # Priority order: dissolved > pre_existence > microstate > failed > degraded > reporting/strong
-            if prof !== nothing && prof.is_dissolved && !ismissing(prof.dissolution_year) && year > prof.dissolution_year
+            # 1. Dissolved: known dissolved state, from dissolution_year - lag onward
+            #    Catches the pre-dissolution decline period too
+            if prof !== nothing && prof.is_dissolved && !ismissing(prof.dissolution_year) &&
+               year >= prof.dissolution_year - CM_DISSOLUTION_LAG
                 push!(statuses, "dissolved")
-            elseif prof !== nothing && year < prof.birth
-                push!(statuses, "pre_existence")
+
+            # 2. Nascent: first N years of a country's data (newly independent)
+            elseif prof !== nothing && year < prof.birth + nascent_years
+                push!(statuses, "nascent")
+
+            # 3. Collision: year has multiple entities sharing this ccode
+            elseif prof !== nothing && prof.has_collision && year in prof.collision_years
+                push!(statuses, "collision")
+
+            # 4. Microstate: population below threshold
             elseif prof !== nothing && prof.is_microstate
                 push!(statuses, "microstate")
+
+            # 5. Failed: low coverage AND far below peers
             elseif cov < failed_threshold && dev < failed_deviation
                 push!(statuses, "failed")
+
             else
-                # Check degradation: compare current window vs prior window
+                # 6. Degraded: coverage dropping in rolling window AND peer deviation worsening
+                #    Only flag as degraded if the drop is country-specific, not a global reporting lag.
+                #    Check: own coverage dropping AND peer_deviation getting worse (more negative).
                 is_degraded = false
                 if i > rolling_window
                     current_start = max(1, i - rolling_window + 1)
@@ -315,7 +354,17 @@ function classify_country_status(
                     prior_end = current_start - 1
                     if prior_end >= prior_start
                         prior_avg = mean(covs[prior_start:prior_end])
-                        if prior_avg - current_avg >= degraded_drop
+                        own_drop = prior_avg - current_avg
+
+                        # Also check peer deviation trend
+                        devs = sdf.peer_deviation
+                        current_dev_avg = mean(devs[current_start:i])
+                        prior_dev_avg = mean(devs[prior_start:prior_end])
+                        dev_worsening = prior_dev_avg - current_dev_avg
+
+                        # Degraded only if: own coverage dropped AND deviation worsened
+                        # This filters out global reporting lag (where everyone drops equally)
+                        if own_drop >= degraded_drop && dev_worsening >= degraded_drop / 2
                             is_degraded = true
                         end
                     end
@@ -323,6 +372,7 @@ function classify_country_status(
 
                 if is_degraded
                     push!(statuses, "degraded")
+                # 7/8. Strong vs reporting
                 elseif dev >= 0
                     push!(statuses, "strong")
                 else

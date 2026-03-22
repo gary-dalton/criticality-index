@@ -48,33 +48,34 @@
     @testset verbose=true "classify_country_status categories" begin
         # Synthetic profiles and scores to test each classification
         profiles = DataFrame(
-            ident_ccode = [1, 2, 3, 4, 5],
-            ident_ccodealp = ["STR", "FAI", "MIC", "DIS", "REP"],
-            ident_cname = ["Strong", "Failed", "Micro", "Dissolved", "Reporting"],
-            country_birth_year = [1990, 1990, 1990, 1950, 1990],
-            country_death_year = [2020, 2020, 2020, 1989, 2020],
-            n_years = [31, 31, 31, 40, 31],
-            year_span = [31, 31, 31, 40, 31],
-            is_active = [true, true, true, false, true],
-            is_dissolved = [false, false, false, true, false],
-            dissolution_year = [missing, missing, missing, 1990, missing],
-            is_microstate = [false, false, true, false, false],
-            # wpp_pop in thousands: 50K=50M, 10K=10M, 50=50K (microstate), 16K=16M, 5K=5M
-            max_pop = [50_000.0, 10_000.0, 50.0, 16_000.0, 5_000.0],
-            un_subregion_code = [155, 202, 155, 151, 155],
+            ident_ccode = [1, 2, 3, 4, 5, 6, 7],
+            ident_ccodealp = ["STR", "FAI", "MIC", "DIS", "REP", "NAS", "COL"],
+            ident_cname = ["Strong", "Failed", "Micro", "Dissolved", "Reporting", "Nascent", "Collision"],
+            country_birth_year = [1960, 1960, 1960, 1950, 1960, 2010, 1960],
+            country_death_year = [2020, 2020, 2020, 1989, 2020, 2020, 2020],
+            n_years = [61, 61, 61, 40, 61, 11, 61],
+            year_span = [61, 61, 61, 40, 61, 11, 61],
+            is_active = [true, true, true, false, true, true, true],
+            is_dissolved = [false, false, false, true, false, false, false],
+            dissolution_year = [missing, missing, missing, 1990, missing, missing, missing],
+            is_microstate = [false, false, true, false, false, false, false],
+            max_pop = [50_000.0, 10_000.0, 50.0, 16_000.0, 5_000.0, 1_000.0, 30_000.0],
+            has_collision = [false, false, false, false, false, false, true],
+            collision_years = [Int[], Int[], Int[], Int[], Int[], Int[], [2015]],
+            un_subregion_code = [155, 202, 155, 151, 155, 202, 155],
         )
 
-        # Scores: strong has high coverage, failed has low
+        # Scores: strong=high, failed=low, dissolved=post-dissolution, nascent=early, collision=collision year
         scores = DataFrame(
-            ident_ccode = [1, 2, 3, 4, 5],
-            ident_year = [2015, 2015, 2015, 1995, 2015],
-            n_global_present = [580, 100, 300, 200, 400],
-            n_global_total = [600, 600, 600, 600, 600],
-            global_coverage_pct = [0.97, 0.17, 0.50, 0.33, 0.67],
-            un_subregion_code = [155, 202, 155, 151, 155],
-            subregion_peer_avg = [0.80, 0.60, 0.80, 0.50, 0.80],
-            peer_deviation = [0.17, -0.43, -0.30, -0.17, -0.13],
-            lag_affected = [false, false, false, false, false],
+            ident_ccode = [1, 2, 3, 4, 5, 6, 7],
+            ident_year = [2015, 2015, 2015, 1988, 2015, 2012, 2015],
+            n_global_present = [580, 100, 300, 200, 400, 300, 500],
+            n_global_total = [600, 600, 600, 600, 600, 600, 600],
+            global_coverage_pct = [0.97, 0.17, 0.50, 0.33, 0.67, 0.50, 0.83],
+            un_subregion_code = [155, 202, 155, 151, 155, 202, 155],
+            subregion_peer_avg = [0.80, 0.60, 0.80, 0.50, 0.80, 0.60, 0.80],
+            peer_deviation = [0.17, -0.43, -0.30, -0.17, -0.13, -0.10, 0.03],
+            lag_affected = [false, false, false, false, false, false, false],
         )
 
         status = redirect_stdout(devnull) do
@@ -85,8 +86,10 @@
         @test statuses[1] == "strong"
         @test statuses[2] == "failed"      # 0.17 < 0.40 AND -0.43 < -0.20
         @test statuses[3] == "microstate"
-        @test statuses[4] == "dissolved"   # year 1995 > dissolution 1990
+        @test statuses[4] == "dissolved"   # year 1988 >= 1990 - 5 (dissolution_year - lag)
         @test statuses[5] == "reporting"   # 0.67 > 0.40, deviation -0.13 > -0.20
+        @test statuses[6] == "nascent"     # 2012 < 2010 + 5 (birth + nascent_years)
+        @test statuses[7] == "collision"   # 2015 is in collision_years
     end
 
     if has_data()
