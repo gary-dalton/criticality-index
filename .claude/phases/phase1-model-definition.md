@@ -8,39 +8,45 @@
 
 **Status:** In progress — slug clustering and country missingness scoring implemented. Next: examine results, reduce slugs for Phase 2.
 
-## Slug Clustering (Implemented)
+## Execution Order
 
-Grouping slugs by country coverage patterns using Jaccard similarity on binary presence matrices. This determines which sets of variables act upon similar sets of countries — foundational for model topology.
+```
+p01_01 Country Missingness  →  manual review  →  p01_02 Slug Reclassification  →  p01_03 Slug Clustering
+```
 
-- **Module:** `work/phase1/functions/slug_clustering.jl`
-- **Loader:** `work/phase1/functions/load_phase1.jl`
-- **Notebook:** `work/p01_01_slug_clustering.ipynb`
-- **Approach:** Binary presence (density-thresholded), Jaccard similarity, label propagation clustering
-- **Key output:** `data/slug_clusters.csv` — slug-to-cluster assignments with labels
+## Step 1: Country Missingness Scoring (Implemented)
 
-Configurable dials:
-- `presence_min_pct` (default 0.10) — minimum reporting density per (slug, country)
-- `presence_max_pct` (default 0.95) — upper bound for flagging near-global slugs
-- `min_country_coverage` (default 0.05) — slug must cover this fraction of countries
-- `k` (default 20) — top-k Jaccard neighbors
-- `min_sim` (default 0.10) — minimum Jaccard to create edge
-
-## Country Missingness Scoring (Implemented)
-
-Temporal missingness scoring per (country, year) relative to UN subregion peers. Classifies each country-year as dissolved, microstate, failed, degraded, reporting, or strong.
+Temporal missingness scoring per (country, year) relative to UN subregion peers. Classifies each country-year into 10 statuses.
 
 - **Module:** `work/phase1/functions/country_missingness.jl`
-- **Notebook:** `work/p01_02_country_missingness.ipynb`
+- **Notebook:** `work/p01_01_country_missingness.ipynb`
 - **Key output:** `data/country_missingness_flags.csv` — ggis_rowid-keyed status flags
-- **Also produces:** Revised slug penetration with failed/dissolved/micro excluded from denominator
+- **Methodology:** `work/phase1/document/country_missingness_methodology.md`
 
-Key constants: DISSOLVED_STATES (DDR, CSK, YUG, USSR, YMD, Tibet), microstate <100K pop, failed <40% coverage + 20ppt below peers, degraded = 15ppt drop in rolling 3-year window.
+10 statuses: dissolved, political_exclusion (Taiwan), self_exclusion (USSR, North Korea), nascent, collision, microstate, failed, degraded, reporting, strong.
 
-## Next Steps
+**MANUAL GATE:** Review classifications before proceeding to Step 2.
 
-1. Run missingness notebook — examine country status classifications
-2. **Re-run clustering with filtered country set** — exclude failed/dissolved/micro countries from the presence matrix for cleaner clusters
-3. Reduce slugs for Phase 2: globals + high-penetration (revised denominator)
+## Step 2: Slug Reclassification (Implemented)
+
+Recomputes slug penetration using clean denominators and temporal windows that avoid reporting lag. Classifies slugs by UN region/subregion vectors.
+
+- **Module:** `work/phase1/functions/slug_reclassification.jl`
+- **Notebook:** `work/p01_02_slug_reclassification.ipynb` (to be created)
+- **Key outputs:** Revised penetration per slug, UN vectors, filtered clustering pool
+
+Temporal windows: anchor/modern/current = mean of [now-7, now-5]; legacy = last 5 years at death. Drops experimental + historical + who_roadtrd.
+
+## Step 3: Slug Clustering (Implemented)
+
+Grouping slugs by country coverage patterns using Jaccard similarity on binary presence matrices.
+
+- **Module:** `work/phase1/functions/slug_clustering.jl`
+- **Notebook:** `work/p01_03_slug_clustering.ipynb`
+- **Key output:** `data/slug_clusters.csv` — slug-to-cluster assignments with labels
+- **Findings:** `work/phase1/document/slug_clustering_findings.md`
+
+Re-run with filtered pool from Step 2 for topic-driven clusters (geographic noise removed).
 
 ## Findings Document
 

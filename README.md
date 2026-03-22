@@ -53,8 +53,9 @@ Notebooks are named `pNN_SS_name.ipynb` where `NN` is the two-digit phase number
 | `p00_ref_reference` | Function reference & diagnostics |
 | `p00_xx_early_explore` | Initial data exploration (exploratory) |
 | `p00_xx_maps` | UN region/subregion/continent choropleth maps |
-| `p01_01_slug_clustering` | Slug clustering by country coverage (Jaccard/binary) |
-| `p01_02_country_missingness` | Country missingness scoring & status classification |
+| `p01_01_country_missingness` | Country missingness scoring & status classification (run first) |
+| `p01_02_slug_reclassification` | Revised penetration, UN vectors, clustering pool filter (after manual review) |
+| `p01_03_slug_clustering` | Slug clustering by country coverage (Jaccard/binary, re-run with filtered pool) |
 | `pALL_test` | Test runner notebook |
 
 ## Running Tests
