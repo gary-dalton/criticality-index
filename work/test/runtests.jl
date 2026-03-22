@@ -30,9 +30,8 @@ println("  Working directory: $(pwd())")
 println("  Data available:    $data_available")
 println("=" ^ 70)
 
-# --- Load Phase 0 modules (suppress verbose output) ---
+# --- Load modules (suppress verbose output) ---
 println("\n>>> Loading Phase 0 modules...")
-original_stdout = stdout
 redirect_stdout(devnull) do
     include(joinpath(PHASE0_FUNCTIONS, "load_phase0.jl"))
 end
@@ -41,6 +40,12 @@ if !data_available
 else
     println("    ✓ All Phase 0 modules loaded")
 end
+
+println(">>> Loading Phase 1 modules...")
+redirect_stdout(devnull) do
+    include(joinpath(PHASE1_FUNCTIONS, "load_phase1.jl"))
+end
+println("    ✓ Phase 1 modules loaded")
 
 println("\n>>> Running tests...\n")
 
@@ -66,8 +71,8 @@ println("\n>>> Running tests...\n")
         end
     end
 
-    # Future phases:
-    # @testset "Phase 1: Model Definition" begin ... end
-    # @testset "Phase 2: Variable Mapping" begin ... end
+    @testset verbose=true "Phase 1: Model Definition" begin
+        include(joinpath(@__DIR__, "phase1", "test_slug_clustering.jl"))
+    end
 
 end

@@ -10,13 +10,17 @@ criticality-index/
 │   └── ai-instructions.md           # Cross-phase collaboration rules
 ├── work/
 │   ├── p00_*.ipynb                   # Phase 0 notebooks (see below)
+│   ├── p01_*.ipynb                   # Phase 1 notebooks
 │   ├── data/                         # Data files (gitignored)
-│   └── phase0/                       # Phase 0: Preprocessing
-│       ├── document/                 # Phase 0 documentation
-│       └── functions/                # Phase 0 Julia modules
-│   └── test/                          # Test suite (all phases)
+│   ├── phase0/                       # Phase 0: Preprocessing
+│   │   ├── document/                 # Phase 0 documentation
+│   │   └── functions/                # Phase 0 Julia modules
+│   ├── phase1/                       # Phase 1: Model Definition
+│   │   └── functions/                # Phase 1 Julia modules
+│   └── test/                         # Test suite (all phases)
 │       ├── runtests.jl               # Entry point
-│       └── phase0/                   # Phase 0 unit & integration tests
+│       ├── phase0/                   # Phase 0 tests
+│       └── phase1/                   # Phase 1 tests
 ├── .claude/phases/                   # Phase-specific context files
 ├── CLAUDE.md                         # AI collaboration context
 ├── docker-compose.yml                # JupyterLab container config
@@ -27,8 +31,8 @@ criticality-index/
 
 | Phase | Name | Status |
 |-------|------|--------|
-| 0 | Preprocessing | **Active** — data loading, metadata, geographic mapping complete; clustering in development |
-| 1 | Model Definition (Conceptual & Mathematical) | Not started |
+| 0 | Preprocessing | Complete — data loading, metadata, geographic mapping, output integrity verified |
+| 1 | Model Definition (Conceptual & Mathematical) | **Active** — slug clustering by country coverage |
 | 2 | Variable Mapping (Slug Selection) | Not started |
 | 3 | Locked Analysis | Not started |
 | 4 | Synthesis & Writing | Not started |

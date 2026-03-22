@@ -3,7 +3,7 @@
 A multi-phase research project applying Self-Organized Criticality (SOC) theory to Quality of Government (QoG) data to identify empirical signatures of criticality in governance systems. Written in Julia, run in JupyterLab via Docker.
 
 ## Current Phase
-**Phase 0: Preprocessing** (advanced) — Data loading, metadata enrichment, and geographic mapping are complete. Variable clustering is in active development. See `.claude/phases/` for phase-specific context.
+**Phase 1: Model Definition** (early) — Slug clustering by country coverage patterns in progress. Phase 0 preprocessing is complete. See `.claude/phases/` for phase-specific context.
 
 ## Conventions
 
@@ -34,16 +34,17 @@ A multi-phase research project applying Self-Organized Criticality (SOC) theory 
 - `work/phase0/document/new-chat-summary.md` — Project onboarding summary
 
 ## Directory Structure
-- `work/phase0/` — All Phase 0 functions and documents
+- `work/phase0/` — Phase 0 functions and documents (preprocessing)
+- `work/phase1/` — Phase 1 functions (model definition, slug clustering)
 - `work/data/` — Data files (gitignored)
-- `work/p00_*.ipynb` — Phase 0 notebooks (pNN_SS_name convention)
+- `work/p00_*.ipynb` — Phase 0 notebooks, `work/p01_*.ipynb` — Phase 1 notebooks
 - `document/` — Cross-phase documentation
-- `work/test/` — Test suite (all phases); run with `docker compose exec jupyter julia work/test/runtests.jl`
+- `work/test/` — Test suite (all phases); run with `docker compose exec -w /home/jovyan/work jupyter julia test/runtests.jl`
 
 ## Phase Files
 Phase-specific context lives in `.claude/phases/`:
-- `phase0-preprocessing.md` — **[CURRENT]** Preprocessing data files, metadata, and adjuncts
-- `phase1-model-definition.md` — Model Definition (Conceptual & Mathematical)
+- `phase0-preprocessing.md` — Preprocessing data files, metadata, and adjuncts (complete)
+- `phase1-model-definition.md` — **[CURRENT]** Model Definition — slug clustering, topology
 - `phase2-variable-mapping.md` — Variable Mapping (Slug Selection)
 - `phase3-locked-analysis.md` — Locked Analysis
 - `phase4-synthesis.md` — Synthesis & Writing

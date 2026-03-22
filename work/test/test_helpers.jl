@@ -12,6 +12,7 @@ const WORK_DIR = dirname(@__DIR__)
 const PROJECT_ROOT = dirname(WORK_DIR)
 const DATA_DIR = joinpath(WORK_DIR, "data")
 const PHASE0_FUNCTIONS = joinpath(WORK_DIR, "phase0", "functions")
+const PHASE1_FUNCTIONS = joinpath(WORK_DIR, "phase1", "functions")
 
 """
 Check if real data files are available for integration tests.

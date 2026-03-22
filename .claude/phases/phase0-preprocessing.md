@@ -4,7 +4,7 @@
 
 **Data Handling:** Do not modify source data; use loaders and enhancers.
 
-**Status:** Advanced — core pipeline complete, clustering in development.
+**Status:** Complete. All preprocessing, metadata enrichment, and geographic mapping done. 6,204 tests passing. Clustering moved to Phase 1.
 
 ## Completed
 - QoG data loading & Arrow conversion (`load_augmented_qog()`)
@@ -17,9 +17,8 @@
 - Geographic enrichment: population-weighted penetration, regional coverage, 3 geographic profiles (global, regional, other)
 - PDF codebook parsing: slug extraction, provenance classification (PHYSICAL, SURVEY, EVENT/FACTUAL, IMPUTED, EXPERT, OFFICIAL)
 
-## In Development
-- Variable clustering via cosine similarity on co-reporting patterns (`cluster_analysis.jl`)
-- Experimental clustering variant (`xcluster_analysis.jl`) — deciding between approaches
+## Legacy (Reference Only)
+- `cluster_analysis.jl` and `xcluster_analysis.jl` — previous clustering approach (cosine similarity, ht_region-based). Superseded by Phase 1 slug clustering (Jaccard, binary presence).
 
 ## Key Modules
 - `work/phase0/functions/qog_augmented_standard.jl` — Main loader & standardization
