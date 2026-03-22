@@ -35,7 +35,8 @@ Available modules:
 """
 function include_phase1(modules::Vector{Symbol} = Symbol[])
     all_modules = [
-        :slug_clustering => "slug_clustering.jl",
+        :slug_clustering      => "slug_clustering.jl",
+        :country_missingness  => "country_missingness.jl",
     ]
 
     load_all = isempty(modules)
