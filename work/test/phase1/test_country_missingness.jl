@@ -46,36 +46,39 @@
     end
 
     @testset verbose=true "classify_country_status categories" begin
-        # Synthetic profiles and scores to test each classification
+        # Synthetic profiles and scores to test all 10 classifications
         profiles = DataFrame(
-            ident_ccode = [1, 2, 3, 4, 5, 6, 7],
-            ident_ccodealp = ["STR", "FAI", "MIC", "DIS", "REP", "NAS", "COL"],
-            ident_cname = ["Strong", "Failed", "Micro", "Dissolved", "Reporting", "Nascent", "Collision"],
-            country_birth_year = [1960, 1960, 1960, 1950, 1960, 2010, 1960],
-            country_death_year = [2020, 2020, 2020, 1989, 2020, 2020, 2020],
-            n_years = [61, 61, 61, 40, 61, 11, 61],
-            year_span = [61, 61, 61, 40, 61, 11, 61],
-            is_active = [true, true, true, false, true, true, true],
-            is_dissolved = [false, false, false, true, false, false, false],
-            dissolution_year = [missing, missing, missing, 1990, missing, missing, missing],
-            is_microstate = [false, false, true, false, false, false, false],
-            max_pop = [50_000.0, 10_000.0, 50.0, 16_000.0, 5_000.0, 1_000.0, 30_000.0],
-            has_collision = [false, false, false, false, false, false, true],
-            collision_years = [Int[], Int[], Int[], Int[], Int[], Int[], [2015]],
-            un_subregion_code = [155, 202, 155, 151, 155, 202, 155],
+            ident_ccode = [1, 2, 3, 4, 5, 6, 7, 8, 9],
+            ident_ccodealp = ["STR", "FAI", "MIC", "DIS", "REP", "NAS", "COL", "PEX", "SEX"],
+            ident_cname = ["Strong", "Failed", "Micro", "Dissolved", "Reporting", "Nascent", "Collision", "PolExcluded", "SelfExcluded"],
+            country_birth_year = [1960, 1960, 1960, 1950, 1960, 2010, 1960, 1960, 1960],
+            country_death_year = [2020, 2020, 2020, 1989, 2020, 2020, 2020, 2020, 2020],
+            n_years = [61, 61, 61, 40, 61, 11, 61, 61, 61],
+            year_span = [61, 61, 61, 40, 61, 11, 61, 61, 61],
+            is_active = [true, true, true, false, true, true, true, true, true],
+            is_dissolved = [false, false, false, true, false, false, false, false, false],
+            dissolution_year = [missing, missing, missing, 1990, missing, missing, missing, missing, missing],
+            is_political_exclusion = [false, false, false, false, false, false, false, true, false],
+            pol_excl_from = [missing, missing, missing, missing, missing, missing, missing, 1950, missing],
+            is_self_exclusion = [false, false, false, false, false, false, false, false, true],
+            self_excl_from = [missing, missing, missing, missing, missing, missing, missing, missing, 1950],
+            is_microstate = [false, false, true, false, false, false, false, false, false],
+            max_pop = [50_000.0, 10_000.0, 50.0, 16_000.0, 5_000.0, 1_000.0, 30_000.0, 20_000.0, 200_000.0],
+            has_collision = [false, false, false, false, false, false, true, false, false],
+            collision_years = [Int[], Int[], Int[], Int[], Int[], Int[], [2015], Int[], Int[]],
+            un_subregion_code = [155, 202, 155, 151, 155, 202, 155, 30, 151],
         )
 
-        # Scores: strong=high, failed=low, dissolved=post-dissolution, nascent=early, collision=collision year
         scores = DataFrame(
-            ident_ccode = [1, 2, 3, 4, 5, 6, 7],
-            ident_year = [2015, 2015, 2015, 1988, 2015, 2012, 2015],
-            n_global_present = [580, 100, 300, 200, 400, 300, 500],
-            n_global_total = [600, 600, 600, 600, 600, 600, 600],
-            global_coverage_pct = [0.97, 0.17, 0.50, 0.33, 0.67, 0.50, 0.83],
-            un_subregion_code = [155, 202, 155, 151, 155, 202, 155],
-            subregion_peer_avg = [0.80, 0.60, 0.80, 0.50, 0.80, 0.60, 0.80],
-            peer_deviation = [0.17, -0.43, -0.30, -0.17, -0.13, -0.10, 0.03],
-            lag_affected = [false, false, false, false, false, false, false],
+            ident_ccode = [1, 2, 3, 4, 5, 6, 7, 8, 9],
+            ident_year = [2015, 2015, 2015, 1988, 2015, 2012, 2015, 2015, 2015],
+            n_global_present = [580, 100, 300, 200, 400, 300, 500, 150, 120],
+            n_global_total = [600, 600, 600, 600, 600, 600, 600, 600, 600],
+            global_coverage_pct = [0.97, 0.17, 0.50, 0.33, 0.67, 0.50, 0.83, 0.25, 0.20],
+            un_subregion_code = [155, 202, 155, 151, 155, 202, 155, 30, 151],
+            subregion_peer_avg = [0.80, 0.60, 0.80, 0.50, 0.80, 0.60, 0.80, 0.80, 0.70],
+            peer_deviation = [0.17, -0.43, -0.30, -0.17, -0.13, -0.10, 0.03, -0.55, -0.50],
+            lag_affected = [false, false, false, false, false, false, false, false, false],
         )
 
         status = redirect_stdout(devnull) do
@@ -84,11 +87,14 @@
 
         statuses = Dict(r.ident_ccode => r.country_status for r in eachrow(status))
         @test statuses[1] == "strong"
-        @test statuses[2] == "failed"      # 0.17 < 0.40 AND -0.43 < -0.20
+        @test statuses[2] == "failed"               # 0.17 < 0.40 AND -0.43 < -0.20
         @test statuses[3] == "microstate"
-        @test statuses[4] == "dissolved"   # year 1988 >= 1990 - 5 (dissolution_year - lag)
-        @test statuses[5] == "reporting"   # 0.67 > 0.40, deviation -0.13 > -0.20
-        @test statuses[6] == "nascent"     # 2012 < 2010 + 5 (birth + nascent_years)
+        @test statuses[4] == "dissolved"             # year 1988 >= 1990 - 5
+        @test statuses[5] == "reporting"             # 0.67 > 0.40, deviation -0.13 > -0.20
+        @test statuses[6] == "nascent"               # 2012 < 2010 + 5
+        @test statuses[7] == "collision"             # 2015 in collision_years
+        @test statuses[8] == "political_exclusion"   # is_political_exclusion AND cov 0.25 < 0.40
+        @test statuses[9] == "self_exclusion"        # is_self_exclusion AND cov 0.20 < 0.40
         @test statuses[7] == "collision"   # 2015 is in collision_years
     end
 

@@ -26,6 +26,17 @@ const CM_DISSOLVED_STATES = Dict{Int, NamedTuple{(:name, :year), Tuple{String, I
     9156 => (name="Tibet", year=1959),
 )
 
+"""Politically excluded entities: excluded BY others from international data programs."""
+const CM_POLITICAL_EXCLUSION = Dict{Int, NamedTuple{(:name, :from_year), Tuple{String, Int}}}(
+    158 => (name="Taiwan", from_year=1950),  # Excluded under One China policy; coverage declining steadily
+)
+
+"""Self-excluding entities: exclude THEMSELVES from international data engagement."""
+const CM_SELF_EXCLUSION = Dict{Int, NamedTuple{(:name, :from_year), Tuple{String, Int}}}(
+    810 => (name="USSR", from_year=1950),     # Limited engagement with Western data programs pre-dissolution
+    408 => (name="North Korea", from_year=1950),  # Isolationist — minimal data reporting
+)
+
 """Years before dissolution where data starts degrading (catch the decline period)."""
 const CM_DISSOLUTION_LAG = 5
 
@@ -92,6 +103,16 @@ function build_country_profiles(df::DataFrame; verbose::Bool = true)
         is_dissolved = dissolved_info !== nothing && death <= dissolved_info.year + CM_DISSOLUTION_LAG
         dissolution_year = dissolved_info !== nothing ? dissolved_info.year : missing
 
+        # Political exclusion (excluded by others)
+        pol_excl_info = get(CM_POLITICAL_EXCLUSION, ccode, nothing)
+        is_political_exclusion = pol_excl_info !== nothing
+        pol_excl_from = pol_excl_info !== nothing ? pol_excl_info.from_year : missing
+
+        # Self-exclusion (excludes itself)
+        self_excl_info = get(CM_SELF_EXCLUSION, ccode, nothing)
+        is_self_exclusion = self_excl_info !== nothing
+        self_excl_from = self_excl_info !== nothing ? self_excl_info.from_year : missing
+
         # Microstate: peak population
         pop_vals = collect(skipmissing(sdf.wpp_pop))
         max_pop = isempty(pop_vals) ? missing : maximum(pop_vals)
@@ -120,6 +141,10 @@ function build_country_profiles(df::DataFrame; verbose::Bool = true)
             is_active = is_active,
             is_dissolved = is_dissolved,
             dissolution_year = dissolution_year,
+            is_political_exclusion = is_political_exclusion,
+            pol_excl_from = pol_excl_from,
+            is_self_exclusion = is_self_exclusion,
+            self_excl_from = self_excl_from,
             is_microstate = is_microstate,
             max_pop = max_pop,
             has_collision = has_collision,
@@ -145,8 +170,18 @@ function build_country_profiles(df::DataFrame; verbose::Bool = true)
         println("    Microstates: $(count(profiles.is_microstate))")
         micros = filter(r -> r.is_microstate, profiles)
         for r in eachrow(micros)
-            pop_str = ismissing(r.max_pop) ? "?" : "$(Int(round(r.max_pop/1000)))K"
+            pop_str = ismissing(r.max_pop) ? "?" : "$(Int(round(r.max_pop)))K"
             println("      $(r.ident_ccodealp) $(r.ident_cname) (pop $pop_str)")
+        end
+        pol_excl = filter(r -> r.is_political_exclusion, profiles)
+        println("    Political exclusion: $(nrow(pol_excl))")
+        for r in eachrow(pol_excl)
+            println("      $(r.ident_ccodealp) $(r.ident_cname)")
+        end
+        self_excl = filter(r -> r.is_self_exclusion, profiles)
+        println("    Self-exclusion: $(nrow(self_excl))")
+        for r in eachrow(self_excl)
+            println("      $(r.ident_ccodealp) $(r.ident_cname)")
         end
         println("=" ^ 72)
     end
@@ -260,10 +295,10 @@ end
 # ==============================================================================
 
 """
-Classify each (country, year) as dissolved, nascent, collision, microstate, failed, degraded, reporting, or strong.
+Classify each (country, year) into one of 10 statuses.
 
 Arguments:
-- profiles_df::DataFrame: Country profiles (with has_collision, collision_years)
+- profiles_df::DataFrame: Country profiles
 - scores_df::DataFrame: Missingness scores from Step 1
 
 Returns:
@@ -271,13 +306,15 @@ Returns:
 
 Status priority order:
 1. dissolved — known dissolved state, year >= dissolution_year - DISSOLUTION_LAG
-2. nascent — country within first NASCENT_YEARS of its data (newly independent)
-3. collision — year is a spine collision year (multiple entities sharing ccode)
-4. microstate — population below threshold
-5. failed — low coverage AND far below peers
-6. degraded — coverage dropping in rolling window
-7. reporting — normal
-8. strong — above peer average
+2. political_exclusion — excluded BY others from data programs (e.g., Taiwan)
+3. self_exclusion — excludes ITSELF from data engagement (e.g., USSR, North Korea)
+4. nascent — country within first NASCENT_YEARS of its data (newly independent)
+5. collision — year is a spine collision year (multiple entities sharing ccode)
+6. microstate — population below threshold
+7. failed — low coverage AND far below peers
+8. degraded — coverage dropping in rolling window relative to peers
+9. reporting — normal, below peer average
+10. strong — at or above peer average
 """
 function classify_country_status(
     profiles_df::DataFrame,
@@ -295,6 +332,10 @@ function classify_country_status(
         profile_lookup[r.ident_ccode] = (
             is_dissolved = r.is_dissolved,
             dissolution_year = r.dissolution_year,
+            is_political_exclusion = r.is_political_exclusion,
+            pol_excl_from = r.pol_excl_from,
+            is_self_exclusion = r.is_self_exclusion,
+            self_excl_from = r.self_excl_from,
             is_microstate = r.is_microstate,
             birth = r.country_birth_year,
             has_collision = r.has_collision,
@@ -321,12 +362,22 @@ function classify_country_status(
             dev = sdf.peer_deviation[i]
 
             # 1. Dissolved: known dissolved state, from dissolution_year - lag onward
-            #    Catches the pre-dissolution decline period too
             if prof !== nothing && prof.is_dissolved && !ismissing(prof.dissolution_year) &&
                year >= prof.dissolution_year - CM_DISSOLUTION_LAG
                 push!(statuses, "dissolved")
 
-            # 2. Nascent: first N years of a country's data (newly independent)
+            # 2. Political exclusion: excluded by others (e.g., Taiwan under One China)
+            elseif prof !== nothing && prof.is_political_exclusion && !ismissing(prof.pol_excl_from) &&
+                   year >= prof.pol_excl_from && cov < failed_threshold
+                push!(statuses, "political_exclusion")
+
+            # 3. Self-exclusion: excludes itself (e.g., USSR, North Korea)
+            #    Only applies when NOT already caught by dissolved (USSR is both)
+            elseif prof !== nothing && prof.is_self_exclusion && !ismissing(prof.self_excl_from) &&
+                   year >= prof.self_excl_from && cov < failed_threshold
+                push!(statuses, "self_exclusion")
+
+            # 4. Nascent: first N years of a country's data (newly independent)
             elseif prof !== nothing && year < prof.birth + nascent_years
                 push!(statuses, "nascent")
 
