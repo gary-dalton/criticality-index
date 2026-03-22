@@ -74,6 +74,7 @@ println("\n>>> Running tests...\n")
     @testset verbose=true "Phase 1: Model Definition" begin
         include(joinpath(@__DIR__, "phase1", "test_slug_clustering.jl"))
         include(joinpath(@__DIR__, "phase1", "test_country_missingness.jl"))
+        include(joinpath(@__DIR__, "phase1", "test_slug_reclassification.jl"))
     end
 
 end
