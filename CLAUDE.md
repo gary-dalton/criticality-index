@@ -3,7 +3,7 @@
 A multi-phase research project applying Self-Organized Criticality (SOC) theory to Quality of Government (QoG) data to identify empirical signatures of criticality in governance systems. Written in Julia, run in JupyterLab via Docker.
 
 ## Current Phase
-**Phase 1: Model Definition** (early) — Slug clustering by country coverage patterns in progress. Phase 0 preprocessing is complete. See `.claude/phases/` for phase-specific context.
+**Phase 1: Model Definition** — Complete. Country missingness scoring (10 statuses), slug reclassification (clean denominator, UN vectors), and slug clustering (9 labeled country-profile clusters) all done. Ready for Phase 2. See `.claude/phases/` for details.
 
 ## Conventions
 
@@ -44,7 +44,8 @@ A multi-phase research project applying Self-Organized Criticality (SOC) theory 
 ## Phase Files
 Phase-specific context lives in `.claude/phases/`:
 - `phase0-preprocessing.md` — Preprocessing data files, metadata, and adjuncts (complete)
-- `phase1-model-definition.md` — **[CURRENT]** Model Definition — slug clustering, topology
+- `phase1-model-definition.md` — Model Definition — missingness, reclassification, clustering (complete)
+- **Next:** Phase 2 — Variable Mapping (Slug Selection)
 - `phase2-variable-mapping.md` — Variable Mapping (Slug Selection)
 - `phase3-locked-analysis.md` — Locked Analysis
 - `phase4-synthesis.md` — Synthesis & Writing

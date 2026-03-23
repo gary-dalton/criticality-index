@@ -32,8 +32,8 @@ criticality-index/
 | Phase | Name | Status |
 |-------|------|--------|
 | 0 | Preprocessing | Complete — data loading, metadata, geographic mapping, output integrity verified |
-| 1 | Model Definition (Conceptual & Mathematical) | **Active** — slug clustering by country coverage |
-| 2 | Variable Mapping (Slug Selection) | Not started |
+| 1 | Model Definition (Conceptual & Mathematical) | Complete — missingness scoring, slug reclassification, 9 labeled clusters |
+| 2 | Variable Mapping (Slug Selection) | **Next** |
 | 3 | Locked Analysis | Not started |
 | 4 | Synthesis & Writing | Not started |
 
