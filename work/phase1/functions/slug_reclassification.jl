@@ -439,19 +439,21 @@ function compute_un_penetration_vectors(
             push!(sub_pen, total > 0 ? present / total : 0.0)
         end
 
-        # Classify
-        is_global = r.revised_penetration >= SR_GLOBAL_THRESHOLD
+        # Classify with tiered global (population-weighted only)
+        pop_pen = ismissing(r.revised_penetration) ? 0.0 : r.revised_penetration
         n_high_regions = count(>=(regional_high), reg_pen)
         n_low_regions = count(<=(regional_low), reg_pen)
         n_high_subs = count(>=(regional_high), sub_pen)
 
-        geo_class = if is_global
-            "global"
+        geo_class = if pop_pen >= SR_GLOBAL_THRESHOLD
+            "global_95"          # ≥95% population-weighted — unambiguously global
+        elseif pop_pen >= 0.90
+            "global_90"          # ≥90% population-weighted — near-global
         elseif n_high_regions == 1 && n_low_regions >= 3
             "regional"
         elseif n_high_subs >= 1 && n_high_subs <= 2 && count(<=(regional_low), sub_pen) >= 12
             "subregional"
-        elseif r.revised_penetration < SR_SPARSE_THRESHOLD
+        elseif pop_pen < SR_SPARSE_THRESHOLD
             "sparse"
         else
             "partial"
@@ -512,7 +514,7 @@ function prepare_clustering_pool(
 
     for slug in kept.slug
         geo = get(geo_lookup, slug, "unknown")
-        if geo in ["global", "regional", "subregional", "sparse"]
+        if geo in ["global_95", "global_90", "regional", "subregional", "sparse"]
             push!(removed_slugs, slug)
             push!(removed_reasons, geo)
         elseif geo == "partial"

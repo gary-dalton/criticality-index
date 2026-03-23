@@ -107,6 +107,7 @@ Rules:
 function build_slug_country_matrix(
     df::DataFrame,
     slugs::AbstractVector{<:AbstractString};
+    clean_ccodes::Union{Set{Int}, Nothing} = nothing,
     presence_min_pct::Float64 = SC_PRESENCE_MIN_PCT,
     presence_max_pct::Float64 = SC_PRESENCE_MAX_PCT,
     min_country_coverage::Float64 = SC_MIN_COUNTRY_COVERAGE,
@@ -114,6 +115,12 @@ function build_slug_country_matrix(
 )
     # Unique countries and their year counts (exclude missing ccodes)
     df_valid = filter(row -> !ismissing(row.ident_ccode), df)
+
+    # If clean_ccodes provided, restrict to those countries only
+    if clean_ccodes !== nothing
+        df_valid = filter(row -> Int(row.ident_ccode) in clean_ccodes, df_valid)
+    end
+
     country_years = combine(groupby(df_valid, :ident_ccode), nrow => :n_years)
     countries = sort(Int.(country_years.ident_ccode))
     n_countries = length(countries)
@@ -863,11 +870,12 @@ Returns:
 - NamedTuple with all pipeline outputs
 
 Usage:
-    # With pre-filtered pool (recommended after reclassification):
+    # With pre-filtered pool and clean denominator (recommended):
     pool = CSV.read("data/clustering_pool.csv", DataFrame).slug
-    result = run_slug_clustering(df, meta_df, geo_df; slugs=pool)
+    clean_ccodes = Set(Int.(reclass.clean_universe.clean_rows.ident_ccode))
+    result = run_slug_clustering(df, meta_df, geo_df; slugs=pool, clean_ccodes=clean_ccodes)
 
-    # Legacy: auto-partition by ggis_geo_classification:
+    # Legacy: auto-partition, all countries:
     result = run_slug_clustering(df, meta_df, geo_df)
 """
 function run_slug_clustering(
@@ -875,6 +883,7 @@ function run_slug_clustering(
     meta_df::DataFrame,
     geo_df::DataFrame;
     slugs::Union{AbstractVector{<:AbstractString}, Nothing} = nothing,
+    clean_ccodes::Union{Set{Int}, Nothing} = nothing,
     presence_min_pct::Float64 = SC_PRESENCE_MIN_PCT,
     presence_max_pct::Float64 = SC_PRESENCE_MAX_PCT,
     min_country_coverage::Float64 = SC_MIN_COUNTRY_COVERAGE,
@@ -900,8 +909,12 @@ function run_slug_clustering(
         end
     end
 
-    # Step 1: Binary matrix
+    # Step 1: Binary matrix (with clean denominator if provided)
+    if clean_ccodes !== nothing && verbose
+        println("    Clean denominator: $(length(clean_ccodes)) countries")
+    end
     matrix_result = build_slug_country_matrix(df, cluster_slugs_list;
+        clean_ccodes=clean_ccodes,
         presence_min_pct=presence_min_pct, presence_max_pct=presence_max_pct,
         min_country_coverage=min_country_coverage, verbose=verbose)
 

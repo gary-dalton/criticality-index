@@ -43,7 +43,7 @@
             slug = ["global_s", "regional_s", "partial_s", "sparse_s"],
             un_region_penetration = [fill(0.95, 5), [0.9, 0.1, 0.05, 0.02, 0.0], fill(0.5, 5), fill(0.01, 5)],
             un_subregion_penetration = [fill(0.95, 17), vcat(0.9, fill(0.05, 16)), fill(0.5, 17), fill(0.01, 17)],
-            un_geo_classification = ["global", "regional", "partial", "sparse"],
+            un_geo_classification = ["global_95", "regional", "partial", "sparse"],
         )
 
         result = redirect_stdout(devnull) do
@@ -84,8 +84,8 @@
             @test length(reclass.clustering_pool.clustering_pool) > 0
             @test length(reclass.clustering_pool.clustering_pool) < nrow(meta_df)
 
-            # Global slugs should be identified
-            n_global = count(==(  "global"), reclass.vectors.un_geo_classification)
+            # Global slugs should be identified (either tier)
+            n_global = count(s -> startswith(s, "global"), reclass.vectors.un_geo_classification)
             @test n_global > 0
         end
     end
