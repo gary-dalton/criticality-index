@@ -40,6 +40,9 @@ const SR_SPARSE_THRESHOLD = 0.05
 """Temporal profiles to drop (too sparse or inactive with low coverage)."""
 const SR_DROP_PROFILES = Set(["experimental", "historical"])
 
+"""Path to manual slug exclusions CSV (hand-curated)."""
+const SR_SLUG_EXCLUSIONS_PATH = "data/slug_exclusions.csv"
+
 """Country statuses to exclude from denominators."""
 const SR_EXCLUDE_STATUSES = Set(["dissolved", "political_exclusion", "self_exclusion",
                                   "microstate", "failed", "collision"])
@@ -168,11 +171,24 @@ function compute_revised_penetration(
     reporting_lag::Int = SR_REPORTING_LAG,
     active_window::Int = SR_ACTIVE_WINDOW,
     legacy_window::Int = SR_LEGACY_WINDOW,
+    slug_exclusions_path::String = SR_SLUG_EXCLUSIONS_PATH,
     verbose::Bool = true
 )
     data_end = Int(maximum(clean_universe.clean_rows.ident_year))
     active_end = data_end - reporting_lag
     active_start = active_end - active_window + 1
+
+    # Load manual slug exclusions
+    manual_exclusions = Dict{String, String}()  # slug → reason
+    if isfile(slug_exclusions_path)
+        excl_df = CSV.read(slug_exclusions_path, DataFrame)
+        for r in eachrow(excl_df)
+            manual_exclusions[string(r.slug)] = string(r.exclusion_reason)
+        end
+        if verbose
+            println("    Manual slug exclusions loaded: $(length(manual_exclusions)) from $slug_exclusions_path")
+        end
+    end
 
     # Build year_pop lookup
     year_pop_lookup = Dict{Int, Float64}()
@@ -211,16 +227,16 @@ function compute_revised_penetration(
         birth = ismissing(r.ggis_birth_year) ? missing : Int(r.ggis_birth_year)
         death = ismissing(r.ggis_death_year) ? missing : Int(r.ggis_death_year)
 
-        # Drop check
+        # Drop checks (priority order: manual exclusion > profile > not in data)
+        if haskey(manual_exclusions, slug)
+            push!(rows, (slug=slug, temporal_profile=profile, penetration_window="",
+                         revised_penetration=missing, n_countries_covered=0,
+                         drop_reason="manual:" * manual_exclusions[slug]))
+            continue
+        end
         if profile in SR_DROP_PROFILES
             push!(rows, (slug=slug, temporal_profile=profile, penetration_window="",
                          revised_penetration=missing, n_countries_covered=0, drop_reason=profile))
-            continue
-        end
-        if slug == "who_roadtrd"
-            push!(rows, (slug=slug, temporal_profile="missing", penetration_window="",
-                         revised_penetration=missing, n_countries_covered=0,
-                         drop_reason="single_year_2021"))
             continue
         end
         if !(slug in df_cols)

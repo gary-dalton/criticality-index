@@ -1,5 +1,8 @@
 work/.ipynb_checkpoints/
 work/data/
+!work/data/slug_exclusions.csv
+!work/data/country_exclusions.csv
+!work/data/country_missingness_flags.csv
 work/lpi/
 work/plots/
 work/functions/cluster_analysis copy.jl
