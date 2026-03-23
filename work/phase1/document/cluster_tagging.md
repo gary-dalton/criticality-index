@@ -1,64 +1,60 @@
-# Cluster Tagging — Post-Reclassification Results
+# Cluster Tagging — Final Results
 
 ## Overview
 
-16 clusters produced from the filtered pool (after removing global, regional, subregional, sparse, experimental, and historical slugs). Clusters are topic-driven with no significant geographic or ht_region alignment.
+16 clusters produced from the filtered pool (670 slugs after removing global_95, global_90, regional, subregional, sparse, experimental, historical, and manually excluded slugs). All countries included in the presence matrix. Clusters are labeled by **country profile** — what type of country gets measured — not by data source.
 
-## Cluster Validity Assessment
+## Labeled Clusters (9)
 
-### Legitimate Clusters (13)
+| Cluster | Slugs | Mean J | Density | Label | Description |
+|---------|-------|--------|---------|-------|-------------|
+| 16 | 17 | 1.000 | 100% | `established_democracies_open_parliament` | Parliamentary age/gender data — countries with transparent legislative records |
+| 8 | 10 | 0.995 | 100% | `capable_willing_reporters` | IMF fiscal compliance — voluntary detailed budget reporting |
+| 15 | 33 | 0.908 | 100% | `mature_labor_statistics` | Detailed labor force surveys — advanced statistical infrastructure |
+| 3 | 23 | 0.839 | 91% | `near_global_excl_microstates` | Covers all but microstates (academic expert-coded data) |
+| 9 | 26 | 0.786 | 100% | `near_global` | Covers all but dissolved/micro/failed — threshold artifact |
+| 6 | 14 | 0.798 | 100% | `near_global_excl_microstates` | Same pattern as 3, different topic slugs |
+| 10 | 24 | 0.794 | 90% | `codifiable_electoral_machinery` | States with functioning electoral systems; missing = monarchies/one-party |
+| 12 | 22 | 0.809 | 82% | `moderate_institutional_visibility` | Cabinet/historical data — countries with documented governance structures |
+| 7 | 41 | 0.723 | 52% | `assessable_governance_institutions` | States open enough for rule-of-law assessment (WJP) |
 
-Strong internal cohesion — mean intra-cluster Jaccard ≥ 0.68, density (pct pairs > 0.5) ≥ 70%.
+## Unlabeled Clusters (7)
 
-| Cluster | Slugs | Dominant | Mean J | Density | Proposed Label |
-|---------|-------|----------|--------|---------|---------------|
-| 16 | 17 | YRI | 1.000 | 100% | youth_resilience |
-| 15 | 33 | WWBI | 0.908 | 100% | bureaucracy |
-| 9 | 19 | WDI | 0.839 | 100% | development_tertiary |
-| 11 | 27 | LIS | 0.813 | 72% | inequality |
-| 12 | 19 | NELDA | 0.796 | 90% | elections_factual |
-| 10 | 24 | GOL | 0.794 | 90% | governance_expert |
-| 2 | 153 | WDI | 0.774 | 96% | development_core |
-| 14 | 30 | WVS | 0.769 | 86% | values_opinion |
-| 13 | 16 | WDI | 0.738 | 88% | development_africa |
-| 1 | 72 | CPDS | 0.733 | 79% | comparative_politics |
-| 5 | 66 | BTI | 0.718 | 69% | governance_transformation |
-| 3 | 38 | IAEP | 0.702 | 90% | cross_national_surveys |
-| 6 | 50 | WDI | 0.680 | 82% | development_secondary |
+Weak cohesion or mixed composition. Not used in downstream analysis. Slugs remain in the data but are tagged as `untagged`.
 
-### Questionable Clusters (3)
-
-Weak or bimodal internal structure — not considered legitimate for downstream analysis.
-
-| Cluster | Slugs | Dominant | Mean J | Density | Issue |
-|---------|-------|----------|--------|---------|-------|
-| 7 | 41 | WJP | 0.723 | 52% | Bimodal — median 1.0 but only 52% density. Two subclusters forced together. Block-diagonal heatmap expected. |
-| 4 | 18 | BL | 0.867 | 89% | Mean looks strong but min 0.177 is very low. 1-2 slugs don't belong. |
-| 8 | 32 | WARC | 0.694 | 88% | Weakest large cluster. Conflict data has inherently uneven coverage. May be as good as it gets for this topic. |
-
-**Decision:** Clusters 4, 7, and 8 are excluded from the tagged set. Their slugs remain in the data but are not assigned a topic label. Future work may split these with tighter clustering dials or manual inspection.
+| Cluster | Slugs | Mean J | Density | Issue |
+|---------|-------|--------|---------|-------|
+| 11 | 27 | 0.813 | 72% | Bimodal — tight core with loose members |
+| 14 | 30 | 0.769 | 86% | Mixed topic coverage |
+| 2 | 151 | 0.758 | 94% | Large mega-cluster — too broad to characterize |
+| 13 | 16 | 0.738 | 88% | Mixed WDI subset |
+| 1 | 72 | 0.733 | 79% | Mixed comparative politics — min J=0.111 |
+| 4 | 72 | 0.689 | 68% | Mixed — low density |
+| 5 | 50 | 0.680 | 82% | Borderline cohesion |
 
 ## Strength Metrics
 
 | Metric | Meaning |
 |--------|---------|
-| **mean_jaccard** | Average pairwise Jaccard similarity within cluster. Higher = slugs cover more of the same countries. |
-| **median_jaccard** | Middle value. When median >> mean, tight core with loose outliers. |
-| **min_jaccard** | Weakest pair. Low min with high mean = 1-2 slugs barely belong. |
-| **pct_above_50 (density)** | % of pairs with Jaccard > 0.5. Below 70% = cluster loosely held together. |
+| **mean_jaccard** | Average pairwise Jaccard similarity within cluster |
+| **median_jaccard** | Middle value — when median >> mean, tight core with outliers |
+| **min_jaccard** | Weakest pair — low min with high mean = 1-2 slugs barely belong |
+| **density (pct_above_50)** | % of pairs with Jaccard > 0.5. Below 70% = loosely held |
 
-## WDI Fragmentation
+## Labeling Principle
 
-WDI splits into 3 legitimate clusters:
-- **Cluster 2** (153 slugs, 99% coverage) — core development indicators
-- **Cluster 6** (50 slugs, 86% coverage) — secondary development indicators
-- **Cluster 9** (19 slugs, 89% coverage) — tertiary development indicators
-- **Cluster 13** (16 slugs, 63% coverage) — Africa-weighted WDI subset
+Labels describe **country profiles** — the type of country that gets measured by the cluster's slugs:
 
-This fragmentation is correct — different WDI indicators have different country coverage patterns despite sharing a prefix.
+- `near_global*` — covers nearly everyone; missing countries are noise (microstates, dissolved)
+- `capable_willing_reporters` — countries that voluntarily report detailed fiscal data to the IMF
+- `mature_labor_statistics` — countries with advanced statistical office infrastructure
+- `codifiable_electoral_machinery` — countries with functioning electoral systems to code
+- `assessable_governance_institutions` — countries open enough for external rule-of-law evaluation
+- `moderate_institutional_visibility` — countries with enough governance documentation for researchers
+- `established_democracies_open_parliament` — democracies publishing parliamentary composition data
 
-## Next Steps
+The missing countries in each cluster are as informative as the covered ones — they reveal which states lack the institutional capacity, willingness, or political openness for that type of measurement.
 
-1. Assign topic labels to the 13 legitimate clusters
-2. Examine slugs from questionable clusters individually — some may merge into legitimate clusters with manual review
-3. Use tagged clusters for Phase 2 variable mapping
+## Key Output
+
+`data/slug_clusters_tagged.csv` — cluster assignments with labels. Untagged slugs marked as `untagged` and excluded from Phase 2 variable mapping.
