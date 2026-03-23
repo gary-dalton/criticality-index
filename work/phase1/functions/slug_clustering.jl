@@ -106,7 +106,7 @@ Rules:
 """
 function build_slug_country_matrix(
     df::DataFrame,
-    slugs::Vector{String};
+    slugs::AbstractVector{<:AbstractString};
     presence_min_pct::Float64 = SC_PRESENCE_MIN_PCT,
     presence_max_pct::Float64 = SC_PRESENCE_MAX_PCT,
     min_country_coverage::Float64 = SC_MIN_COUNTRY_COVERAGE,
@@ -854,21 +854,27 @@ Run the full slug clustering pipeline.
 
 Arguments:
 - df::DataFrame: Augmented QoG timeseries
-- meta_df::DataFrame: Metadata with ggis_geo_classification, prefix, provenance, etc.
+- meta_df::DataFrame: Metadata with prefix, provenance, etc.
 - geo_df::DataFrame: Geographic lookup
+- slugs::Union{Vector{String}, Nothing}: Pre-filtered slug list (e.g., from reclassification
+  clustering pool). If nothing, falls back to partition_slugs(meta_df).
 
 Returns:
 - NamedTuple with all pipeline outputs
 
 Usage:
-    df, meta_df = load_dataframes()
-    geo_df = CSV.read("data/ggis_geographic_lookup.csv", DataFrame)
+    # With pre-filtered pool (recommended after reclassification):
+    pool = CSV.read("data/clustering_pool.csv", DataFrame).slug
+    result = run_slug_clustering(df, meta_df, geo_df; slugs=pool)
+
+    # Legacy: auto-partition by ggis_geo_classification:
     result = run_slug_clustering(df, meta_df, geo_df)
 """
 function run_slug_clustering(
     df::DataFrame,
     meta_df::DataFrame,
     geo_df::DataFrame;
+    slugs::Union{AbstractVector{<:AbstractString}, Nothing} = nothing,
     presence_min_pct::Float64 = SC_PRESENCE_MIN_PCT,
     presence_max_pct::Float64 = SC_PRESENCE_MAX_PCT,
     min_country_coverage::Float64 = SC_MIN_COUNTRY_COVERAGE,
@@ -876,11 +882,26 @@ function run_slug_clustering(
     min_sim::Float64 = SC_JACCARD_MIN_SIM,
     verbose::Bool = true
 )
-    # Step 0: Partition
-    partition = partition_slugs(meta_df)
+    # Determine slug list
+    if slugs === nothing
+        partition = partition_slugs(meta_df)
+        cluster_slugs_list = partition.cluster_slugs
+        if verbose
+            println("    Using auto-partition: $(length(cluster_slugs_list)) cluster candidates")
+        end
+    else
+        cluster_slugs_list = slugs
+        if verbose
+            println("=" ^ 72)
+            println("Slug Clustering — Pre-filtered Pool")
+            println("=" ^ 72)
+            println("    Input slugs: $(length(cluster_slugs_list))")
+            println("=" ^ 72)
+        end
+    end
 
     # Step 1: Binary matrix
-    matrix_result = build_slug_country_matrix(df, partition.cluster_slugs;
+    matrix_result = build_slug_country_matrix(df, cluster_slugs_list;
         presence_min_pct=presence_min_pct, presence_max_pct=presence_max_pct,
         min_country_coverage=min_country_coverage, verbose=verbose)
 
@@ -903,7 +924,6 @@ function run_slug_clustering(
         df; verbose=verbose)
 
     return (
-        partition = partition,
         matrix = matrix_result,
         edges_directed = edges,
         edges_undirected = edges_und,
