@@ -57,30 +57,30 @@ This means we can borrow three frameworks from physics and apply them with mathe
 
 ---
 
-## 2. Backtesting: The First Analytical Step
+## 2. *Backtesting*: The First Analytical Step
 
-Before the model computes anything, we must establish empirical ground truth. The entire analytical sequence depends on this. *(See Companion Guide §5.1–§5.3 for definitions of backtesting, grounding, and non-circularity.)*
+Before the model computes anything, we must establish empirical *ground truth*. The entire analytical sequence depends on this. *(See Companion Guide §5.1 for the full backtesting methodology primer.)*
 
 ### 2.1 Why Backtesting Comes First
 
-The model claims that governance systems exhibit Self-Organized Criticality. This is a testable claim — not an assumption. The five empirical signatures of criticality (power-law events, diverging correlation length, scale invariance, fractal structure, no characteristic event size) are measurable in data. If the signatures are absent, the model's theoretical foundation fails and no amount of clever index construction will save it.
+The model claims that governance systems exhibit Self-Organized Criticality. This is a testable claim — not an assumption. The five *empirical signatures* of criticality — *power-law events*, *diverging correlation length*, *scale invariance*, *fractal structure*, *no characteristic event size* — are measurable in data. If the *signatures* are absent, the model's theoretical foundation fails and no amount of clever index construction will save it.
 
-Backtesting runs **first and blind**:
+*Backtesting* runs **first and *blind***:
 
-1. **Test for criticality signatures** across the full historical panel. No preconceptions about which countries should be at criticality. Use two domain-independent slug sets (political/governance domain vs. economic/conflict domain) to avoid circularity.
-2. **Identify empirical examples** — countries and time periods where the signatures are present, partially present, or absent. These become labeled ground truth: at-criticality, sub-critical, super-critical.
-3. **Calibrate C_d from the ground truth.** Set C_d = 0 at the empirically identified critical states. The E - O balance at those states defines the zero point. The model is then tuned to reproduce the ground truth labels.
-4. **Extrapolate** to countries and periods where signatures are ambiguous or data is too sparse for direct signature testing. This is where the calibrated C_d formula extends the model's reach beyond the directly testable cases.
+1. **Test for criticality signatures** across the full historical panel. No preconceptions about which countries should be at criticality. Use two *domain-independent* slug sets (political/governance domain vs. economic/conflict domain) to avoid *circularity*.
+2. **Identify empirical examples** — countries and time periods where the signatures are present, partially present, or absent. These become labeled *ground truth*: at-criticality, sub-critical, super-critical.
+3. **Calibrate *C_d* from the ground truth.** Set C_d = 0 at the empirically identified critical states. The E - O balance at those states defines the zero point. The model is then tuned to reproduce the ground truth labels.
+4. ***Extrapolate*** to countries and periods where signatures are ambiguous or data is too sparse for direct signature testing. This is where the calibrated C_d formula extends the model's reach beyond the directly testable cases.
 
 This sequence prevents confirmation bias. We do not assume Denmark is at criticality and then build a model that confirms it. We let the data speak first.
 
-### 2.2 Grounding Layer (Independent Validation)
+### 2.2 *Grounding Layer* (Independent Validation)
 
 #### Non-Circularity Principle
 
-Validation slugs must be independent from index slugs. If a variable helps define the state, using it again to validate the state is circular. The index set and the grounding set must be **disjoint** — no slug can appear in both.
+Validation slugs must be independent from index slugs. If a variable helps define the state, using it again to validate the state is circular. The *index set* and the grounding set must be *disjoint* — no slug can appear in both.
 
-Which specific slugs go into which set is a **slug selection decision** made during Phase 2b, not a pre-committed constraint. Any slug in the global_95 pool is a candidate for either role until assigned.
+Which specific slugs go into which set is a **slug selection decision** made during Phase 2b, not a pre-committed constraint. Any slug in the *global_95* pool is a candidate for either role until assigned.
 
 #### Five Empirical Signatures of Criticality
 
@@ -92,7 +92,7 @@ Which specific slugs go into which set is a **slug selection decision** made dur
 | 4 | **Fractal structure** | Hierarchical self-similarity across scales | Network renormalization preserves properties; subnational distributions match national; nested communities share structure |
 | 5 | **No characteristic event size** | Fat-tailed year-over-year jumps | $kurtosis > 1.5$ or GPD fit |
 
-Acceptance criteria are **tunable engineering defaults**, not physical constants. They must be validated via sensitivity analysis and (ideally) formal goodness-of-fit tests.
+Acceptance criteria are **tunable engineering defaults**, not physical constants. They must be *validated* via *sensitivity analysis* and formal *goodness-of-fit* tests.
 
 #### Two Domain-Independent Slug Sets
 
@@ -101,23 +101,23 @@ Grounding signatures are tested using two sets from different measurement domain
 - **Set A (political/governance domain):** V-Dem slugs
 - **Set B (economic/conflict domain):** Non-V-Dem slugs testing the same signatures
 
-Domain independence means: different measurement domain, different data generation method, different institutional source. Some correlation between sets is EXPECTED at criticality — that IS Signature 2 (diverging correlation length means sectors couple).
+Domain independence means: different measurement domain, different data generation method, different institutional source. Some *correlation* between sets is EXPECTED at criticality — that IS Signature 2 (diverging correlation length means sectors couple).
 
-#### Network-Enhanced Signatures
+#### Network-Layer Test Methods
 
-Between-country tests using Phase 0b network data:
+Once network data (CEPII trade/geographic) is integrated, each signature gains additional test methods operating at the between-country scale. These are not separate signatures — they are additional ways to test the same signatures using different data:
 
-- **Sig 1 enhanced:** Track cascade sizes through the network (shock propagating hop by hop). Power-law cascade size distribution = criticality.
-- **Sig 2 enhanced:** Measure correlation of governance perturbations BETWEEN network neighbors. Network correlation length (how many hops with significant correlation) should diverge at criticality.
-- **Sig 3 enhanced:** Compare dynamics at ego-network scale vs. global network scale. Self-similarity across these scales = scale invariance.
+- **Sig 1:** Track cascade sizes through the trade/geographic network (shock propagating hop by hop).
+- **Sig 2:** Measure *correlation* of governance perturbations between network neighbors. Network correlation length (how many hops) should diverge at criticality.
+- **Sig 3:** Compare dynamics at ego-network scale vs. global network scale.
 
-The within-country and between-country grounding tests operate at different scales. Their agreement is itself evidence of scale invariance.
+Testing the same signatures at within-country AND between-country scales — and finding agreement — is itself evidence of scale invariance (Signature 3).
 
 ---
 
-## 3. Phase States
+## 3. *Phase States*
 
-| Regime | Physical Analog | Structure | Failure Mode |
+| *Regime* | Physical Analog | Structure | Failure Mode |
 |--------|----------------|-----------|--------------|
 | **Sub-critical** | Tectonic fault | Rigid, high-slope. Stress accumulates invisibly along internal fault lines for years or decades. The surface appears stable but is dangerous. | **Earthquake** — catastrophic, sudden release once the accumulated stress exceeds the fault's capacity. Unpredictable in timing and magnitude. (Soviet collapse 1991, Arab Spring 2011.) |
 | **Critical** | Ductile material at yield point | Processes stress at all scales. Deforms without breaking. Avalanches are power-law distributed. Maximum adaptive capacity. | **Graceful degradation** — no single failure mode dominates. The system bends but does not break. |
@@ -131,13 +131,13 @@ The within-country and between-country grounding tests operate at different scal
 
 ## 4. Measurable Components
 
-Each component is constructed from *slugs* — individual measured variables in the QoG dataset. *(See Companion Guide §1 §4 for slug definition; §4 for dual-channel slug type discussions.)*
+Each *component* is constructed from *slugs* — individual measured variables in the QoG dataset. *(See Companion Guide §1 §4 for slug definition; §4 for dual-channel slug type discussions.)*
 
 ### 4.1 Forces (Determine Phase State)
 
 #### O (Ordering / Dissipation)
 
-Damps perturbations and prevents cascades. The dissipation mechanism that absorbs energy and prevents runaway failure.
+Damps *perturbations* and prevents *cascades*. The *dissipation* mechanism that absorbs energy and prevents runaway failure.
 
 | Sub-component | Governance Meaning |
 |---------------|-------------------|
@@ -149,19 +149,17 @@ Damps perturbations and prevents cascades. The dissipation mechanism that absorb
 
 For discussion of dual-channel slug types (military, religion) and their component mapping, see *Companion Guide §4*.
 
-**Lattice failure:** Ordering that cannot transmit is not ordering. If the rule-of-law substrate collapses, nominal safety institutions cease to function as system-wide damping.
+**Lattice failure:** Ordering that cannot transmit is not ordering. If the rule-of-law *substrate* collapses, *nominal* safety institutions cease to function as system-wide damping.
 
 $$O_{effective} = O_{raw} \times \Phi(RoL)$$
 
-where $\Phi$ is a sigmoid function:
-
-$$\Phi(x) = \frac{1}{1 + e^{-k(x - x_0)}}$$
+where $\Phi$ is a *sigmoid function* — a smooth S-shaped curve that transitions from 0 to 1. It is used here because lattice failure is not binary (working/broken) but a continuous degradation with a steep threshold region where institutional effectiveness collapses rapidly. *(See Companion Guide §5.4 for the full lattice failure discussion.)*
 
 $\Phi \approx 1$ when rule-of-law is healthy; $\Phi \to 0$ as rule-of-law collapses. Parameters $k$ (steepness) and $x_0$ (midpoint) are tunable engineering defaults, not physical constants.
 
 #### E (Excitation / Driving)
 
-Adds energy and pushes the system toward reconfiguration. The slow driving that adds grains to the sandpile.
+Adds energy and pushes the system toward reconfiguration. The slow *driving* that adds grains to the sandpile.
 
 | Sub-component | Governance Meaning |
 |---------------|-------------------|
@@ -173,7 +171,7 @@ Adds energy and pushes the system toward reconfiguration. The slow driving that 
 
 For discussion of dual-channel slug types (military, religion) and their component mapping, see *Companion Guide §4*.
 
-**Network diffusion term:** E includes excitation transmitted from neighbors through trade and geographic edges, weighted by edge strength. *(See Companion Guide §2.3 for network primer.)*
+**Network *diffusion* term:** E includes excitation transmitted from neighbors through trade and geographic edges, weighted by edge strength. *(See Companion Guide §2.5 for network primer.)*
 
 ### 4.2 Material Properties (Describe the Substrate)
 
@@ -242,7 +240,7 @@ Computed deterministically from the 6 measurables and their time derivatives.
 
 $$C_d = E - O$$
 
-The primary index output. A signed, linear measure of distance from *criticality*: *(See Companion Guide §1 §5 for C_d definition; §5.5 for mass scaling and minimum system size.)*
+The primary index output. A tentative, signed, linear measure of distance from *criticality*. This formulation may require scaling, cutoffs, or other adjustments as backtesting reveals the empirical relationship between O, E, and the critical state. *(See Companion Guide §1 §5 for C_d definition; §5.5 for mass scaling and minimum system size.)*
 
 - $C_d < 0$ — **sub-critical.** O dominates. The system is frozen, rigid, accumulating unprocessed stress. Negative = cold.
 - $C_d = 0$ — **at criticality.** E and O are in balance. The system processes demands at all scales.
@@ -250,7 +248,7 @@ The primary index output. A signed, linear measure of distance from *criticality
 
 **Why E - O.** Linear, preserving equal resolution across the full range. The sign carries intuitive meaning: positive = heating up, negative = frozen.
 
-**Calibration from backtesting.** C_d = 0 is not assumed — it is set empirically. The backtesting phase (Section 2) identifies countries exhibiting criticality signatures. The E - O balance at those states defines the zero point. If empirical criticality occurs at E - O = 0.3, the formula becomes C_d = (E - O) - 0.3, or equivalently, the normalization of O and E is adjusted so that the critical balance falls at zero.
+***Calibration* from backtesting.** C_d = 0 is not assumed — it is set empirically. The backtesting phase (Section 2) identifies countries exhibiting criticality signatures. The E - O balance at those states defines the zero point. If empirical criticality occurs at E - O = 0.3, the formula becomes C_d = (E - O) - 0.3, or equivalently, the normalization of O and E is adjusted so that the critical balance falls at zero.
 
 **The O-E plane.** Every country-year is a point on a 2D plane with O on the x-axis and E on the y-axis. The critical line is the diagonal where E = O. C_d is the signed vertical distance from that line. Countries above: super-critical. Below: sub-critical. On it: at criticality. The backtesting may reveal that the empirical critical line is not exactly the diagonal — it could be shifted or curved depending on mass. The data will tell us.
 
@@ -258,7 +256,7 @@ The primary index output. A signed, linear measure of distance from *criticality
 
 **Mass-scaling.** Large, complex states operate at higher absolute O and E than small states. Raw E - O may not be comparable across system sizes. Whether mass-scaling is needed depends on how O and E are constructed: if slugs are intensive quantities (rates, per-capita, indices), the measures are already scale-independent. If any extensive quantities (totals, counts) enter the aggregation, mass normalization is required. This is resolved during slug selection.
 
-### 5.2 Trajectory
+### 5.2 *Trajectory*
 
 | Quantity | Formula | Interpretation |
 |----------|---------|---------------|
@@ -302,13 +300,13 @@ Slugs arrive in incompatible units: percentages (0–100), indices (0–10, 0–
 
 | Method | Properties | Best for |
 |--------|-----------|----------|
-| **Z-score** (mean=0, σ=1) | Preserves distribution shape, centers all slugs, addition is meaningful | Default for continuous slugs with roughly symmetric distributions |
-| **Rank / percentile** | Ordinal, robust to outliers and extreme skew | Slugs with heavy-tailed or badly skewed distributions |
-| **Min-max** (0–1) | Bounded, intuitive | Not recommended — dominated by extreme values at endpoints |
+| ***Z-score*** (mean=0, σ=1) | Preserves distribution shape, centers all slugs, addition is meaningful | Default for continuous slugs with roughly *symmetric* distributions |
+| **Rank / percentile** | *Ordinal*, robust to *outliers* and extreme *skew* | Slugs with *heavy-tailed* or badly skewed distributions |
+| **Min-max** (0–1) | *Bounded*, intuitive | Not recommended — dominated by extreme values at endpoints |
 
 Z-score normalization within each slug across the full country-year panel is the default. Rank normalization is the fallback for individual slugs where skew or outliers make z-scores misleading. The choice per slug is an empirical decision made during slug selection, not a blanket rule.
 
-### 6.3 Aggregation Hierarchy
+### 6.3 *Aggregation* Hierarchy
 
 ```
 Slugs → Sub-component → Component (O, E, M, U, S, ρ) → C_d

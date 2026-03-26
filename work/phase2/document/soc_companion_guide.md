@@ -58,17 +58,23 @@ Terms are organized to follow the section order of the main architecture documen
 
 ### §2 — Backtesting and Grounding
 
-**Five Empirical Signatures of Criticality.** The measurable fingerprints that distinguish a system at criticality from one that is merely complex. They are ordered by convention and referenced throughout the architecture document.
+Backtesting vocabulary (*backtesting*, *blind*, *ground truth*, *domain-independent*, *circularity*, *extrapolate*, *grounding*) and the five *empirical signatures* are defined in the **Backtesting Methodology primer (§5.1)**. Signature-specific statistical methods are covered in the **Power-Law Statistics primer (§2.4)**.
 
-**Signature 1: Power-law event distribution.** A statistical distribution where the frequency of an event is inversely related to its magnitude raised to a constant power. Many small events, few large events, no characteristic size — meaning there is no "typical" event magnitude. Unlike a bell curve where events cluster around a meaningful average, power-law events span orders of magnitude with no central tendency. You cannot say "the typical earthquake is magnitude X" because the average is dominated by rare extremes and doesn't represent what you'd usually observe. Earthquake magnitudes follow a power law (Gutenberg-Richter law). At criticality, avalanche sizes follow a power law.
+**Grounding Layer.** The set of empirical tests (the five signatures) and the slug sets used to run them. The grounding layer is what anchors the model in observation. It is independent of the index — see *non-circularity* in §5.1.
 
-**Signature 2: Diverging correlation length.** How far the influence of a perturbation extends through the lattice. In a sub-critical system, perturbations stay local — a policy change in one sector doesn't affect others (short correlation length). At criticality, perturbations can reach the entire system — a shock in one sector propagates through the lattice and is felt across many others (diverging correlation length). Measured via mutual information between sectors: high mutual information means sectors are coupled and what happens in one predicts what happens in another.
+**Index Set.** The slugs used to compute C_d (the O, E, M, U, S, ρ components). Distinguished from the grounding set, which tests for signatures. The two sets must be *disjoint*.
 
-**Signature 3: Scale invariance.** The system looks the same at different scales of observation. Zoom in on a fractal and you see the same pattern. At criticality, the dynamics at the local level (a province, a sector) resemble the dynamics at the national level. A governance system that exhibits scale invariance processes perturbations the same way whether the perturbation is small and local or large and system-wide. Tested by comparing subnational and national dynamics using external datasets (DOSE subnational GDP, Subnational HDI).
+**Disjoint.** Two sets are disjoint if they share no members. In this model, the index slug set and the grounding slug set must be disjoint — no slug can appear in both. This prevents circularity.
 
-**Signature 4: Fractal structure.** Hierarchical self-similarity in the structure of the system — the pattern at one scale looks like the pattern at another scale. Related to scale invariance but applied to the structure itself rather than the dynamics. Tested three ways: (1) network renormalization — coarse-grain the trade network by collapsing communities into single nodes and check whether the coarse-grained network has the same statistical properties as the original, (2) distribution matching across administrative scales — check whether the distribution of economic output across provinces within a country has the same shape as the distribution across countries globally, and (3) nested community detection — check whether sub-communities within the trade network have the same structural properties as top-level communities (clusters within clusters with the same pattern at each level).
+**Global_95.** The pool of ~543 QoG slugs with ≥95% population-weighted coverage across non-excluded countries. Identified during Phase 1 slug classification. This is the primary candidate pool from which both index and grounding slugs are selected.
 
-**Signature 5: No characteristic event size (fat tails).** Year-over-year changes in governance indicators should not cluster around a "normal" size. Instead, the distribution of changes should have fat tails — extreme jumps (both positive and negative) occur far more often than a bell curve would predict. Measured via kurtosis (how heavy-tailed the distribution is) or by fitting a Generalized Pareto Distribution to the tail. Fat tails mean the system produces outsized events — consistent with the power-law avalanches of Signature 1, but tested on a different quantity (year-over-year changes rather than event magnitudes).
+**Correlation.** A statistical measure of how much two variables move together. Positive correlation: they rise and fall together. Negative correlation: one rises when the other falls. Zero correlation: no relationship. In this model, *mutual information* is preferred over simple correlation for measuring coupling (Signature 2) because it captures nonlinear relationships that correlation misses.
+
+**Sensitivity Analysis.** Testing how much the model's outputs change when inputs or parameters are varied. If a small change in a threshold or weight causes a large change in C_d, the model is sensitive to that parameter and the parameter must be justified carefully. Acceptance criteria for the five signatures are tunable defaults — sensitivity analysis determines whether the model's conclusions depend on those specific thresholds.
+
+**Goodness-of-Fit.** A statistical test measuring how well a theoretical distribution matches observed data. For Signature 1, goodness-of-fit tests determine whether the data actually follows a power law versus merely appearing to. A poor fit means the signature is not present, regardless of what the exponent estimate looks like.
+
+**Validated.** In this model, a result is validated when it has been tested via sensitivity analysis, goodness-of-fit, and (where possible) out-of-sample backtesting. Validation is not "someone reviewed it" — it is a specific set of quantitative checks.
 
 ### §3 — Phase States
 
@@ -86,15 +92,45 @@ Terms are organized to follow the section order of the main architecture documen
 
 **Slug.** A single measured variable in the QoG dataset, identified by a unique name (e.g., `wdi_expmil` for military expenditure as % of GDP). The atomic unit of measurement in this project.
 
+**Component.** One of the six measurable quantities in the model: O (ordering), E (excitation), M (mass), U (internal energy), S (entropy), ρ (density). Each component is constructed by aggregating normalized slugs through sub-components.
+
+**Substrate.** The underlying medium through which signals propagate. In the model, the rule-of-law substrate is the institutional fabric that carries ordering signals. If the substrate collapses, the signals cannot transmit — institutions may exist on paper but cannot function as system-wide damping.
+
+**Nominal.** Existing in name but not necessarily in function. A nominal institution is one that formally exists but lacks the substrate to operate effectively. A country with a constitution, courts, and police that cannot enforce rulings has nominal ordering — the institutions are there but the lattice is broken.
+
+**Sigmoid Function.** A smooth S-shaped curve that transitions from 0 to 1 (or vice versa). Used in the model for the lattice failure function Φ because institutional degradation is not binary — there is a continuous transition with a steep threshold region where effectiveness collapses rapidly. Below the threshold, institutions transmit normally. Above it, they are nominal only.
+
+**Diffusion.** The spread of a perturbation through a network over time. In physics, diffusion describes how heat or particles spread through a medium. In the model, diffusion describes how excitation from a neighboring country spreads through trade and geographic edges into the domestic system. The speed of diffusion depends on ρ (density/coupling) and the strength of network edges.
+
 **Intensive vs. Extensive Quantities.** An intensive quantity does not depend on system size — temperature, density, percentage, per-capita measures. An extensive quantity scales with system size — total GDP, population, total military personnel. For comparing countries of different sizes, intensive quantities are preferred because they are already scale-independent.
 
 ### §5 — Derived Quantities
 
-**C_d (Criticality Distance).** The primary output of the model. C_d = E - O, calibrated so that C_d = 0 corresponds to empirically observed criticality. Negative values indicate sub-critical (frozen). Positive values indicate super-critical (heated). The magnitude indicates how far from the critical balance.
+**C_d (Criticality Distance).** The primary output of the model. Tentatively C_d = E - O, calibrated so that C_d = 0 corresponds to empirically observed criticality. This formulation may require scaling, cutoffs, or other adjustments. Negative values indicate sub-critical (frozen). Positive values indicate super-critical (heated). The magnitude indicates how far from the critical balance.
+
+**Calibration.** The process of adjusting the model's zero point so that C_d = 0 corresponds to empirically observed criticality. Calibration is not assumption — it is derived from backtesting. The E - O balance at countries exhibiting criticality signatures defines the zero point. If that balance is not exactly E = O, the formula or normalization is adjusted accordingly.
+
+**Trajectory.** Already defined in §1. In the context of derived quantities: the path C_d traces over time for a given country, with velocity (d1) and acceleration (d2). See §1 for full definition.
 
 ### §6 — Slug Normalization
 
 **Normalization.** Converting measurements to a common scale so they can be meaningfully combined. Z-score normalization (subtract the mean, divide by standard deviation) centers every slug at 0 with spread of 1.
+
+**Z-score.** A normalized value expressing how many standard deviations a data point is from the mean. Z = 0 means at the average. Z = +2 means two standard deviations above. Z-score normalization makes slugs with different native scales directly comparable.
+
+**Symmetric.** A distribution where the left and right sides mirror each other around the center. The bell curve is symmetric. Z-score normalization works best for roughly symmetric distributions because the mean and standard deviation are meaningful summaries.
+
+**Skew.** Asymmetry in a distribution. A right-skewed distribution has a long tail of high values (most countries have low GDP, a few have very high GDP). A left-skewed distribution has a long tail of low values. Skewed distributions make the mean misleading — it gets pulled toward the tail.
+
+**Outliers.** Data points far from the bulk of the distribution. In governance data, a country with an extreme value on a slug (e.g., a tiny oil state with GDP per capita 10x the next highest) is an outlier. Outliers distort z-scores by inflating the standard deviation.
+
+**Heavy-tailed.** A distribution with more extreme values than a bell curve would predict. Already covered in detail in the Power-Law Statistics primer (§2.4). In the normalization context: heavy-tailed slugs are poor candidates for z-score normalization because the standard deviation is dominated by rare extremes.
+
+**Ordinal.** A measurement scale where values have a meaningful order but the distances between them are not necessarily equal. Rank normalization converts any distribution to an ordinal scale — it preserves "A > B > C" but discards how much greater A is than B.
+
+**Bounded.** A measurement with fixed upper and lower limits. Min-max normalization produces bounded values (0 to 1). The problem: extreme values at the endpoints compress everything else into a narrow range.
+
+**Aggregation.** Combining multiple values into a single score. In the model, aggregation happens at two levels: slugs → sub-component (e.g., multiple rule-of-law slugs → constraint enforcement score) and sub-components → component (e.g., all O sub-components → O score). The default is simple mean (equal weight).
 
 ---
 
@@ -307,19 +343,33 @@ These are noted for future consideration during slug selection. The principle is
 
 ## 5. Model-Specific Concepts
 
-### 5.1 Backtesting
+### 5.1 Backtesting Methodology
 
-In this model, backtesting means testing the historical data for empirical signatures of criticality BEFORE computing C_d. The purpose is to establish ground truth — which countries and time periods actually exhibit criticality — so that the model can be calibrated against observed reality rather than assumed.
+*First introduced in Architecture §2.*
 
-Backtesting runs blind: no preconceptions about which countries "should" be at criticality. The signatures either appear in the data or they don't. The results become labels (at-criticality, sub-critical, super-critical) that C_d is then tuned to reproduce.
+The model claims that governance systems exhibit Self-Organized Criticality. Before computing C_d or any derived quantity, this claim must be tested against historical data. *Backtesting* is the process of searching the data for the *empirical signatures* of criticality — observable, measurable patterns that distinguish a system at criticality from one that is merely complex.
 
-### 5.2 Grounding
+**Why backtesting comes first.** If we computed C_d first and then checked for signatures, we would be tempted (consciously or not) to adjust the model until the signatures appeared where we expected them. The model would confirm itself. By testing for signatures first — before the model has any opinion about which countries are at criticality — we establish *ground truth* from the data alone. Ground truth means: observed facts that the model must explain, not assumptions the model starts from.
 
-The grounding layer is the set of empirical tests (the five signatures) used during backtesting. "Grounding" means anchoring the model in observable data rather than theoretical assumption. A grounded model makes claims that can be falsified — if the signatures are absent, the model's foundation fails.
+**Blind testing.** Backtesting runs *blind*: no preconceptions about which countries "should" be at criticality. We do not assume that Denmark is at criticality, or that Somalia is super-critical, or that North Korea is sub-critical. The *signatures* either appear in the data or they don't. A country's reputation, wealth, or political system is irrelevant — only the measurable patterns matter. This prevents confirmation bias.
 
-### 5.3 Non-Circularity
+**The five empirical signatures.** These are the specific patterns tested during backtesting. Each is a measurable mathematical property that systems at criticality exhibit:
 
-A variable cannot appear in both the index (computing C_d) and the grounding layer (testing for criticality signatures). Using the same variable for both would be circular — the model would confirm itself. The index slug set and the grounding slug set must be disjoint. Which slugs go where is decided during slug selection.
+1. **Power-law event distribution** — event magnitudes follow a scale-free distribution with no *characteristic event size*. Many small events, few large events, no "typical" size. *(See Primer §2.4 for power-law statistics.)*
+2. **Diverging correlation length** — perturbations in one sector are felt across many others. Sectors become coupled. Measured via mutual information.
+3. **Scale invariance** — dynamics at the local level (province, sector) resemble dynamics at the national level. The system looks the same at different scales.
+4. **Fractal structure** — the structure itself is self-similar across scales. Trade clusters within trade clusters with the same properties. *(See Primer §2.6 for renormalization methods.)*
+5. **No characteristic event size (fat tails)** — year-over-year changes have heavier tails than a bell curve would predict. Extreme jumps occur far more often than "normal."
+
+**Domain independence.** The signatures are tested using two separate sets of slugs from different measurement domains — for example, a political/governance set (V-Dem) and an economic/conflict set (non-V-Dem). *Domain-independent* means: different measurement domain, different data generation method, different institutional source. If the same signatures appear independently in both domains, the finding is robust — it is not an artifact of how one particular dataset was constructed. Some correlation between domains is expected at criticality (that IS Signature 2 — sectors couple).
+
+**Ground truth labeling.** Countries and time periods where signatures are present become labeled: *at-criticality*. Where signatures are clearly absent: *sub-critical* or *super-critical* depending on the pattern. Where signatures are ambiguous or data is sparse: unlabeled. These labels are the ground truth that C_d is calibrated to reproduce.
+
+**Calibration.** Once ground truth is established, C_d = E - O is calibrated so that C_d = 0 corresponds to the empirically identified critical states. The E - O balance at those states defines the zero point. This is not an assumption — it is derived from observation.
+
+**Extrapolation.** Many countries will have insufficient data for direct signature testing (sparse slug coverage, short time series, ambiguous results). For these, the calibrated C_d formula *extrapolates* — it extends the model's reach beyond the directly testable cases using the relationship between O, E, and criticality established from the ground truth countries. Extrapolation is inherently less certain than direct observation, and should be flagged as such.
+
+**Non-circularity.** A slug cannot appear in both the index (computing C_d) and the *grounding* layer (testing for signatures). Using the same variable for both would be *circular* — the model would be validated against its own inputs. The index slug set and the grounding slug set must be *disjoint*. Which slugs go where is decided during slug selection. The *grounding layer* is the set of empirical tests (the five signatures) used during backtesting — it is the mechanism by which the model is anchored in observable data rather than theoretical assumption.
 
 ### 5.4 Lattice Failure and the Φ Function
 
