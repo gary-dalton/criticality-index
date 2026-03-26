@@ -29,10 +29,14 @@ Arguments:
 
 Available modules:
   :network_data
+  :subnational_data
+  :network_fractal
 """
 function include_phase2(modules::Vector{Symbol} = Symbol[])
     all_modules = [
         :network_data => "network_data.jl",
+        :subnational_data => "subnational_data.jl",
+        :network_fractal => "network_fractal.jl",
     ]
 
     load_all = isempty(modules)

@@ -9,53 +9,113 @@
 
 ### 1.1 Self-Organized Criticality (SOC): The Sandpile
 
-Imagine dropping grains of sand, one at a time, onto a flat table. This simple experiment — formalized by Bak, Tang, and Wiesenfeld (1987) — reveals how systems organize themselves to the edge of breakdown, because that is where they are most capable.
+Imagine dropping grains of sand, one at a time, onto a flat table. This simple experiment — formalized by Bak, Tang, and Wiesenfeld (1987) — reveals how *systems* organize themselves to the edge of breakdown, because that is where they are most capable. *(See Companion Guide §1 for all key term definitions.)*
 
-**The slow build.** Grains arrive one at a time, slowly enough that the pile can react to each. These are the small, constant pressures any system faces — demands, inputs, perturbations.
+**The slow build.** Grains arrive one at a time, slowly enough that the pile can react to each. These are the small, constant pressures any system faces — demands, inputs, *perturbations*.
 
-**The local limit.** Every spot on the pile has a threshold. When a site gets too steep, it topples — spilling its excess onto its nearest neighbors. The stress doesn't vanish; it becomes the neighbors' problem. This is how perturbations propagate through connected systems.
+**The local limit.** Every spot on the pile has a *threshold*. When a site gets too steep, it topples — spilling its excess onto its nearest neighbors. The stress doesn't vanish; it becomes the neighbors' problem. This is how perturbations *propagate* through *connected systems*.
 
-**The escape valve.** Sand only leaves the system when it reaches the edge of the table and falls off. This boundary dissipation is what prevents the pile from growing forever. Without it, energy accumulates without limit.
+**The escape valve.** Sand only leaves the system when it reaches the edge of the table and falls off. This *dissipation* is what prevents the pile from growing forever. Without it, energy accumulates without limit.
 
-**The critical state.** Eventually, the pile reaches a specific shape — not too flat, not a vertical spike. It has tuned itself, without any external controller, to a **critical slope**. This is Self-Organized Criticality.
+**The *critical state*.** Eventually, the pile reaches a specific shape — not too flat, not a vertical spike. It has tuned itself, without any external controller, to a **critical slope**. This is *Self-Organized Criticality*. *(Companion §2.1)*
 
-In this state, the pile is **poised**:
+In this state, the pile is **at the edge of its capacity**:
 
-- **Sensitive** — a single grain might do nothing, or it might trigger a cascade that reshapes the entire pile. Avalanche sizes follow a power-law distribution: many small, few large, no characteristic scale.
-- **Maximally connected** — because every site is near its threshold, a topple anywhere can propagate everywhere. The system "knows" about its whole self. A grain dropped on the left can eventually cause a fall on the right.
-- **Maximally capable** — the system explores its full configuration space. It can respond to perturbations at any scale, processing information from the smallest local adjustment to the largest system-wide reorganization.
+- **Sensitive** — a single grain might do nothing, or it might trigger a *cascade* that reshapes the entire pile. Avalanche sizes follow a *power-law* distribution: many small, few large, no *characteristic scale*.
+- **Maximally connected** — because every site is near its threshold, a topple anywhere can propagate everywhere. A grain dropped on the left can eventually cause a fall on the right.
+- **Maximally capable** — the system explores its full *configuration space*. It can respond to perturbations at any scale, processing information from the smallest local adjustment to the largest system-wide reorganization.
 
-This is not metaphor. The mathematics of SOC — power-law event distributions, diverging correlation lengths, scale invariance — are measurable empirical signatures. This model tests whether governance systems exhibit them.
+This is not metaphor. The mathematics of SOC — power-law event distributions, *diverging correlation lengths*, *scale invariance* — are measurable *empirical signatures*. This model tests whether governance systems exhibit them.
 
 ### 1.2 Mapping to Governance
 
 Now replace the sandpile with a country.
 
-**The lattice.** Instead of a grid of sand sites, the lattice is the institutional and social fabric — courts, ministries, markets, communities, media, civil society. Each is a node. The edges between them are the channels through which stress propagates: legal authority, economic dependency, information flow, cultural ties. When a court ruling changes labor law, the stress transfers to employers, then to workers, then to households. When a commodity price spikes, the shock travels from the export sector through government revenue to public services. Same mechanics as sand toppling onto neighbors — stress doesn't vanish, it moves.
+**The *lattice*.** Instead of a grid of sand sites, the lattice is the institutional and social fabric — courts, ministries, markets, communities, media, civil society. Each is a *node*. The *edges* between them are the channels through which stress propagates: legal authority, economic dependency, information flow, cultural ties. When a court ruling changes labor law, the stress transfers to employers, then to workers, then to households. When a commodity price spikes, the shock travels from the export sector through government revenue to public services. Same mechanics as sand toppling onto neighbors — stress doesn't vanish, it moves.
 
-**The grains (Excitation, E).** In the sandpile, grains arrive one at a time. In governance, the "grains" are demands and pressures: economic growth that strains infrastructure, demographic shifts that overwhelm schools, protests that challenge legitimacy, external shocks from trade partners or adversaries. These are the slow driving forces that push the system toward reconfiguration. They accumulate whether or not the system is ready to process them.
+**The grains (*Excitation*, E).** In the sandpile, grains arrive one at a time. In governance, the "grains" are demands and pressures: economic growth that strains infrastructure, demographic shifts that overwhelm schools, protests that challenge legitimacy, external shocks from trade partners or adversaries. These are the slow *driving* forces that push the system toward reconfiguration. They accumulate whether or not the system is ready to process them.
 
-**The toppling threshold (Ordering, O).** Each sand site has a slope limit. In governance, the equivalent is institutional capacity to absorb stress without breaking — rule of law that channels disputes into courts instead of streets, regulatory frameworks that process economic demands, social norms that maintain cooperation without enforcement, elections and protests that release pressure incrementally. These are the dissipation mechanisms. They don't eliminate stress — they process it, transmit it, and ultimately shed it at the system's boundaries.
+**The toppling threshold (*Ordering*, O).** Each sand site has a slope limit. In governance, the equivalent is institutional capacity to absorb stress without breaking — rule of law that channels disputes into courts instead of streets, regulatory frameworks that process economic demands, social norms that maintain cooperation without enforcement, elections and protests that release pressure incrementally. These are the dissipation mechanisms. They don't eliminate stress — they process it, transmit it, and ultimately shed it at the system's boundaries.
 
-**The edge of the table (Boundary dissipation).** Sand leaves the system by falling off the table edge. In governance, energy leaves the system through resolved disputes, completed policy cycles, emigration, trade that exports pressure, or simply time passing and grievances fading. Without these exits, stress accumulates without limit.
+**The edge of the table (Boundary dissipation).** Sand leaves the system by falling off the table edge. In governance, energy leaves the system through resolved disputes, completed policy cycles, emigration, trade that exports pressure, or simply time passing and grievances fading. Without these exits, energy accumulates without limit.
 
-**The balance.** The ratio of Ordering to Excitation (O/E) determines the phase state — just as the slope of the sandpile determines whether it is flat, critical, or collapsing. Too much O relative to E: the system is rigid, brittle, accumulating unprocessed stress. Too much E relative to O: the system cannot maintain structure. At the critical balance: the system processes demands at all scales, from minor policy adjustments to major institutional reorganizations.
+**The balance.** The relationship between Excitation and Ordering determines the *phase state* — just as the slope of the sandpile determines whether it is flat, critical, or collapsing. Too much O relative to E: the system is rigid, brittle, accumulating stress. Too much E relative to O: the system cannot maintain structure. At the critical balance: the system processes demands at all scales, from minor policy adjustments to major institutional reorganizations.
 
 ### 1.3 Three Theoretical Pillars
 
-Once a system exhibits SOC, the mathematics of physics become available — not as metaphor, but as legitimate analytical tools. This is because SOC systems share the same deep structure as physical systems: they have conserved quantities (energy in, energy out), they obey balance laws (what enters must be processed or stored), and they exhibit phase transitions (qualitative changes in behavior at critical thresholds). The sandpile is not "like" a physical system — it IS a physical system, and so is any system that exhibits the same signatures.
+Once a system exhibits SOC, the mathematics of physics become available — not as metaphor, but as legitimate analytical tools. This is because SOC systems share the same deep structure as physical systems: they have conserved quantities (energy in, energy out), they obey balance laws (what enters must be processed or stored), and they exhibit *phase transitions*. The sandpile is not "like" a physical system — it IS a physical system, and so is any system that exhibits the same signatures.
 
 This means we can borrow three frameworks from physics and apply them with mathematical precision, provided we can measure the right quantities:
 
-1. **Inertial mechanics (F = ma).** A governance system has mass — resistance to change. Large, old, deeply institutionalized states (think France, China) do not change direction easily. Small, young, lightly institutionalized states (think South Sudan) have little inertia. Forces (O and E) act on this mass, and the system has a trajectory through state space — a velocity (how fast the O/E balance is changing) and an acceleration (is that change speeding up or slowing down). These are computable from time derivatives of the data, not assumed.
+1. **Inertial mechanics (F = ma).** The system has *mass*, experiences forces (O and E), and has a *trajectory* through *state space* with computable *velocity* and *acceleration*. *(Companion §2.2)*
 
-2. **Thermodynamics and information.** The system is an open thermodynamic engine — energy flows in (demands, pressures), useful work comes out (governance outcomes, public goods), and waste heat is dissipated (corruption, violence, rent-seeking, unresolved grievances). Entropy measures how many distinct configurations the system can access — how many ways it can be rearranged internally while still functioning. High entropy means a large configuration space (many possible arrangements), low entropy means few. A diverse, pluralistic society has higher entropy than a monolithic one. Temperature measures how much unprocessed social energy exists per available channel. A high-temperature system is volatile; a low-temperature system is frozen. The state itself acts as a Maxwell's Demon — using information (laws, norms, institutions) to locally reduce entropy at the cost of energy expenditure, consistent with Landauer's principle.
+2. **Thermodynamics and information.** The system is an *open thermodynamic engine* — *energy* flows in, useful work comes out, waste heat is dissipated. *Entropy* measures *configurational complexity*. *Temperature* measures social energy per available channel. The state acts as a *Maxwell's Demon* — using information to locally reduce entropy at the cost of energy expenditure. *(Companion §2.3)*
 
-3. **Energy and power.** These are the outputs we ultimately care about. Power is the rate at which the system converts inputs into governance outcomes — how fast it delivers. Efficiency is the fraction that becomes useful work versus waste heat. Capability is the maximum throughput the system can sustain, determined by its mass (buffer capacity) and density (transmission speed). The central prediction of the model is that power delivery is maximized at criticality — the system is most productive at the critical balance.
+3. **Energy and power.** *Power* is the rate of governance delivery. *Efficiency* is the fraction becoming useful work. *Capability* is maximum throughput. *(Companion §2.4)*
+
+> **Central Prediction:** Power delivery is maximized at *criticality*. This is the core testable claim of the model.
 
 ---
 
-## 2. Phase States
+## 2. Backtesting: The First Analytical Step
+
+Before the model computes anything, we must establish empirical ground truth. The entire analytical sequence depends on this. *(See Companion Guide §5.1–§5.3 for definitions of backtesting, grounding, and non-circularity.)*
+
+### 2.1 Why Backtesting Comes First
+
+The model claims that governance systems exhibit Self-Organized Criticality. This is a testable claim — not an assumption. The five empirical signatures of criticality (power-law events, diverging correlation length, scale invariance, fractal structure, no characteristic event size) are measurable in data. If the signatures are absent, the model's theoretical foundation fails and no amount of clever index construction will save it.
+
+Backtesting runs **first and blind**:
+
+1. **Test for criticality signatures** across the full historical panel. No preconceptions about which countries should be at criticality. Use two domain-independent slug sets (political/governance domain vs. economic/conflict domain) to avoid circularity.
+2. **Identify empirical examples** — countries and time periods where the signatures are present, partially present, or absent. These become labeled ground truth: at-criticality, sub-critical, super-critical.
+3. **Calibrate C_d from the ground truth.** Set C_d = 0 at the empirically identified critical states. The E - O balance at those states defines the zero point. The model is then tuned to reproduce the ground truth labels.
+4. **Extrapolate** to countries and periods where signatures are ambiguous or data is too sparse for direct signature testing. This is where the calibrated C_d formula extends the model's reach beyond the directly testable cases.
+
+This sequence prevents confirmation bias. We do not assume Denmark is at criticality and then build a model that confirms it. We let the data speak first.
+
+### 2.2 Grounding Layer (Independent Validation)
+
+#### Non-Circularity Principle
+
+Validation slugs must be independent from index slugs. If a variable helps define the state, using it again to validate the state is circular. The index set and the grounding set must be **disjoint** — no slug can appear in both.
+
+Which specific slugs go into which set is a **slug selection decision** made during Phase 2b, not a pre-committed constraint. Any slug in the global_95 pool is a candidate for either role until assigned.
+
+#### Five Empirical Signatures of Criticality
+
+| # | Signature | What it tests | Acceptance criterion |
+|---|-----------|--------------|---------------------|
+| 1 | **Power-law events** | Event magnitudes follow scale-free distribution | $\alpha \in [0.8, 1.5]$ (MLE) |
+| 2 | **Diverging correlation length** | Cross-sector coupling strengthens | $|MI| > threshold$ (mutual information) |
+| 3 | **Scale invariance** | Local and national dynamics are self-similar | $similarity > 0.85$ |
+| 4 | **Fractal structure** | Hierarchical self-similarity across scales | Network renormalization preserves properties; subnational distributions match national; nested communities share structure |
+| 5 | **No characteristic event size** | Fat-tailed year-over-year jumps | $kurtosis > 1.5$ or GPD fit |
+
+Acceptance criteria are **tunable engineering defaults**, not physical constants. They must be validated via sensitivity analysis and (ideally) formal goodness-of-fit tests.
+
+#### Two Domain-Independent Slug Sets
+
+Grounding signatures are tested using two sets from different measurement domains:
+
+- **Set A (political/governance domain):** V-Dem slugs
+- **Set B (economic/conflict domain):** Non-V-Dem slugs testing the same signatures
+
+Domain independence means: different measurement domain, different data generation method, different institutional source. Some correlation between sets is EXPECTED at criticality — that IS Signature 2 (diverging correlation length means sectors couple).
+
+#### Network-Enhanced Signatures
+
+Between-country tests using Phase 0b network data:
+
+- **Sig 1 enhanced:** Track cascade sizes through the network (shock propagating hop by hop). Power-law cascade size distribution = criticality.
+- **Sig 2 enhanced:** Measure correlation of governance perturbations BETWEEN network neighbors. Network correlation length (how many hops with significant correlation) should diverge at criticality.
+- **Sig 3 enhanced:** Compare dynamics at ego-network scale vs. global network scale. Self-similarity across these scales = scale invariance.
+
+The within-country and between-country grounding tests operate at different scales. Their agreement is itself evidence of scale invariance.
+
+---
+
+## 3. Phase States
 
 | Regime | Physical Analog | Structure | Failure Mode |
 |--------|----------------|-----------|--------------|
@@ -69,23 +129,25 @@ This means we can borrow three frameworks from physics and apply them with mathe
 
 ---
 
-## 3. Measurable Components
+## 4. Measurable Components
 
-### 3.1 Forces (Determine Phase State)
+Each component is constructed from *slugs* — individual measured variables in the QoG dataset. *(See Companion Guide §1 §4 for slug definition; §4 for dual-channel slug type discussions.)*
+
+### 4.1 Forces (Determine Phase State)
 
 #### O (Ordering / Dissipation)
 
 Damps perturbations and prevents cascades. The dissipation mechanism that absorbs energy and prevents runaway failure.
 
-| Sub-component | SOC Mechanism | Governance Meaning |
-|---------------|--------------|-------------------|
-| **Physical security** | Energy dissipation at boundaries | Violence control — prevents lethal cascading. The most basic damping. A society where political disputes escalate to killing has lost its primary energy sink. |
-| **Constraint enforcement** | Lattice rigidity (site-to-site coupling rules) | Rule of law, executive constraints — transmits damping signals through the lattice. Without this, ordering is local only and cannot prevent system-wide cascades. |
-| **Social and religious constraint** | Local cohesion (inter-grain friction) | Norms, traditions, community bonds, religious order — voluntary compliance that reduces enforcement cost. This is the distributed damping mechanism; it operates at every node without requiring centralized enforcement. |
-| **Expression of disagreement** | Controlled avalanche channels (safety valves) | Legitimate dissent outlets: elections, protests, media criticism, strikes. These ARE ordering — they release stress incrementally instead of letting it accumulate to brittle fracture. A system that suppresses all dissent is removing its own safety valves. |
-| **Constraint on privilege capture** | Anti-concentration mechanism | Prevents power/wealth concentration that would distort the lattice. Corruption, oligarchy, and regulatory capture create local stress concentrations that eventually fracture the structure. |
+| Sub-component | Governance Meaning |
+|---------------|-------------------|
+| **Physical security** | Violence control — prevents lethal cascading. The most basic damping. |
+| **Constraint enforcement** | Rule of law, executive constraints — transmits damping signals through the lattice. |
+| **Social and religious constraint** | Norms, traditions, community bonds, religious order — voluntary compliance that reduces enforcement cost. |
+| **Expression of disagreement** | Legitimate dissent outlets: elections, protests, media criticism, strikes. These ARE ordering — they release stress incrementally. |
+| **Constraint on privilege capture** | Prevents power/wealth concentration that would distort the lattice. |
 
-**Military as ordering (guidelines, not locked):** Military capacity under civilian control functions as physical security — the state's monopoly on organized violence is the ultimate boundary dissipation mechanism. Candidate slugs include militarization indices (`bicc_gmi`, `wdi_expmil`, `wdi_afp`), public trust in the military (`wvs_confaf`), and military corruption (`wjp_pol_mil`). However, when the military captures the state (`chisols_mil`, `chisols_indmil`), it crosses from ordering to excitation — the damping mechanism becomes a driving force. The lattice failure function Φ(RoL) partially captures this, but regime-type flags provide a more direct signal.
+For discussion of dual-channel slug types (military, religion) and their component mapping, see *Companion Guide §4*.
 
 **Lattice failure:** Ordering that cannot transmit is not ordering. If the rule-of-law substrate collapses, nominal safety institutions cease to function as system-wide damping.
 
@@ -101,21 +163,19 @@ $\Phi \approx 1$ when rule-of-law is healthy; $\Phi \to 0$ as rule-of-law collap
 
 Adds energy and pushes the system toward reconfiguration. The slow driving that adds grains to the sandpile.
 
-| Sub-component | SOC Mechanism | Governance Meaning |
-|---------------|--------------|-------------------|
-| **Economic demands** | Grain addition rate (material stress) | Growth pressure, trade competition, resource scarcity, labor market pressure. The baseline driving force — demands that accumulate regardless of political configuration. |
-| **Social mobilization** | Agent activation (nodes becoming active) | Civil society activity, protest, demographic pressure, urbanization demands. When previously passive agents become active, the system receives more energy per unit time. |
-| **Interstate competition** | External forcing (boundary conditions) | Geopolitical pressure, arms rivalry, economic competition between states. Energy imposed from outside the system boundary — not internally generated. |
-| **Religious mobilization** | Correlated activation (synchronized sub-swarms) | Faith-based demands on the state, religious movements as collective action vehicles. Religious mobilization activates many nodes simultaneously, creating correlated perturbations that are harder to damp. |
-| **Communication pathways** | Coupling strength (edge conductance) | Media, internet, social networks — amplify and transmit demands across the lattice. These do not generate energy but increase the speed and reach of its propagation. |
+| Sub-component | Governance Meaning |
+|---------------|-------------------|
+| **Economic demands** | Growth pressure, trade competition, resource scarcity, labor market pressure. The baseline driving force. |
+| **Social mobilization** | Civil society activity, protest, demographic pressure, urbanization demands. |
+| **Interstate competition** | Geopolitical pressure, arms rivalry, economic competition. Energy imposed from outside the system boundary. |
+| **Religious mobilization** | Faith-based demands on the state, religious movements as collective action vehicles. |
+| **Communication pathways** | Media, internet, social networks — amplify and transmit demands across the lattice. |
 
-**Military as excitation (guidelines, not locked):** Arms trade (`wdi_armexp`, `wdi_armimp`) measures military energy flowing across borders. Alliance obligations (`atop_defensive`, `atop_offensive`) create forced nearest-neighbor coupling — a partner's crisis becomes your crisis. Active conflict (`ucdp_type1`–`ucdp_type4`) is the most extreme excitation — the system is being driven past its dissipation capacity. Non-state armed actors (`chisols_warlord`) inject correlated excitation outside institutional channels.
+For discussion of dual-channel slug types (military, religion) and their component mapping, see *Companion Guide §4*.
 
-**Religion as dual-channel:** Religion appears in both O (social/religious constraint) and E (religious mobilization). This is correct, not a contradiction. Religious energy can flow through ordering channels (established churches, community norms, shared behavioral expectations) or excitatory channels (revolutionary movements, sectarian mobilization, faith-based political demands). The net contribution depends on institutional configuration.
+**Network diffusion term:** E includes excitation transmitted from neighbors through trade and geographic edges, weighted by edge strength. *(See Companion Guide §2.3 for network primer.)*
 
-**Network diffusion term:** E includes excitation transmitted FROM neighbors through trade and geographic edges, weighted by edge strength. A country surrounded by super-critical neighbors receives additional excitation through the network. This is the nearest-neighbor coupling mechanism from graph theory.
-
-### 3.2 Material Properties (Describe the Substrate)
+### 4.2 Material Properties (Describe the Substrate)
 
 These describe what the system is made of — independent of the forces acting on it. Steel and glass under the same stress respond differently because they have different material properties.
 
@@ -161,13 +221,7 @@ This reflects the physics — in statistical mechanics, temperature (which deter
 
 #### ρ (Density / Coupling)
 
-In graph theory, density is the ratio of actual edges to possible edges in a network. A fully connected graph (every node linked to every other) has density 1. A sparse graph — few connections, many isolated nodes — has density near 0. This is exactly what ρ measures in the governance lattice: of all the possible transmission pathways between institutions, sectors, communities, and levels of government, how many actually exist?
-
-A high-ρ system has overlapping, redundant channels — legal, economic, informational, infrastructural — connecting its nodes. Perturbations have many paths to travel, and the system behaves as a connected whole. A low-ρ system has sparse connections: the capital may be densely linked internally while rural regions are effectively disconnected. Perturbations reach dead ends and stay local.
-
-**Density is neutral.** It is a structural property of the lattice, not a measure of quality. A dense lattice transmits ordering signals and excitatory perturbations equally well — the same edges that carry a reform from parliament to provinces also carry a crisis from a border region to the financial center.
-
-This is a **hybrid component**: within-country coupling (how connected the internal lattice is) from QoG slugs + between-country coupling (how connected the country is to its neighbors and trading partners) from the network layer.
+The ratio of actual transmission pathways to possible pathways in the governance lattice. Density is neutral — it amplifies ordering signals and excitatory perturbations equally. A **hybrid component**: within-country coupling from QoG slugs + between-country coupling from the network layer. *(See Companion Guide §2.5 for graph theory primer and §3 for density in the physics-analog mapping.)*
 
 | Sub-component | Source | What it measures |
 |---------------|--------|-----------------|
@@ -180,20 +234,41 @@ This is a **hybrid component**: within-country coupling (how connected the inter
 
 ---
 
-## 4. Derived Quantities
+## 5. Derived Quantities
 
 Computed deterministically from the 6 measurables and their time derivatives.
 
-### 4.1 Criticality Index
+### 5.1 *C_d* (Criticality Distance)
+
+$$C_d = E - O$$
+
+The primary index output. A signed, linear measure of distance from *criticality*: *(See Companion Guide §1 §5 for C_d definition; §5.5 for mass scaling and minimum system size.)*
+
+- $C_d < 0$ — **sub-critical.** O dominates. The system is frozen, rigid, accumulating unprocessed stress. Negative = cold.
+- $C_d = 0$ — **at criticality.** E and O are in balance. The system processes demands at all scales.
+- $C_d > 0$ — **super-critical.** E dominates. The system cannot maintain structure. Positive = hot.
+
+**Why E - O.** Linear, preserving equal resolution across the full range. The sign carries intuitive meaning: positive = heating up, negative = frozen.
+
+**Calibration from backtesting.** C_d = 0 is not assumed — it is set empirically. The backtesting phase (Section 2) identifies countries exhibiting criticality signatures. The E - O balance at those states defines the zero point. If empirical criticality occurs at E - O = 0.3, the formula becomes C_d = (E - O) - 0.3, or equivalently, the normalization of O and E is adjusted so that the critical balance falls at zero.
+
+**The O-E plane.** Every country-year is a point on a 2D plane with O on the x-axis and E on the y-axis. The critical line is the diagonal where E = O. C_d is the signed vertical distance from that line. Countries above: super-critical. Below: sub-critical. On it: at criticality. The backtesting may reveal that the empirical critical line is not exactly the diagonal — it could be shifted or curved depending on mass. The data will tell us.
+
+**Mass threshold.** SOC requires a lattice with enough nodes for avalanche dynamics to emerge. Microstates with very small populations and minimal institutional complexity may lack sufficient mass for the framework to apply. Below a minimum system size, C_d is **undefined**, not zero. This threshold will be identified empirically — likely correlated with the microstate classification from Phase 1.
+
+**Mass-scaling.** Large, complex states operate at higher absolute O and E than small states. Raw E - O may not be comparable across system sizes. Whether mass-scaling is needed depends on how O and E are constructed: if slugs are intensive quantities (rates, per-capita, indices), the measures are already scale-independent. If any extensive quantities (totals, counts) enter the aggregation, mass normalization is required. This is resolved during slug selection.
+
+### 5.2 Trajectory
 
 | Quantity | Formula | Interpretation |
 |----------|---------|---------------|
-| **D_c (distance from criticality)** | $D_c = \ln(O/E)$ | The primary index output. $D_c = 0$ means at criticality. $D_c > 0$ means sub-critical (O dominates). $D_c < 0$ means super-critical (E dominates). Magnitude indicates how far. |
-| **d1 (velocity)** | $d_1 = \frac{dD_c}{dt}$ | Rate of movement toward or away from criticality. $d_1 > 0$ means moving toward sub-critical. $d_1 < 0$ means moving toward super-critical. |
-| **d2 (acceleration)** | $d_2 = \frac{d^2 D_c}{dt^2}$ | Is the movement speeding up or slowing down? Sustained $d_2$ in one direction indicates a runaway process. |
-| **Phase state** | $f(D_c)$ | Classification: sub-critical / at-criticality / super-critical. Boundaries are tunable thresholds. |
+| **d1 (velocity)** | $d_1 = \frac{dC_d}{dt}$ | Rate of movement toward or away from criticality. $d_1 > 0$: heating up (moving toward super-critical). $d_1 < 0$: cooling down (moving toward sub-critical). |
+| **d2 (acceleration)** | $d_2 = \frac{d^2 C_d}{dt^2}$ | Is the movement speeding up or slowing down? Sustained $d_2$ in one direction indicates a runaway process — the system is not self-correcting. |
+| **Phase state** | $f(C_d)$ | Classification: sub-critical / at-criticality / super-critical. Boundaries are tunable thresholds calibrated from backtesting. |
 
-### 4.2 Physics Model
+**Trajectory matters as much as position.** Two countries at C_d = 0.3 are in very different situations if one has d1 < 0 (cooling, moving toward criticality) and the other has d1 > 0 (heating, moving away). A state with a deteriorating trajectory has time to act if it can read the signal.
+
+### 5.3 Physics Model
 
 | Quantity | Concept | Interpretation |
 |----------|---------|---------------|
@@ -203,7 +278,7 @@ Computed deterministically from the 6 measurables and their time derivatives.
 | **Capability (C)** | $C = g(M, \rho)$ | Maximum system throughput. Determined by mass (buffer) and coupling (transmission speed). |
 | **Efficiency (η)** | $\eta = W_{useful} / U_{input}$ | Fraction of energy becoming useful governance work vs. dissipated as waste heat (corruption, violence, rent-seeking). |
 
-### 4.3 Central Testable Prediction
+### 5.4 Central Testable Prediction
 
 **Power delivery is MAXIMIZED at criticality.**
 
@@ -215,96 +290,149 @@ This is the central claim of the model and must be tested empirically.
 
 ---
 
-## 5. Mathematical Toolkit
+## 6. Slug *Normalization* and Aggregation
 
-### 5.1 Core (Required)
+*(See Companion Guide §5.5 for mass scaling; §5.6 for normalization and aggregation concepts.)*
 
-- **Linear algebra** — weighted aggregation, normalization, missingness-aware renormalization
-- **Information theory** — Shannon entropy (for S component), mutual information (replaces Pearson correlation for grounding Signature 2 — captures nonlinear coupling), transfer entropy (directional causality between O and E)
-- **Power-law statistics** — maximum likelihood estimation + goodness-of-fit (Clauset et al. 2009) for grounding Signature 1
-- **Extreme value theory** — Generalized Pareto distribution for grounding Signature 5 (fat tails)
+### 6.1 The Problem
 
-### 5.2 Graph Theory (Nearest-Neighbor Systems)
+Slugs arrive in incompatible units: percentages (0–100), indices (0–10, 0–1, 1–5), counts, dollar amounts, binary flags. Before aggregation into sub-components and components, everything must be on a common scale. Whether slugs are *intensive* (scale-independent: rates, per-capita, indices) or *extensive* (scale-dependent: totals, counts) determines whether mass normalization is needed.
 
-- **Multi-layer network:** geographic layer (CEPII GeoDist) + trade layer (UN COMTRADE / CEPII BACI)
-- **Nearest neighbors** defined by proximity in multiple dimensions (spatial, economic) — not strictly geometric distance
-- **Key metrics:** degree centrality, clustering coefficient, betweenness centrality, community detection, spectral gap
-- **Network entropy** as a direct measure of structural complexity (informs S)
-- **Enhances ρ** — actual network topology instead of proxy indicators
-- **Enhances grounding signatures** — between-country tests at a different scale than within-country QoG-based tests
+### 6.2 Normalization Strategy
 
-### 5.3 Deferred (Insufficient Data)
+| Method | Properties | Best for |
+|--------|-----------|----------|
+| **Z-score** (mean=0, σ=1) | Preserves distribution shape, centers all slugs, addition is meaningful | Default for continuous slugs with roughly symmetric distributions |
+| **Rank / percentile** | Ordinal, robust to outliers and extreme skew | Slugs with heavy-tailed or badly skewed distributions |
+| **Min-max** (0–1) | Bounded, intuitive | Not recommended — dominated by extreme values at endpoints |
+
+Z-score normalization within each slug across the full country-year panel is the default. Rank normalization is the fallback for individual slugs where skew or outliers make z-scores misleading. The choice per slug is an empirical decision made during slug selection, not a blanket rule.
+
+### 6.3 Aggregation Hierarchy
+
+```
+Slugs → Sub-component → Component (O, E, M, U, S, ρ) → C_d
+```
+
+At each level, the combining function is **simple mean** (equal weight) by default. This avoids baking in assumptions before the data speaks. If backtesting reveals that certain sub-components carry disproportionate signal, weights can be introduced — but only with empirical justification, never by assumption.
+
+**Missingness-aware aggregation:** Not all slugs are available for all country-years. Sub-component and component scores are computed from available slugs only, with the denominator adjusted. A country with 3 of 5 slugs available in a sub-component gets the mean of those 3, not a penalized score. This is consistent with the Phase 1 philosophy: missingness is signal (captured separately), not noise to be imputed.
+
+### 6.4 Directionality
+
+Some slugs point in the "wrong" direction for their component. A corruption index where high = more corrupt is a negative contributor to O, not a positive one. Slug polarity (whether high values increase or decrease the component score) must be assigned during slug selection and applied before aggregation. This is a manual, reviewable decision per slug — not automated.
+
+---
+
+## 7. Mathematical Toolkit
+
+*(See Companion Guide §2.1–§2.6 for primers on each framework.)*
+
+### 7.1 Core (Required)
+
+- **Linear algebra** — weighted aggregation, normalization (z-score, rank), missingness-aware renormalization
+- **Information theory** — Shannon entropy (S component), mutual information (Signature 2 — captures nonlinear coupling, replaces Pearson correlation), transfer entropy (directional causality between O and E), KL divergence (measures how far a country's governance distribution is from the empirical "critical" distribution)
+- **Power-law statistics** — maximum likelihood estimation + goodness-of-fit (Clauset et al. 2009) for Signature 1
+- **Extreme value theory** — Generalized Pareto distribution fitting, Hill estimator for tail index (Signature 5)
+- **Distribution comparison** — Kolmogorov-Smirnov tests for comparing distributions across scales (Signatures 3 & 4)
+
+### 7.2 Graph Theory (Nearest-Neighbor Systems)
+
+- **Multi-layer network:** geographic layer (CEPII GeoDist) + trade layer (CEPII BACI) + potential alliance layer (ATOP)
+- **Nearest neighbors** defined by proximity in multiple dimensions (spatial, economic, political) — not strictly geometric distance
+- **Node metrics:** degree centrality, clustering coefficient, betweenness centrality — feed into ρ
+- **Community detection** — identifies trade blocs, regional clusters. Within-bloc coupling vs. between-bloc coupling
+- **Spectral analysis** — eigenvalue decomposition of adjacency/Laplacian matrices. Spectral gap measures diffusion speed; eigenvalue spacing relates to phase transitions
+- **Network renormalization** — coarse-grain by collapsing communities into super-nodes, then compare structural properties across scales (Signature 4: fractal structure)
+- **Fractal dimension** — box-counting on the network to test self-similarity across scales
+- **Network entropy** — structural complexity measure feeding into S
+
+### 7.3 Subnational / Cross-Scale
+
+- **Distribution matching** — compare within-country subnational distributions to between-country global distributions (Signature 4)
+- **Dispersion measures** — coefficient of variation, Gini, IQR ratio of subnational indicators. Feed into S (entropy) as direct measures of internal heterogeneity
+- **Multi-scale comparison** — same statistical tests applied at subnational, national, and network scales. Agreement across scales is itself evidence of scale invariance (Signature 3)
+
+### 7.4 Deferred (Insufficient Data)
 
 - **Dynamical systems** (Lyapunov exponents, bifurcation analysis) — requires longer/denser time series than QoG provides
 - **Algebraic topology** (persistent homology, Betti numbers) — requires higher-dimensional point clouds
 
 ---
 
-## 6. Grounding Layer (Independent Validation)
+## 8. Practical Use: The Governance Dashboard
 
-### 6.1 Non-Circularity Principle
+### 8.1 Who This Is For
 
-Validation slugs must be independent from index slugs. If a variable helps define the state, using it again to validate the state is circular. The index set and the grounding set must be **disjoint** — no slug can appear in both.
+States that care about governing well. The model does not prescribe a specific governance model — it tells a state where it sits on the C_d spectrum and which direction it is heading. The state then chooses its own methods to adjust.
 
-Which specific slugs go into which set is a **slug selection decision** made during Phase 2b, not a pre-committed constraint. Any slug in the global_95 pool is a candidate for either role until assigned.
+### 8.2 The O Lever
 
-### 6.2 Five Empirical Signatures of Criticality
+In practice, states have more control over O than E. Excitation largely comes from outside the state's direct control — economic pressures, demographic shifts, external shocks, neighbor instability. Ordering is what the state builds: institutions, legal frameworks, security, social programs, democratic channels.
 
-| # | Signature | What it tests | Acceptance criterion |
-|---|-----------|--------------|---------------------|
-| 1 | **Power-law events** | Event magnitudes follow scale-free distribution | $\alpha \in [0.8, 1.5]$ (MLE) |
-| 2 | **Diverging correlation length** | Cross-sector coupling strengthens | $|MI| > threshold$ (mutual information) |
-| 3 | **Scale invariance** | Local and national dynamics are self-similar | $similarity > 0.85$ |
-| 4 | **Fractal structure** | Hierarchical self-similarity (deferred — needs spatial data) | — |
-| 5 | **No characteristic event size** | Fat-tailed year-over-year jumps | $kurtosis > 1.5$ or GPD fit |
+A state that finds itself drifting toward super-critical (C_d rising) can choose to increase O through any number of mechanisms — strengthening courts, expanding social safety nets, improving security, opening new channels for legitimate dissent. Which mechanisms it chooses reflects its own values, culture, and political configuration. Denmark and Botswana and South Korea can all achieve criticality through completely different institutional arrangements. The model respects this plurality.
 
-Acceptance criteria are **tunable engineering defaults**, not physical constants. They must be validated via sensitivity analysis, backtesting, and (ideally) formal goodness-of-fit tests.
+### 8.3 Adjusting O Down Is Hard and Important
 
-### 6.3 Two Domain-Independent Slug Sets
+When E decreases — an aging population reduces demographic pressure, a peace agreement ends a conflict, a resource boom subsides — the state needs to reduce O to stay at criticality. But institutions resist being dismantled. A security apparatus built during wartime develops its own political constituency. Regulations created for a crisis become permanent bureaucracy. This is where M (mass/inertia) directly opposes O adjustment — high institutional mass makes it harder to change O in either direction.
 
-Grounding signatures are tested using two sets from different measurement domains:
+A state that fails to reduce O when E falls becomes over-ordered: rigid, brittle, suppressing the controlled avalanches (dissent, innovation, reallocation) that keep the system adaptive. Over-ordering is itself a path to sub-criticality. The model should flag this — not just "you need more O" but also "your O may be too high for current E."
 
-- **Set A (political/governance domain):** V-Dem slugs
-- **Set B (economic/conflict domain):** Non-V-Dem slugs testing the same signatures
+### 8.4 Lifecycle View
 
-Domain independence means: different measurement domain, different data generation method, different institutional source. Some correlation between sets is EXPECTED at criticality — that IS Signature 2 (diverging correlation length means sectors couple).
+States move through the O-E plane over their lifecycle:
 
-### 6.4 Network-Enhanced Signatures
+- **Post-independence / post-revolution:** Low O, moderate-to-high E. The system is building institutions while facing demands. C_d > 0 (super-critical) unless O is built fast enough.
+- **Institutional maturation:** O grows as institutions deepen. The state moves toward the critical line. If it overshoots, it becomes rigid.
+- **Shock response:** A sudden increase in E (war, financial crisis, natural disaster) pushes C_d positive. The state must either increase O or wait for E to subside.
+- **Demographic transition:** E shifts as population ages. The demands change in character (from growth pressure to pension/healthcare pressure), and O must be reconfigured, not just scaled.
 
-Between-country tests using Phase 0b network data:
-
-- **Sig 1 enhanced:** Track cascade sizes through the network (shock propagating hop by hop). Power-law cascade size distribution = criticality.
-- **Sig 2 enhanced:** Measure correlation of governance perturbations BETWEEN network neighbors. Network correlation length (how many hops with significant correlation) should diverge at criticality.
-- **Sig 3 enhanced:** Compare dynamics at ego-network scale vs. global network scale. Self-similarity across these scales = scale invariance.
-
-The within-country and between-country grounding tests operate at different scales. Their agreement is itself evidence of scale invariance.
-
-### 6.5 Execution Order
-
-**Grounding runs FIRST and BLIND.** No preconceptions about which countries should be at criticality. The results become ground truth labels that the O/E model is then tuned to predict. This prevents confirmation bias.
+The model captures these trajectories through d1 (velocity) and d2 (acceleration) — showing not just where a state is, but where it's going and how fast.
 
 ---
 
-## 7. Design Decisions
+## 9. Design Decisions
 
-1. **Deterministic model** — no stochastic components. Slug reliability varies too much to layer probabilistic modeling on top. Uncertainty is addressed through sensitivity analysis and threshold variation.
-2. **Expression of disagreement is ORDERING** — protests, elections, and criticism look like excitation but function as safety valves. They release stress incrementally, preventing brittle accumulation.
-3. **Religion is dual-channel** — ordering (norms, constraint) AND excitatory (mobilization, demands). Net contribution depends on institutional configuration.
-4. **Military is dual-channel** — ordering (security, violence monopoly under civilian control) AND excitatory (coups, arms races, interstate conflict). Whether military capacity functions as O or E depends on civilian control and regime type.
-5. **Sub-critical is brittle, not flat** — high-slope, rigid, dangerous. Fails via catastrophic fracture.
-6. **Super-critical is liquefied, not just steep** — lacks cohesion. Fails via structural dissolution.
-7. **Lattice failure is multiplicative** — rule-of-law collapse doesn't reduce O linearly; it eliminates O's ability to transmit through the lattice.
-8. **ρ is hybrid** — within-country (QoG infrastructure slugs) + between-country (network graph metrics).
-9. **E has a network diffusion term** — neighbor excitation spills over through trade/geographic edges.
-10. **Grounding runs first** — ground truth labels from empirical signatures, THEN tune the O/E model.
-11. **Power delivery maximized at criticality** — central testable prediction.
-12. **No slug is pre-committed** — all slugs in the eligible pool are candidates for either index or grounding roles until assigned during slug selection.
+1. **Backtesting is the first analytical step** — empirical signatures of criticality are tested blind before the model computes C_d. Ground truth is established from data, not assumed.
+2. **C_d = E - O** — linear, signed distance from criticality. Negative = sub-critical (cold). Positive = super-critical (hot). Zero = at criticality. Calibrated from backtesting, not assumed.
+3. **Deterministic model** — no stochastic components. Uncertainty is addressed through sensitivity analysis and threshold variation.
+4. **Expression of disagreement is ORDERING** — protests, elections, and criticism look like excitation but function as safety valves. They release stress incrementally, preventing brittle accumulation.
+5. **Religion is dual-channel** — ordering (norms, constraint) AND excitatory (mobilization, demands). Net contribution depends on institutional configuration.
+6. **Military is dual-channel** — ordering (security, violence monopoly under civilian control) AND excitatory (coups, arms races, interstate conflict). Whether military capacity functions as O or E depends on civilian control and regime type.
+7. **Sub-critical is brittle, not flat** — high-slope, rigid, dangerous. Fails via catastrophic fracture.
+8. **Super-critical is liquefied, not just steep** — lacks cohesion. Fails via structural dissolution.
+9. **Lattice failure is multiplicative** — rule-of-law collapse doesn't reduce O linearly; it eliminates O's ability to transmit through the lattice.
+10. **ρ is hybrid** — within-country (QoG infrastructure slugs) + between-country (network graph metrics).
+11. **E has a network diffusion term** — neighbor excitation spills over through trade/geographic edges.
+12. **Power delivery maximized at criticality** — central testable prediction.
+13. **No slug is pre-committed** — all slugs in the eligible pool are candidates for either index or grounding roles until assigned during slug selection.
+14. **Mass threshold** — microstates below a minimum system size may not have enough lattice nodes for SOC dynamics. C_d is undefined, not zero, for these states.
+15. **Z-score normalization by default** — rank normalization as fallback for skewed slugs. Equal-weight aggregation until empirically justified otherwise.
+16. **The model is a diagnostic tool, not a prescription** — it tells states where they are and which direction they're heading. It does not prescribe how to govern. Many different O configurations can achieve criticality.
 
 ---
 
-## 8. Dependencies
+## 10. Dependencies
 
-- Requires Phase 0 complete (augmented Arrow with checksum)
-- Requires Phase 1 complete (slug classification: penetration, temporal profiles, clusters)
-- Requires Phase 0b (network data: CEPII GeoDist + BACI trade)
+### Internal (complete)
+- Phase 0: Preprocessing — augmented Arrow with checksum
+- Phase 1: Slug Classification — penetration, temporal profiles, clusters
+
+### External Data — Acquired
+- CEPII GeoDist — bilateral geographic distances, contiguity, shared language (static)
+- CEPII BACI / Gravity — bilateral trade flows, 1948–2019 (annual)
+
+### External Data — To Acquire
+- **EM-DAT** — natural + technological disaster events: type, country, deaths, affected, economic damage. Free w/ registration (emdat.be). 1900–present. Pure exogenous forcing for E component.
+- **DOSE** — subnational GDP (PPP) at first-admin level. 166 countries, ~1,660 regions, 1960–2020. Free, no registration (zenodo.org/records/7573249). For Signatures 3 & 4.
+- **Subnational HDI (SHDI)** — HDI + components at first-admin level. 160+ countries, ~1,800 regions, 1990–2022. Free, no registration (globaldatalab.org/shdi/). For Signatures 3 & 4.
+- **Laeven & Valencia** — systemic banking, currency, and sovereign debt crisis dates. ~190 countries, 1970–2023. Free (IMF working paper appendix). Binary crisis event markers for backtesting.
+
+### External Data — Deferred Until Model Is Predictive
+- **ACLED** — georeferenced political violence + protest events. Daily, 1997–present. Free w/ registration (acleddata.com). For high-frequency cascade/avalanche observation.
+- **BIS Locational Banking Stats** — cross-border banking claims/liabilities by counterpart country. Quarterly, 1977–present. Free (bis.org). Financial network edges for ρ.
+- **Global Sanctions Database** — bilateral sanctions episodes. 1950–2022, ~1,300 cases. Free (globalsanctionsdatabase.com). Negative network edges (deliberate decoupling).
+
+### Sequencing
+- Backtesting (Section 2) must complete before C_d calibration
 - Feeds Phase 2b (slug strategy) and all subsequent phases
