@@ -1,6 +1,8 @@
 # SOC Model Architecture
 
-**Status:** Defined 2026-03-23. Approved.
+**Created:** 2026-03-23
+**Last modified:** 2026-03-27
+**Version:** 2.0
 **Approach:** Derived from Self-Organized Criticality (SOC) first principles. Deterministic — no stochastic components.
 
 ---
@@ -55,11 +57,17 @@ This means we can borrow three frameworks from physics and apply them with mathe
 
 > **Central Prediction:** Power delivery is maximized at *criticality*. This is the core testable claim of the model.
 
+### 1.4 The Hypothesis of Criticality
+
+The *Hypothesis of Criticality* is an established concept in physics: certain classes of systems — sandpiles, earthquakes, forest fires, neural networks, brains — self-organize to a critical state where they exhibit specific measurable *empirical signatures*.
+
+This project holds that the Hypothesis of Criticality is applicable to governance systems. We will test for the five signatures in governance data. If the signatures are present, the three theoretical pillars above become applicable with mathematical precision, and a distance-to-criticality index (*C_d*) can be constructed and *calibrated*. If the signatures are absent, the hypothesis does not apply and the model's theoretical foundation fails.
+
 ---
 
 ## 2. *Backtesting*: The First Analytical Step
 
-Before the model computes anything, we must establish empirical *ground truth*. The entire analytical sequence depends on this. *(See Companion Guide §5.1 for the full backtesting methodology primer.)*
+Before the model computes anything, we must establish empirical *ground truth*. The entire analytical sequence depends on this. *(See Companion Guide §2.7 for the full backtesting methodology primer.)*
 
 ### 2.1 Why Backtesting Comes First
 
@@ -87,7 +95,7 @@ Which specific slugs go into which set is a **slug selection decision** made dur
 | # | Signature | What it tests | Acceptance criterion |
 |---|-----------|--------------|---------------------|
 | 1 | **Power-law events** | Event magnitudes follow scale-free distribution | $\alpha \in [0.8, 1.5]$ (MLE) |
-| 2 | **Diverging correlation length** | Cross-sector coupling strengthens | $|MI| > threshold$ (mutual information) |
+| 2 | **Diverging correlation length** | Cross-sector coupling strengthens | $|MI| > threshold$ (*mutual information*) |
 | 3 | **Scale invariance** | Local and national dynamics are self-similar | $similarity > 0.85$ |
 | 4 | **Fractal structure** | Hierarchical self-similarity across scales | Network renormalization preserves properties; subnational distributions match national; nested communities share structure |
 | 5 | **No characteristic event size** | Fat-tailed year-over-year jumps | $kurtosis > 1.5$ or GPD fit |
@@ -131,7 +139,7 @@ Testing the same signatures at within-country AND between-country scales — and
 
 ## 4. Measurable Components
 
-Each *component* is constructed from *slugs* — individual measured variables in the QoG dataset. *(See Companion Guide §1 §4 for slug definition; §4 for dual-channel slug type discussions.)*
+Each *component* is constructed from *slugs* — individual measured variables in the QoG dataset. *(See Companion Guide §1 Glossary for all term definitions; slug_selection_strategy.md §7 for dual-channel slug type discussions.)*
 
 ### 4.1 Forces (Determine Phase State)
 
@@ -147,13 +155,13 @@ Damps *perturbations* and prevents *cascades*. The *dissipation* mechanism that 
 | **Expression of disagreement** | Legitimate dissent outlets: elections, protests, media criticism, strikes. These ARE ordering — they release stress incrementally. |
 | **Constraint on privilege capture** | Prevents power/wealth concentration that would distort the lattice. |
 
-For discussion of dual-channel slug types (military, religion) and their component mapping, see *Companion Guide §4*.
+For discussion of dual-channel slug types (military, religion) and their component mapping, see *slug_selection_strategy.md §7*.
 
 **Lattice failure:** Ordering that cannot transmit is not ordering. If the rule-of-law *substrate* collapses, *nominal* safety institutions cease to function as system-wide damping.
 
 $$O_{effective} = O_{raw} \times \Phi(RoL)$$
 
-where $\Phi$ is a *sigmoid function* — a smooth S-shaped curve that transitions from 0 to 1. It is used here because lattice failure is not binary (working/broken) but a continuous degradation with a steep threshold region where institutional effectiveness collapses rapidly. *(See Companion Guide §5.4 for the full lattice failure discussion.)*
+where $\Phi$ is a *sigmoid function* — a smooth S-shaped curve that transitions from 0 to 1. It is used here because lattice failure is not binary (working/broken) but a continuous degradation with a steep threshold region where institutional effectiveness collapses rapidly. *(See Companion Guide §4.1 for the full lattice failure discussion.)*
 
 $\Phi \approx 1$ when rule-of-law is healthy; $\Phi \to 0$ as rule-of-law collapses. Parameters $k$ (steepness) and $x_0$ (midpoint) are tunable engineering defaults, not physical constants.
 
@@ -169,7 +177,7 @@ Adds energy and pushes the system toward reconfiguration. The slow *driving* tha
 | **Religious mobilization** | Faith-based demands on the state, religious movements as collective action vehicles. |
 | **Communication pathways** | Media, internet, social networks — amplify and transmit demands across the lattice. |
 
-For discussion of dual-channel slug types (military, religion) and their component mapping, see *Companion Guide §4*.
+For discussion of dual-channel slug types (military, religion) and their component mapping, see *slug_selection_strategy.md §7*.
 
 **Network *diffusion* term:** E includes excitation transmitted from neighbors through trade and geographic edges, weighted by edge strength. *(See Companion Guide §2.5 for network primer.)*
 
@@ -290,7 +298,7 @@ This is the central claim of the model and must be tested empirically.
 
 ## 6. Slug *Normalization* and Aggregation
 
-*(See Companion Guide §5.5 for mass scaling; §5.6 for normalization and aggregation concepts.)*
+*(See Companion Guide §4.2 for mass scaling; §4.3 for normalization and aggregation concepts.)*
 
 ### 6.1 The Problem
 
@@ -324,7 +332,7 @@ Some slugs point in the "wrong" direction for their component. A corruption inde
 
 ## 7. Mathematical Toolkit
 
-*(See Companion Guide §2.1–§2.6 for primers on each framework.)*
+*(See Companion Guide §2.1–§2.7 for primers on each framework.)*
 
 ### 7.1 Core (Required)
 
@@ -333,6 +341,7 @@ Some slugs point in the "wrong" direction for their component. A corruption inde
 - **Power-law statistics** — maximum likelihood estimation + goodness-of-fit (Clauset et al. 2009) for Signature 1
 - **Extreme value theory** — Generalized Pareto distribution fitting, Hill estimator for tail index (Signature 5)
 - **Distribution comparison** — Kolmogorov-Smirnov tests for comparing distributions across scales (Signatures 3 & 4)
+- **Group comparison** — t-tests (one-sample, two-sample/Welch's) for comparing signature values between country groups; Mann-Whitney U as non-parametric alternative for skewed/heavy-tailed data
 
 ### 7.2 Graph Theory (Nearest-Neighbor Systems)
 

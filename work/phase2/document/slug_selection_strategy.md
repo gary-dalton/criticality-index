@@ -131,6 +131,61 @@ The index slug set and the grounding slug set must be **disjoint** — no slug c
 
 The five empirical signatures of criticality (power-law, correlation divergence, scale invariance, flicker, fat tails) are **tests applied to model outputs**. Grounding validates whether the model's composite outputs exhibit SOC signatures.
 
+## 7. Dual-Channel Slug Types
+
+Some governance phenomena do not map cleanly to a single model component. They can function as ordering (O) or excitation (E) depending on institutional configuration. These are **guidelines for slug selection**, not predetermined decisions.
+
+### 7.1 Military
+
+Military capacity is dual-channel — it can function as ordering or excitation depending on whether it is under civilian control.
+
+**Military as O (ordering):**
+Military capacity under civilian control functions as physical security — the state's monopoly on organized violence is the ultimate boundary dissipation mechanism. When the military serves the state and is accountable to civilian institutions, it damps violence and prevents lethal cascading.
+
+- Candidate slugs: `bicc_gmi` (Global Militarization Index), `wdi_expmil` (military expenditure % GDP), `wdi_afp` (armed forces % labor force), `wvs_confaf` (confidence in armed forces), `wjp_pol_mil` (military corruption)
+
+**Military as E (excitation):**
+When the military captures the state, it crosses from ordering to excitation — the damping mechanism becomes a driving force. Arms trade measures military energy flowing across borders. Alliance obligations create forced nearest-neighbor coupling. Active conflict is the most extreme excitation.
+
+- Candidate slugs: `wdi_armexp` / `wdi_armimp` (arms exports/imports), `atop_defensive` / `atop_offensive` (alliance obligations), `ucdp_type1`–`ucdp_type4` (armed conflict types), `chisols_mil` / `chisols_indmil` (military regime flags), `chisols_warlord` (warlordism)
+
+**Military as M (mass):**
+Military penetration of government adds rigid, hierarchical institutional mass. Countries with deep military-state fusion (Egypt, Pakistan, Myanmar) have enormous inertia in a particular direction.
+
+- Candidate slugs: `wgov_minmil` / `wgov_totmil` (military titles in cabinet/government)
+
+**Military as ρ (density):**
+ATOP alliance data defines a potential third network layer (alongside geographic and trade). Alliance edges transmit perturbations differently — a NATO Article 5 trigger activates the entire alliance simultaneously (correlated activation), unlike trade shocks which diffuse gradually.
+
+- Candidate slugs: `atop_defensive`, `atop_offensive`, `atop_number` (alliance count)
+
+**Distinguishing the channel:** The lattice failure function Φ(RoL) partially captures the transition — when rule-of-law collapses, military "ordering" can no longer transmit as system-wide damping. But regime-type flags (`chisols_mil`, `chisols_indmil`) provide a more direct signal for when the military has crossed from O to E.
+
+### 7.2 Religion
+
+Religion is dual-channel — it can flow through ordering or excitatory channels depending on institutional configuration.
+
+**Religion as O (ordering):**
+Established religious institutions, community norms, shared behavioral expectations, and faith-based social services function as distributed damping — voluntary compliance that reduces enforcement cost. Religious order operates at every node without requiring centralized enforcement.
+
+**Religion as E (excitation):**
+Revolutionary religious movements, sectarian mobilization, and faith-based political demands function as correlated excitation. Religious mobilization activates many nodes simultaneously, creating synchronized perturbations that are harder to damp than dispersed individual demands.
+
+**The net contribution depends on institutional configuration.** In a society where religious institutions are integrated into the governance fabric (e.g., established churches, state-recognized religious courts), religion flows primarily through ordering channels. In a society where religious movements challenge the state or mobilize against perceived injustice, religion flows primarily through excitatory channels. Both can coexist in the same country.
+
+### 7.3 Other Potential Dual-Channel Types
+
+As slug selection proceeds, other phenomena may exhibit dual-channel behavior. Candidates to watch:
+
+- **Media / communication:** Can function as O (transparency, accountability, information dissemination) or E (disinformation, polarization, panic amplification)
+- **Civil society:** Can function as O (service delivery, community cohesion, social capital) or E (protest movements, advocacy campaigns, demand generation)
+- **Natural resources:** Can function as M (stored potential energy, buffer capacity) or E (resource competition, "resource curse" dynamics, rent-seeking incentives)
+- **Foreign aid:** Can function as O (institutional capacity building, service delivery) or E (dependency, conditionality pressure, political distortion)
+
+These are noted for future consideration during slug selection. The principle is the same: the institutional configuration determines which channel the energy flows through.
+
+---
+
 ## Next Steps
 
 1. Cross-reference global_95 slugs with temporal profiles to get the actual candidate pool size
