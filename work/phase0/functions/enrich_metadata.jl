@@ -201,8 +201,12 @@ const DATA_END_YEAR   = Int(maximum(skipmissing(df.ident_year)))
 
 """
 User override: current year is system date minus lag years.
+NOTE: ACTIVE_LAG_YEARS also defined in constants.jl — kept here for Phase 0
+backward compatibility since this file runs at module load time.
 """
-const ACTIVE_LAG_YEARS = 3
+if !isdefined(Main, :ACTIVE_LAG_YEARS)
+    const ACTIVE_LAG_YEARS = 3
+end
 const CURRENT_YEAR     = Dates.year(Dates.today()) - ACTIVE_LAG_YEARS
 
 """
@@ -222,12 +226,16 @@ const TEMPORAL_THRESHOLDS = (
 
 """
 Geographic coverage thresholds for global/regional classification.
+NOTE: These are also defined in constants.jl — kept here for Phase 0
+backward compatibility since this file runs at module load time.
 """
-const GLOBAL_PENETRATION_UPPER_BOUND   = 0.95
-const REGIONAL_PENETRATION_UPPER_BOUND = 0.80
-const REGIONAL_PENETRATION_LOWER_BOUND = 0.10
-const REGIONAL_EXCLUSION_TOLERANCE     = 4  # "all but at most 3 regions"
-const TOTAL_REGIONS_COUNT              = 10  # Total QoG regions
+if !isdefined(Main, :GLOBAL_PENETRATION_UPPER_BOUND)
+    const GLOBAL_PENETRATION_UPPER_BOUND   = 0.95
+    const REGIONAL_PENETRATION_UPPER_BOUND = 0.80
+    const REGIONAL_PENETRATION_LOWER_BOUND = 0.10
+    const REGIONAL_EXCLUSION_TOLERANCE     = 4
+    const TOTAL_REGIONS_COUNT              = 10
+end
 
 # ============================================================================
 # MAIN EXECUTION: ENRICH METADATA WITH TEMPORAL LIFESPAN

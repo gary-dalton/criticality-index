@@ -19,6 +19,11 @@
 
 const _PHASE0_DIR = @__DIR__
 
+# Load project-wide constants
+if !isdefined(Main, :TEMPORAL_FLOOR)
+    include(joinpath(_PHASE0_DIR, "..", "..", "constants.jl"))
+end
+
 # Modules that call load_dataframes() or load_qog_timeseries() at module level
 # and therefore require data files to be present.
 const _DATA_DEPENDENT_MODULES = Set([:enrich_metadata, :cluster_analysis, :xcluster_analysis])

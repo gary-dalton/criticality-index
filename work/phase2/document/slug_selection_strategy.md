@@ -47,6 +47,10 @@ For backtesting, slugs must cover historical episodes of interest (e.g., Soviet 
    - Compatible measurement methodology (verified manually)
 4. **Modern slugs** — acceptable for recent-window analysis but cannot anchor backtesting.
 
+### Temporal Floor
+
+All datasets are filtered to **1950+** at load time (`TEMPORAL_FLOOR` in `constants.jl`). Pre-1950 data has severe reporting bias across all sources and predates the post-WWII institutional order that defines modern governance measurement. This applies project-wide to QoG, EM-DAT, DOSE, and all future data sources.
+
 ### Temporal Windows for Backtesting
 
 | Window | Years | Key episodes covered |
