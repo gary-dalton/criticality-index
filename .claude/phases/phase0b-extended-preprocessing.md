@@ -84,6 +84,7 @@ Missingness was checked for temporal dependence (pre-2000 vs post-2000). The pat
   - `subnational_data.jl` — SHDI preprocessing (not yet active)
 - `work/p00b_emdat.ipynb` — EM-DAT exploration notebook
 - `work/p00b_dose.ipynb` — DOSE exploration notebook
+- `work/p00b_cepii_geodist.ipynb` — CEPII GeoDist exploration notebook
 
 ## Output Files (Arrow)
 
@@ -93,3 +94,30 @@ Missingness was checked for temporal dependence (pre-2000 vs post-2000). The pat
 | `data/emdat_country_year.arrow` | Aggregated country-year (event count, deaths, affected) |
 | `data/dose_subnational.arrow` | Region-year panel (GDP, sectoral, climate) |
 | `data/dose_national.arrow` | Population-weighted country-year aggregate |
+| `data/cepii_geo_countries.arrow` | Country-level geographic metadata (238 countries) |
+| `data/cepii_geodist.arrow` | Bilateral dyadic pairs (50,176 pairs, distances + cultural ties) |
+
+### CEPII GeoDist ISO3 Remapping
+
+GeoDist uses legacy ISO3 codes for three countries. Remapped during preprocessing:
+
+| GeoDist code | QoG code | Country |
+|-------------|----------|---------|
+| ROM | ROU | Romania |
+| ZAR | COD | DR Congo |
+| TMP | TLS | Timor-Leste |
+
+After remapping: 190 of 202 QoG countries matched (94%). Remaining unmatched QoG codes are historical entities (CSK, DDR, SUN, VDR, YMD, SCG), post-GeoDist splits (MNE, SRB, SSD), microstates (LIE, MCO), and an internal code (XTI).
+
+### Derived Edge: ggis_shared_lineage
+
+CEPII's `comcol` variable uses a narrow post-1945 definition that misses dominion-era colonial relationships (Australia, NZ, Canada, South Africa, etc.). We derive a broader edge: `ggis_shared_lineage = 1` when two countries share ANY colonizer from geo_cepii's `colonizer1`–`colonizer4` fields.
+
+This captures institutional transmission channels — shared legal traditions, administrative patterns, and language that persist long after independence. Example: Australia gains 81 shared-lineage partners (the full British empire network) vs. 0 from CEPII's `comcol`.
+
+| Metric | comcol (CEPII) | ggis_shared_lineage (derived) |
+|--------|---------------|-------------------------------|
+| Total pairs | 5,886 | 9,394 |
+| AUS partners | 0 | 81 |
+
+Colonial powers by former colony count (from geo_cepii): GBR dominates, followed by FRA, ESP, NLD, PRT.

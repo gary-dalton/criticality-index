@@ -345,8 +345,9 @@ Some slugs point in the "wrong" direction for their component. A corruption inde
 
 ### 7.2 Graph Theory (Nearest-Neighbor Systems)
 
-- **Multi-layer network:** geographic layer (CEPII GeoDist) + trade layer (CEPII BACI) + potential alliance layer (ATOP)
-- **Nearest neighbors** defined by proximity in multiple dimensions (spatial, economic, political) — not strictly geometric distance
+- **Multi-layer network:** geographic layer (CEPII GeoDist) + institutional lineage layer (`ggis_shared_lineage`, derived from CEPII colonizer data) + trade layer (CEPII BACI) + potential alliance layer (ATOP)
+- **Institutional lineage edges** — countries that share any colonizer inherit similar legal systems, administrative patterns, and language. CEPII's built-in `comcol` uses a narrow post-1945 definition that misses dominion-era relationships; `ggis_shared_lineage` broadens this to any shared colonizer. These edges persist long after independence and predict trade, institutional similarity, and governance transfer.
+- **Nearest neighbors** defined by proximity in multiple dimensions (spatial, economic, institutional, political) — not strictly geometric distance
 - **Node metrics:** degree centrality, clustering coefficient, betweenness centrality — feed into ρ
 - **Community detection** — identifies trade blocs, regional clusters. Within-bloc coupling vs. between-bloc coupling
 - **Spectral analysis** — eigenvalue decomposition of adjacency/Laplacian matrices. Spectral gap measures diffusion speed; eigenvalue spacing relates to phase transitions
