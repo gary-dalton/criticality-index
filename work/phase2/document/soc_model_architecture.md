@@ -354,11 +354,30 @@ Some slugs point in the "wrong" direction for their component. A corruption inde
 - **Fractal dimension** — box-counting on the network to test self-similarity across scales
 - **Network entropy** — structural complexity measure feeding into S
 
-### 7.3 Subnational / Cross-Scale
+### 7.3 Subnational / Cross-Scale (Secondary Confirmation)
+
+Subnational data (DOSE, SHDI) serves as a **secondary confirmation layer**, not a primary input. Coverage is uneven — dense annual data (40+ years) exists for ~10 countries (US, China, Mexico, Australia, parts of Europe), most countries have data only from 1990+, and Africa/Middle East coverage is often under 10 years per region.
+
+**Analytical sequence:** (1) Test primary signatures (1–3, 5) using QoG slugs which have broad global coverage. (2) For countries that pass primary signatures, check Signature 4 (fractal structure) using subnational data where it exists. (3) Countries that pass AND have dense subnational coverage provide the strongest evidence.
 
 - **Distribution matching** — compare within-country subnational distributions to between-country global distributions (Signature 4)
-- **Dispersion measures** — coefficient of variation, Gini, IQR ratio of subnational indicators. Feed into S (entropy) as direct measures of internal heterogeneity
+- **Dispersion measures** — *coefficient of variation* (CV: standard deviation divided by mean — a scale-free measure of how spread out values are) of subnational indicators. Feed into S (entropy) as direct measures of internal heterogeneity
 - **Multi-scale comparison** — same statistical tests applied at subnational, national, and network scales. Agreement across scales is itself evidence of scale invariance (Signature 3)
+
+#### Fractal Structure × Connection Density Framework
+
+Testing Signature 4 requires two dimensions: whether the distributional pattern repeats at different scales (*fractal structure*), and how richly connected the system is (*connection density*, i.e. ρ). The combination determines what we can infer:
+
+| | Fractal Structure | No Fractal Structure |
+|---|---|---|
+| **High CV + Dense ρ** | Strongest SOC signal. Inequality is scale-invariant AND perturbations can propagate through the whole system. Stress is both structured and transmissible. Cascades should be observable. | Unequal with dense connections but no self-similar pattern. Possibly transitional — system hasn't organized yet, or external shocks overwhelm self-organization. |
+| **High CV + Sparse ρ** | Fractal inequality but isolated subsystems. Pattern repeats but stress can't propagate system-wide. Enclaves. May look critical locally but system-wide dynamics are suppressed. | Disconnected and randomly unequal. Weakest case for SOC. |
+| **Low CV + Dense ρ** | Uniform outcomes transmitted through dense connections. Strong effective ordering at every scale. Near-critical if maintained against real excitation — sub-critical if suppressing variation. | Connected and equal but no pattern. Could be engineered equality (redistribution policy) rather than emergent. |
+| **Low CV + Sparse ρ** | Uniform but disconnected. Regions independently reach similar outcomes by chance or shared external conditions, not through coupling. Not evidence of SOC. | Nothing structured at any scale. Negative control — if the model identifies this as sub-critical, that's confirming evidence. |
+
+**Data sources for each dimension:**
+- *Fractal structure* — tested via DOSE (subnational GDP distributions) and SHDI (subnational HDI). Requires sufficient regions per country (≥3, preferably ≥10).
+- *Connection density (ρ)* — tested at nation-level using QoG slugs (urbanization, internet penetration, infrastructure density) + CEPII network data (trade openness, geographic neighbors). Subnational network data would be ideal but is not required: a country's internal connectivity is partially captured by QoG infrastructure slugs, and the *effect* of connectivity is testable via Signature 2 (correlation length — do perturbations actually propagate?).
 
 ### 7.4 Deferred (Insufficient Data)
 
@@ -378,6 +397,8 @@ States that care about governing well. The model does not prescribe a specific g
 In practice, states have more control over O than E. Excitation largely comes from outside the state's direct control — economic pressures, demographic shifts, external shocks, neighbor instability. Ordering is what the state builds: institutions, legal frameworks, security, social programs, democratic channels.
 
 A state that finds itself drifting toward super-critical (C_d rising) can choose to increase O through any number of mechanisms — strengthening courts, expanding social safety nets, improving security, opening new channels for legitimate dissent. Which mechanisms it chooses reflects its own values, culture, and political configuration. Denmark and Botswana and South Korea can all achieve criticality through completely different institutional arrangements. The model respects this plurality.
+
+Effective ordering is observable at subnational scale. States that actively order against privilege accumulation — through redistribution, public services, regional investment — show low within-country dispersion (low CV of subnational GDP). This is a measurable outcome of the O lever: wealth still exists but is distributed rather than concentrated. The ordering doesn't just damp crises — it prevents the structural conditions that create them. Subnational CV is one way to see O working.
 
 ### 8.3 Adjusting O Down Is Hard and Important
 
@@ -419,27 +440,47 @@ The model captures these trajectories through d1 (velocity) and d2 (acceleration
 
 ---
 
-## 10. Dependencies
+## 10. Data Sources
 
-### Internal (complete)
-- Phase 0: Preprocessing — augmented Arrow with checksum
-- Phase 1: Slug Classification — penetration, temporal profiles, clusters
+The model draws on multiple datasets organized into three tiers by their role in the analytical sequence.
 
-### External Data — Acquired
-- CEPII GeoDist — bilateral geographic distances, contiguity, shared language (static)
-- CEPII BACI / Gravity — bilateral trade flows, 1948–2019 (annual)
+### Tier 1: Primary (Signature Testing + Index Computation)
 
-### External Data — To Acquire
-- **EM-DAT** — natural + technological disaster events: type, country, deaths, affected, economic damage. Free w/ registration (emdat.be). 1900–present. Pure exogenous forcing for E component.
-- **DOSE** — subnational GDP (PPP) at first-admin level. 166 countries, ~1,660 regions, 1960–2020. Free, no registration (zenodo.org/records/7573249). For Signatures 3 & 4.
-- **Subnational HDI (SHDI)** — HDI + components at first-admin level. 160+ countries, ~1,800 regions, 1990–2022. Free, no registration (globaldatalab.org/shdi/). For Signatures 3 & 4.
-- **Laeven & Valencia** — systemic banking, currency, and sovereign debt crisis dates. ~190 countries, 1970–2023. Free (IMF working paper appendix). Binary crisis event markers for backtesting.
+**QoG Standard Time-Series.** The backbone of the project. 2,010 slugs across ~200 countries, 1946–2023 (varies by slug). Annual country-level panel covering governance, economics, conflict, demographics, and more. All primary signature tests (1–3, 5), all six model components (O, E, M, U, S, ρ within-country), and C_d computation operate on QoG slugs. Preprocessed in Phase 0; classified in Phase 1.
 
-### External Data — Deferred Until Model Is Predictive
-- **ACLED** — georeferenced political violence + protest events. Daily, 1997–present. Free w/ registration (acleddata.com). For high-frequency cascade/avalanche observation.
-- **BIS Locational Banking Stats** — cross-border banking claims/liabilities by counterpart country. Quarterly, 1977–present. Free (bis.org). Financial network edges for ρ.
-- **Global Sanctions Database** — bilateral sanctions episodes. 1950–2022, ~1,300 cases. Free (globalsanctionsdatabase.com). Negative network edges (deliberate decoupling).
+**EM-DAT — International Disaster Database.** ~24,000 events (post-1950), 196 countries matched to QoG. Event-level records with disaster type, deaths, and total affected; aggregated to country-year. **Role:** exogenous shock markers for E. Natural disasters are the closest thing to a controlled experiment in governance — the same earthquake hits two neighboring countries with different institutional configurations, and we observe how their systems respond. Also provides event-level data for Signature 1 (power-law distribution of disaster impacts).
+
+**Laeven & Valencia — Systemic Crisis Database.** Banking, currency, and sovereign debt crisis dates, 1970–2023, ~190 countries. Binary country-year indicators. **Role:** discrete regime-shift markers for backtesting. When the model identifies a country moving from sub-critical to super-critical, do crisis dates align?
+
+### Tier 2: Network Layer (ρ Between-Country)
+
+**CEPII GeoDist.** Bilateral geographic distances, contiguity, shared language, colonial ties (static). **Role:** physical nearest-neighbor edges for the geographic network layer.
+
+**CEPII Gravity / BACI.** Annual bilateral trade flows, 1948–2019. **Role:** economic nearest-neighbor edges for the trade network layer.
+
+Together these define the multi-layer network for graph-theoretic analysis of between-country coupling (ρ). Node metrics (degree centrality, clustering coefficient, betweenness) feed into ρ. Community detection identifies trade blocs and transmission clusters.
+
+### Tier 3: Secondary Confirmation (Signatures 3 & 4)
+
+Subnational data serves as a **secondary confirmation layer**, not a primary input to the model. Coverage is uneven — dense annual data (40+ years) exists for ~10 countries (US, China, Mexico, Australia, parts of Europe), most countries have data only from 1990+, and Africa/Middle East coverage is often under 10 years per region.
+
+**Analytical sequence:** (1) Test primary signatures using Tier 1 data (broad global coverage). (2) For countries that pass primary signatures, check Signature 4 (fractal structure) using subnational data where it exists. (3) Countries that pass AND have dense subnational coverage provide the strongest evidence. This avoids the coverage bias of claiming "only countries with subnational data exhibit criticality."
+
+**DOSE V2.11 — Subnational GDP.** 46,851 region-year rows, 83 countries, 1,661 regions, 1953–2020. GDP per capita (constant 2015 USD), sectoral breakdown (agriculture, manufacturing, services), population, climate (temperature, precipitation). Dense coverage concentrated in US, China, Mexico, Australia, Europe; post-Soviet countries start ~1990; Africa/Middle East sparse.
+
+**SHDI V10.0 — Subnational Human Development Index.** 1,800+ regions in 160+ countries, 2000–present. Better country coverage than DOSE but shorter temporal depth (2000+ only).
+
+### Deferred (After Model Proves Predictive)
+
+| Dataset | Purpose |
+|---------|---------|
+| **ACLED** | High-frequency (daily) conflict event data for cascade/avalanche observation |
+| **BIS Locational Banking Stats** | Quarterly bilateral financial claims — financial contagion network edges |
+| **Global Sanctions Database** | Bilateral sanctions as negative network edges (deliberate decoupling) |
 
 ### Sequencing
-- Backtesting (Section 2) must complete before C_d calibration
-- Feeds Phase 2b (slug strategy) and all subsequent phases
+- All datasets filtered to 1950+ (`TEMPORAL_FLOOR` in `constants.jl`)
+- Backtesting (§2) must complete before C_d calibration
+- Tier 1 feeds signature testing and index computation
+- Tier 2 feeds ρ between-country and network signature tests
+- Tier 3 confirms signatures where subnational coverage allows

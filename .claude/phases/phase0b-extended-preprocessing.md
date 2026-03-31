@@ -22,6 +22,30 @@ External data sources acquired after Phase 0 to support the SOC model's graph-th
 | **BIS Locational Banking Stats** | Financial contagion network edges |
 | **ACLED** | High-frequency conflict event data |
 
+## Dataset Summaries
+
+### QoG Standard Time-Series (Phase 0)
+The backbone of the project. 2,010 slugs across ~200 countries, 1946–2023 (varies by slug). Annual country-level panel covering governance, economics, conflict, demographics, and more. Preprocessed in Phase 0 into augmented Arrow format with `ident_` namespace and cleaned country codes. All Phase 1 slug classification (temporal profiles, penetration, clustering) operates on this dataset.
+
+### EM-DAT — International Disaster Database
+24,074 disaster events (post-1950), 231 countries (196 matched to QoG). Event-level records with disaster type, deaths, and total affected. Aggregated to country-year for model integration. **Role:** exogenous shock markers for the E (Excitation) component. Natural disasters are the closest thing to a controlled experiment in governance — the same earthquake hits two neighboring countries with different institutional configurations, and we observe how their systems respond. Also provides event-level data for testing Signature 1 (power-law distribution of disaster impacts). Pre-2000 events carry a reporting bias flag (`is_historic`).
+
+### DOSE V2.11 — Database of Subnational Economic Output
+46,851 region-year rows, 83 countries, 1,661 first-admin regions, 1953–2020. Subnational GDP per capita (constant 2015 USD), sectoral breakdown (agriculture, manufacturing, services), population, and climate variables (annual temperature, precipitation). **Role:** secondary confirmation layer for Signatures 3 (scale invariance) and 4 (fractal structure). NOT a primary input to the model.
+
+**Coverage characteristics:** Data density is temporally unbalanced. Dense annual coverage (40+ years) is concentrated in the US, China, Mexico, Australia, Europe, and parts of East Asia. Post-Soviet countries start ~1990. Africa and Middle East often have fewer than 10 years per region. The majority of observations fall in the 1990–2020 period.
+
+**Secondary test framing:** DOSE (and SHDI) are used as confirmation, not as primary signature tests. The analytical sequence is: (1) test primary signatures (1–3, 5) using QoG slugs which have broad global coverage, (2) for countries that pass primary signatures, check Signature 4 using DOSE where subnational data exists, (3) countries that pass AND have dense DOSE coverage provide the strongest evidence. This avoids the coverage bias of claiming "only countries with subnational GDP data exhibit criticality."
+
+### SHDI V10.0 — Subnational Human Development Index (pending)
+Subnational HDI at first-admin level, 1,800+ regions in 160+ countries, 2000–present. Same secondary confirmation role as DOSE. Better country coverage than DOSE but shorter temporal depth (2000+ only).
+
+### Laeven & Valencia — Systemic Crisis Database (pending)
+Banking, currency, and sovereign debt crisis dates, 1970–2023, ~190 countries. Binary country-year indicators. **Role:** discrete regime-shift markers for backtesting. When the model identifies a country as moving from sub-critical to super-critical, do Laeven & Valencia crisis dates align?
+
+### CEPII GeoDist + Gravity (pending)
+Bilateral geographic distances, contiguity, language, colonial ties (static); annual bilateral trade flows 1948–2019 (panel). **Role:** network edges for the ρ (density/coupling) component. Geographic proximity = physical nearest neighbors; trade flows = economic nearest neighbors. Together they define the multi-layer network for graph-theoretic analysis.
+
 ## Data Decisions
 
 ### Temporal Floor (TEMPORAL_FLOOR = 1950)

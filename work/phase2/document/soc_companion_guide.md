@@ -30,6 +30,8 @@ Alphabetical. Definitions use plain language first. Where a definition depends o
 
 **Characteristic scale.** A "typical" size for events in a system. In a bell curve, the mean is the characteristic scale. At →criticality, there is no characteristic scale — events span orders of magnitude. *(See Primer §2.4.)*
 
+**Coefficient of variation (CV).** Standard deviation divided by the mean. A scale-free measure of how spread out values are — comparable across variables with different units or magnitudes. CV = 0 means no variation; CV = 1 means the standard deviation equals the mean. Used in this model to measure within-country dispersion of subnational indicators.
+
 **Circularity.** Using the same data to both define a result and validate it.
 
 **Component.** A distinct measurable quantity in a model, constructed by →aggregating related indicators. *(See Architecture §4 for this model's six components.)*
