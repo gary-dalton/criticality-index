@@ -121,3 +121,41 @@ This captures institutional transmission channels — shared legal traditions, a
 | AUS partners | 0 | 81 |
 
 Colonial powers by former colony count (from geo_cepii): GBR dominates, followed by FRA, ESP, NLD, PRT.
+
+### CEPII Gravity
+
+87 columns, ~4.6M rows (post-1950), 1950–2020, 243 countries. Loaded with selective column read (30 columns), same ISO3 remap as GeoDist (ROM→ROU, ZAR→COD, TMP→TLS). QoG alignment: 194 of 202 matched (96%). 8 unmatched are historical entities. Zero active QoG countries missing from 2019 BACI.
+
+**Trade flow sources and temporal coverage:**
+
+| Source | Available From | Best Use |
+|--------|---------------|----------|
+| `tradeflow_baci` | ~2000 | **Primary.** Reconciled COMTRADE. Most reliable. |
+| `tradeflow_imf_d` | ~1950 | **Pre-2000 fallback.** Best historical coverage. |
+| `tradeflow_comtrade_o/d` | ~1960 | **Dropped.** Redundant with BACI post-2000, worse than IMF pre-2000. |
+| `manuf_tradeflow_baci` | ~2000 | **Dropped.** Identical coverage to BACI, narrow manufacturing subset. |
+
+**Supplementary edge columns:**
+
+| Column | Missing Post-1990 | Decision |
+|--------|-------------------|----------|
+| `comrelig` (common religion) | 36.1% | **Kept.** Unique cultural coupling dimension, like colonial lineage. |
+| `diplo_disagreement` (UN voting) | 48.0% | **Kept.** Unique diplomatic distance measure, not captured elsewhere. |
+| `scaled_sci_2021` (Facebook Social Connectedness) | 49.8% | **Dropped.** Single-year snapshot (2021), not time series. Half missing. |
+
+**Network characteristics (2019 BACI, QoG-matched):**
+- 192 nodes, 14,809 edges, density 0.808
+- Unweighted degree has ceiling effect (top countries all at 191) — not useful for ρ differentiation
+- Weighted degree (trade volume) spans 5 orders of magnitude (~$10M to ~$2.3T, log-normal) — the real structure
+- Trade concentration reveals dependency: BTN→IND (90%), SSD→CHN (88%), MEX→USA (75%), CAN→USA (73%)
+- USA and CHN are gravity wells — multiple dependent states each
+- Temporal stability: Jaccard >0.8 from 2001+ (BACI era). Pre-2000 noisier (IMF/COMTRADE inconsistency).
+
+**Key insight for ρ:** Use weighted degree or trade intensity (trade/GDP), not binary edges. Also capture trade concentration (top partner share) — a country dependent on one partner has fundamentally different coupling than one with diversified trade.
+
+### Output Files (Gravity)
+
+| File | Description |
+|------|-------------|
+| `data/cepii_gravity.arrow` | Annual bilateral trade panel (post-1950, 30 selected columns) |
+| `data/cepii_gravity_countries.arrow` | Country lookup (252 countries, existence dates, hegemonic spheres) |
