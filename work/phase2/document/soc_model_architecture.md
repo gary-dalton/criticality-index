@@ -401,6 +401,8 @@ A state that finds itself drifting toward super-critical (C_d rising) can choose
 
 Effective ordering is observable at subnational scale. States that actively order against privilege accumulation — through redistribution, public services, regional investment — show low within-country dispersion (low CV of subnational GDP). This is a measurable outcome of the O lever: wealth still exists but is distributed rather than concentrated. The ordering doesn't just damp crises — it prevents the structural conditions that create them. Subnational CV is one way to see O working.
 
+Cross-referencing GDP dispersion (DOSE) with HDI dispersion (SHDI) reveals where ordering decouples economic geography from human outcomes. The correlation between GDP CV and HDI CV across 72 countries with both datasets is 0.51 — related but far from identical. Argentina has high GDP CV (0.52, economy concentrated in Buenos Aires) but near-zero HDI CV (0.006, health and education evenly distributed). The gap between the two measures is itself an indicator of effective ordering: the state is successfully distributing human development outcomes even where economic output is geographically concentrated.
+
 ### 8.3 Adjusting O Down Is Hard and Important
 
 When E decreases — an aging population reduces demographic pressure, a peace agreement ends a conflict, a resource boom subsides — the state needs to reduce O to stay at criticality. But institutions resist being dismantled. A security apparatus built during wartime develops its own political constituency. Regulations created for a crisis become permanent bureaucracy. This is where M (mass/inertia) directly opposes O adjustment — high institutional mass makes it harder to change O in either direction.

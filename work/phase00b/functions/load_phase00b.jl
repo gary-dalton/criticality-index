@@ -31,15 +31,17 @@ Arguments
 Available modules:
   :emdat_data
   :dose_data
-
-Not yet active (pending inspection):
-  :network_data
-  :subnational_data
+  :shdi_data
+  :cepii_geodist_data
+  :cepii_gravity_data
 """
 function include_phase00b(modules::Vector{Symbol} = Symbol[])
     all_modules = [
-        :emdat_data => "emdat_data.jl",
-        :dose_data  => "dose_data.jl",
+        :emdat_data         => "emdat_data.jl",
+        :dose_data          => "dose_data.jl",
+        :shdi_data          => "shdi_data.jl",
+        :cepii_geodist_data => "cepii_geodist_data.jl",
+        :cepii_gravity_data => "cepii_gravity_data.jl",
     ]
 
     load_all = isempty(modules)

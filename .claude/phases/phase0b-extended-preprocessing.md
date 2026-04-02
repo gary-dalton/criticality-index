@@ -74,17 +74,32 @@ Missingness was checked for temporal dependence (pre-2000 vs post-2000). The pat
 
 **Note on economic impact:** The 40% threshold eliminated `total_damage_adj_k` (economic damage in constant USD), which would have been a direct measure of shock magnitude. However, at ~22% completeness, any analysis using it would be biased toward well-documented wealthy-country disasters. The economic impact of disasters is better captured through QoG slugs (GDP growth dips, trade disruptions), which measure the *system's response* to the shock rather than the shock's nominal price tag — and with far better coverage. The retained measures (event count, deaths, total affected) capture shock frequency and severity.
 
+### SHDI V10.0
+
+65,031 rows (6,069 national + 58,962 subnational), 188 countries, 1,993 regions, 1990–2023. QoG alignment: 186 of 202 matched (92%). 16 unmatched QoG codes are historical entities plus microstates. Join key: `isocode3 = ident_ccodealp`.
+
+**Missingness:** Core HDI variables (shdi, healthindex, edindex, incindex) are 100% complete. Gender-disaggregated indices (shdif/m, sgdi) are 29% missing pre-2005 but only 3% post-2005. Income gender split (lgnicf/m) worst at 23%/3%. `datasource` column is 100% empty — dropped.
+
+**Country coverage advantage over DOSE:** 188 countries (vs DOSE's 83) but shorter temporal depth (1990+ vs 1953+). The 72 countries present in both allow cross-validation of subnational dispersion measures.
+
+**Gender gap insight:** SHDI's gender-disaggregated indicators reveal subnational gender inequality. The largest gender gaps (F - M SHDI, 2020) are Yemen (-0.27), Afghanistan (-0.19), Iraq (-0.14) — states expected to be sub-critical or super-critical. Countries where women are ahead span different economic levels but share institutional investments in women's education (Honduras, Vietnam, Poland, Baltics). For the model: gender gap may be an indicator of ordering effectiveness — suppressing women's development is a form of privilege capture (O sub-component: constraint on privilege capture).
+
+**GDP CV vs HDI CV insight:** Correlation between DOSE GDP dispersion and SHDI HDI dispersion is 0.513 across the 72 shared countries — positively related but far from identical. The gap between the two is itself a measure of how effectively a state uses ordering to distribute human development outcomes across its territory, independent of economic geography. Examples: Argentina has high GDP CV (0.52, economy concentrated in Buenos Aires) but near-zero HDI CV (0.006, health and education distributed evenly). Ukraine similar pattern (GDP CV 0.65, HDI CV 0.02). This is the O lever at work — redistribution policy can decouple economic inequality from human development inequality.
+
 ## Directory Structure
 
 - `work/phase00b/functions/` — Preprocessing functions
   - `load_phase00b.jl` — Module loader
   - `emdat_data.jl` — EM-DAT load, aggregate, Arrow export
   - `dose_data.jl` — DOSE load, aggregate, Arrow export
-  - `network_data.jl` — CEPII preprocessing (not yet active)
-  - `subnational_data.jl` — SHDI preprocessing (not yet active)
+  - `shdi_data.jl` — SHDI load, Arrow export
+  - `cepii_geodist_data.jl` — GeoDist load, ggis_shared_lineage derivation, Arrow export
+  - `cepii_gravity_data.jl` — Gravity load (selective columns), Arrow export
 - `work/p00b_emdat.ipynb` — EM-DAT exploration notebook
 - `work/p00b_dose.ipynb` — DOSE exploration notebook
 - `work/p00b_cepii_geodist.ipynb` — CEPII GeoDist exploration notebook
+- `work/p00b_cepii_gravity.ipynb` — CEPII Gravity exploration notebook
+- `work/p00b_shdi.ipynb` — SHDI exploration notebook
 
 ## Output Files (Arrow)
 
@@ -94,6 +109,7 @@ Missingness was checked for temporal dependence (pre-2000 vs post-2000). The pat
 | `data/emdat_country_year.arrow` | Aggregated country-year (event count, deaths, affected) |
 | `data/dose_subnational.arrow` | Region-year panel (GDP, sectoral, climate) |
 | `data/dose_national.arrow` | Population-weighted country-year aggregate |
+| `data/shdi_v10.arrow` | Subnational HDI (national + subnational rows) |
 | `data/cepii_geo_countries.arrow` | Country-level geographic metadata (238 countries) |
 | `data/cepii_geodist.arrow` | Bilateral dyadic pairs (50,176 pairs, distances + cultural ties) |
 
