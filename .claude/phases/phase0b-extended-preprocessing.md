@@ -95,11 +95,13 @@ Missingness was checked for temporal dependence (pre-2000 vs post-2000). The pat
   - `shdi_data.jl` — SHDI load, Arrow export
   - `cepii_geodist_data.jl` — GeoDist load, ggis_shared_lineage derivation, Arrow export
   - `cepii_gravity_data.jl` — Gravity load (selective columns), Arrow export
+  - `laeven_valencia_data.jl` — L&V load, crisis panel expansion, outcomes cleaning, Arrow export
 - `work/p00b_emdat.ipynb` — EM-DAT exploration notebook
 - `work/p00b_dose.ipynb` — DOSE exploration notebook
 - `work/p00b_cepii_geodist.ipynb` — CEPII GeoDist exploration notebook
 - `work/p00b_cepii_gravity.ipynb` — CEPII Gravity exploration notebook
 - `work/p00b_shdi.ipynb` — SHDI exploration notebook
+- `work/p00b_laeven_valencia.ipynb` — Laeven & Valencia exploration notebook
 
 ## Output Files (Arrow)
 
@@ -110,6 +112,8 @@ Missingness was checked for temporal dependence (pre-2000 vs post-2000). The pat
 | `data/dose_subnational.arrow` | Region-year panel (GDP, sectoral, climate) |
 | `data/dose_national.arrow` | Population-weighted country-year aggregate |
 | `data/shdi_v10.arrow` | Subnational HDI (national + subnational rows) |
+| `data/lv_crisis_panel.arrow` | Country-year crisis flags (463 crisis-active years, 123 countries) |
+| `data/lv_outcomes.arrow` | Crisis episode outcomes (151 episodes, fiscal costs, output losses) |
 | `data/cepii_geo_countries.arrow` | Country-level geographic metadata (238 countries) |
 | `data/cepii_geodist.arrow` | Bilateral dyadic pairs (50,176 pairs, distances + cultural ties) |
 
@@ -175,3 +179,31 @@ Colonial powers by former colony count (from geo_cepii): GBR dominates, followed
 |------|-------------|
 | `data/cepii_gravity.arrow` | Annual bilateral trade panel (post-1950, 30 selected columns) |
 | `data/cepii_gravity_countries.arrow` | Country lookup (252 countries, existence dates, hegemonic spheres) |
+
+### Laeven & Valencia — Systemic Crisis Database
+
+152 banking crisis episodes across 123 countries, 1976–2015. Source: IMF WP/18/206 Excel file inside wp18206.zip. Two sheets used: "Crisis Years" (wide format, comma-separated years per crisis type) and "Crisis Resolution and Outcomes" (episode-level fiscal costs, output losses).
+
+**Data transformation:** The original "Crisis Years" sheet stores multiple crisis years in single cells (e.g., "1980, 1989, 1995, 2001"). This was exploded into a country-year panel: one row per year a crisis was active (start through end), yielding 463 crisis-active country-year rows. The "Crisis Resolution and Outcomes" sheet provides episode-level severity measures.
+
+**Country name → ISO3 mapping:** Dataset uses country names, not ISO3 codes. 93 of 118 unique names matched QoG directly. 25 required manual remapping (e.g., "Korea" → KOR, "Congo, Dem Rep" → COD, "United States" → USA). All 118 resolved. Country names also had trailing whitespace and footnote annotations ("Argentina 8/", "Armenia 4/") that were stripped.
+
+**Outcome measure cleaning:** Numeric columns contained "..." and "…" (ellipsis) for missing values, stored as strings alongside Float64 values (type `Any`). Cleaned to proper `Union{Missing, Float64}`.
+
+**Outcome missingness by decade:**
+
+| Measure | 1970s | 1980s | 1990s | 2000s | 2010s |
+|---------|-------|-------|-------|-------|-------|
+| output_loss_pct | 0% | 0% | 23% | 0% | 25% |
+| fiscal_cost_pct_gdp | 67% | 50% | 51% | 0% | 25% |
+| peak_npls_pct | 67% | 45% | 28% | 0% | 0% |
+| public_debt_increase_pct | 0% | 10% | 16% | 0% | 0% |
+
+2000s episodes have zero missing across all four key measures. Pre-2000 missingness is concentrated in post-Soviet transitions (Georgia, Armenia, Azerbaijan, Belarus), conflict states (Liberia, Bosnia, Eritrea), and small/fragile states — countries too disrupted to track their own crisis costs. The missingness IS signal.
+
+**Validation:** Spot-checked known crises against published literature values:
+- Argentina 2001: output loss 71%, fiscal cost 9.6%, NPLs 20.1% ✓
+- United States 2007: output loss 30%, fiscal cost 4.5%, NPLs 5.0% ✓
+- Indonesia 1997: output loss 69%, fiscal cost 56.8%, NPLs 32.5% ✓
+
+**Crisis clustering:** Major visible waves: 2008 (22 countries — GFC), 1991-1995 peak (26-30 — post-Soviet + Latin America), 1997-1998 (21-26 — Asian Financial Crisis). Temporal clustering alone does not prove contagion — cross-referencing with trade network data needed to distinguish contagion from coincidence (e.g., 1996: Bulgaria, Czech Republic, Jamaica, Yemen — likely independent events).

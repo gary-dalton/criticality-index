@@ -41,7 +41,8 @@ function include_phase00b(modules::Vector{Symbol} = Symbol[])
         :dose_data          => "dose_data.jl",
         :shdi_data          => "shdi_data.jl",
         :cepii_geodist_data => "cepii_geodist_data.jl",
-        :cepii_gravity_data => "cepii_gravity_data.jl",
+        :cepii_gravity_data      => "cepii_gravity_data.jl",
+        :laeven_valencia_data    => "laeven_valencia_data.jl",
     ]
 
     load_all = isempty(modules)
