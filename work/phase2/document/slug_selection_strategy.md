@@ -45,6 +45,7 @@ For backtesting, slugs must cover historical episodes of interest (e.g., Soviet 
    - Same prefix (same data source)
    - Overlapping or adjacent `max_year`/`min_year`
    - Compatible measurement methodology (verified manually)
+   - **Precedent:** Phase 0 clustering used Gleditsch historical GDP (`gle_cgdpc`, 1950–2011) joined with WDI modern GDP (`wdi_gdpcapcon2015`, 1960+) via `ANCHOR_WEALTH_SWITCH_YEAR = 1960` (see `xcluster_analysis.jl`). This cross-prefix join pattern should be generalized for key economic indicators that need deep temporal coverage.
 4. **Modern slugs** — acceptable for recent-window analysis but cannot anchor backtesting.
 
 ### Temporal Floor

@@ -82,6 +82,30 @@ Missingness was checked for temporal dependence (pre-2000 vs post-2000). The pat
 
 **Country coverage advantage over DOSE:** 188 countries (vs DOSE's 83) but shorter temporal depth (1990+ vs 1953+). The 72 countries present in both allow cross-validation of subnational dispersion measures.
 
+### Phase 1 Status Predicts External Dataset Coverage
+
+Cross-referencing Phase 1 country statuses with Phase 0b dataset coverage flags confirms that QoG missingness status is a general country characteristic, not QoG-specific:
+
+| Status | n | EM-DAT | DOSE | SHDI | GeoDist | Gravity | L&V |
+|--------|---|--------|------|------|---------|---------|-----|
+| strong | 130 | 100% | 56% | 99% | 99% | 100% | 77% |
+| reporting | 54 | 100% | 17% | 94% | 93% | 100% | 33% |
+| microstate | 11 | 64% | 0% | 55% | 82% | 100% | 0% |
+| self_exclusion | 2 | 100% | 0% | 0% | 50% | 100% | 0% |
+| failed | 2 | 100% | 0% | 0% | 0% | 100% | 0% |
+
+Strong countries have near-universal external coverage. "Reporting" countries drop to 17% DOSE and 33% L&V. Microstates, failed, and self-exclusion states have minimal subnational or crisis data. EM-DAT and Gravity remain high even for weak states because they're observed externally (disasters happen regardless of reporting capacity; trade partners report bilateral flows).
+
+The primary analytical pool is the 130 strong + 54 reporting countries (91%). The mass threshold for C_d (microstates + failed + nascent) aligns naturally with data availability — countries below the threshold also lack the data to compute meaningful indices.
+
+### QoG as Country Driver — Validation
+
+51 country codes appear in external datasets but not in QoG's 202. All are overseas territories (ABW, AIA, BMU, GLP, PRI, REU, etc.), historical codes (ANT, DFR, YMN), or special entities (HKG, MAC, VAT, PSE, XKO). **No sovereign states are missing from the model.** Territory data is partially captured through their sovereign's QoG entry (e.g., French overseas departments are in FRA's data).
+
+Borderline cases: PSE (Palestine, has SHDI + Gravity), XKO (Kosovo, has SHDI only), HKG (Hong Kong, has EM-DAT/GeoDist/Gravity). These cannot be added without QoG spine data. Their exclusion is acknowledged but does not affect the model's coverage of sovereign states.
+
+Only 1 QoG country has NO external dataset coverage: XTI (Tibet) — a synthetic entity (ccode 9156) not recognized in any international data system. 68 countries have all 6 external datasets.
+
 **Gender gap insight:** SHDI's gender-disaggregated indicators reveal subnational gender inequality. The largest gender gaps (F - M SHDI, 2020) are Yemen (-0.27), Afghanistan (-0.19), Iraq (-0.14) — states expected to be sub-critical or super-critical. Countries where women are ahead span different economic levels but share institutional investments in women's education (Honduras, Vietnam, Poland, Baltics). For the model: gender gap may be an indicator of ordering effectiveness — suppressing women's development is a form of privilege capture (O sub-component: constraint on privilege capture).
 
 **GDP CV vs HDI CV insight:** Correlation between DOSE GDP dispersion and SHDI HDI dispersion is 0.513 across the 72 shared countries — positively related but far from identical. The gap between the two is itself a measure of how effectively a state uses ordering to distribute human development outcomes across its territory, independent of economic geography. Examples: Argentina has high GDP CV (0.52, economy concentrated in Buenos Aires) but near-zero HDI CV (0.006, health and education distributed evenly). Ukraine similar pattern (GDP CV 0.65, HDI CV 0.02). This is the O lever at work — redistribution policy can decouple economic inequality from human development inequality.

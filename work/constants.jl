@@ -43,3 +43,17 @@ const REGIONAL_EXCLUSION_TOLERANCE = 4
 
 """Total number of QoG regions."""
 const TOTAL_REGIONS_COUNT = 10
+
+
+# ==============================================================================
+# ISO3 REMAPPING
+# ==============================================================================
+
+"""Unified ISO3 code remapping for legacy codes used in external datasets.
+Applied during preprocessing to align all datasets with QoG's ident_ccodealp.
+Defined once here; referenced by all Phase 0b loaders."""
+const ISO3_REMAP = Dict(
+    "ROM" => "ROU",  # Romania (old → current)
+    "ZAR" => "COD",  # DR Congo / Zaire (old → current)
+    "TMP" => "TLS",  # Timor-Leste (old → current)
+)
