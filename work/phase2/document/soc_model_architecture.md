@@ -445,7 +445,7 @@ The model captures these trajectories through d1 (velocity) and d2 (acceleration
 
 ## 10. Data Sources
 
-The model draws on multiple datasets organized into three tiers by their role in the analytical sequence.
+The model draws on multiple datasets organized into three tiers by their role in the analytical sequence. All datasets join through a master country reference (`ggis_country_master.arrow`, 202 countries) keyed on `ident_ccodealp` (ISO3). The master reference provides coverage flags, Phase 1 country status, UN geographic classification, and existence dates per source — enabling missingness-aware analysis without per-dataset join gymnastics.
 
 ### Tier 1: Primary (Signature Testing + Index Computation)
 
