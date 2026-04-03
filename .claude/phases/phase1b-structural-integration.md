@@ -30,13 +30,22 @@ Extracted per-country status from row-level `country_missingness_flags.csv`:
 
 Distribution: 130 strong, 54 reporting, 11 microstate, 2 self_exclusion, 2 failed, 1 political_exclusion, 1 nascent, 1 collision.
 
+## Completed (continued)
+
+### 1b.2 — Coverage Matrix (COMPLETE)
+
+**Output:** `data/ggis_coverage_matrix.arrow` — 12,391 country-year rows × 10 columns.
+
+Boolean flags per dataset per country-year. Summary functions for temporal window analysis and population-weighted penetration.
+
+Key findings:
+- Mean 3.92 datasets per country-year; max 7 (all datasets + active crisis)
+- Standard window (1990+) is the convergence point: major countries average 5.5–5.9 datasets
+- External dataset temporal profiles mirror slug profiles: EM-DAT ≈ anchor, SHDI ≈ current, BACI ≈ modern
+- Population-weighted penetration: DOSE covers 82.5% of world population despite only 82 countries (41%). EM-DAT/SHDI/GeoDist/Gravity all at 99.7–100%.
+- L&V at 3.7% of country-years (crisis-active only) but 87.6% population-weighted country coverage
+
 ## Pending
-
-### 1b.2 — Coverage Matrix (Country × Year × Dataset)
-
-**Output:** `data/ggis_coverage_matrix.arrow`
-
-Country-year-level boolean flags per dataset. Also: temporal coverage percentages per QoG window (deep/standard/recent), population-weighted dataset penetration.
 
 ### 1b.3 — Bilateral Edge Consolidation
 
@@ -51,8 +60,11 @@ Cross-reference Gravity countries existence dates with QoG historical entities a
 | File | Description |
 |------|-------------|
 | `work/phase01b/functions/country_master.jl` | Master reference builder |
+| `work/phase01b/functions/coverage_matrix.jl` | Coverage matrix builder + summary functions |
+| `work/phase01b/functions/load_phase01b.jl` | Phase 1b module loader |
 | `work/p01b_structural_integration.ipynb` | Exploration and verification notebook |
 | `data/ggis_country_master.arrow` | Output: 202 countries × 27 columns |
+| `data/ggis_coverage_matrix.arrow` | Output: 12,391 country-years × 10 columns |
 | `work/constants.jl` | `ISO3_REMAP` dict (unified, referenced by all loaders) |
 
 ## Known Issues

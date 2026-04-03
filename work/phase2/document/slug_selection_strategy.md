@@ -62,6 +62,13 @@ All datasets are filtered to **1950+** at load time (`TEMPORAL_FLOOR` in `consta
 
 **Rule:** Each model component must have at least one anchor or long-history-current slug that reaches back to 1990 (standard window). The deep window is desirable but not required for all components.
 
+**Coverage matrix confirmation (Phase 1b):** The standard window (1990+) is where QoG slug profiles, external datasets, AND country coverage all converge:
+- QoG anchor + current slugs have best coverage from 1990+
+- SHDI starts 1990, BACI trade reliable from 2000+, EM-DAT near-universal
+- Major countries average 5.5–5.9 datasets per country-year in the standard window vs. 4.2–5.0 overall
+- The deep window (1970+) is feasible but limited to anchor slugs + IMF trade (not BACI) + no SHDI — restricts analysis to a narrower toolkit
+- External dataset temporal profiles mirror slug profiles: EM-DAT ≈ anchor, SHDI ≈ current, BACI ≈ modern, DOSE ≈ mixed
+
 ## 3. Conceptual Mapping Strategy
 
 Each slug must map to exactly one of the six measurables. The mapping is based on what the slug **measures**, not its source prefix.
