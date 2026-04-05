@@ -1,3 +1,4 @@
+SOC/
 work/.ipynb_checkpoints/
 work/data/
 !work/data/slug_exclusions.csv
