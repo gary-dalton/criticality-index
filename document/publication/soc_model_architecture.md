@@ -206,6 +206,10 @@ Resistance to state change and buffer capacity. Mass is not good or bad — it i
 | **Demographic mass** | Population size, age structure, dependency ratios | More nodes in the lattice means more inertia. Age structure matters — young populations have more kinetic potential, aging populations have more inertial weight. |
 | **Natural capital** | Resource endowment, environmental quality, arable land | Stored potential energy in the physical substrate. Can be converted to kinetic energy (economic activity) or wasted (resource curse). |
 
+**Lindy-weighting.** Not all institutional mass is equal. An institution that has survived multiple crises — regime changes, banking collapses, external shocks — has demonstrated real inertial mass. A newly created institution may score identically on a snapshot measure but has no survival record. The Lindy principle holds that the future life expectancy of a non-perishable entity (a legal system, a social norm, a constitutional framework) is proportional to its current age: time is the ultimate stress test, and survival is evidence of structural fitness.
+
+In the aggregation step for M, institutional depth sub-components receive a Lindy weight proportional to institutional age. The specific functional form — whether logarithmic, power-law, or threshold-based — is an empirical question resolved during backtesting, not assumed. The principle is that a 200-year-old judiciary carries more inertial signal than a 2-year-old anti-corruption task force, even if their current performance scores are identical. The weight reflects demonstrated survival, not assumed quality.
+
 #### U (Internal Energy)
 
 Total energy in the system — kinetic (active) + potential (stored) + thermal (tension).
@@ -303,6 +307,24 @@ The primary index output. A signed, linear measure of distance from *criticality
 - Critical: the engine runs at maximum throughput. Avalanches at all scales contribute to processing demands into governance outputs.
 
 This is the central claim of the model and must be tested empirically.
+
+### 5.5 The Absorbing Barrier
+
+The model measures distance from criticality, but distance alone is incomplete. A system at $C_d = 0.3$ (mildly super-critical) that has deep institutional mass and high entropy is in a fundamentally different situation from one at $C_d = 0.3$ with shallow institutions and concentrated knowledge. The difference is not position — it is *survivability*.
+
+**Non-ergodicity.** Most statistical models assume ergodicity — that the time-average of a single system equals the ensemble-average across many systems. Governance is non-ergodic. A country can look stable "on average" across a panel of decades while steadily approaching a threshold from which there is no recovery. The average conceals the path, and the path is what kills.
+
+**The absorbing barrier** is a state boundary that, once crossed, prevents recovery. In the SOC framework, this is the point where a super-critical excursion destroys not just the current institutional configuration but the system's capacity to reconstitute. Entropy ($S$) collapses toward zero — the configuration space is lost. There are no viable sub-units to revert to, no distributed knowledge to rebuild from. This is not a deep recession or a regime change; it is systemic dissolution.
+
+**Fracture vs. ruin.** The critical distinction is between *fracture* (the system breaks into pieces that remain individually viable) and *ruin* (the system breaks and the pieces cannot function). A system that fractures under super-critical stress but retains its entropy — its institutional variety, its distributed knowledge, its sectoral diversity — can reconstitute. A system that hits the absorbing barrier cannot. The difference is whether $S$ survives the fracture.
+
+**What determines survivability:**
+
+- **Distributed vs. concentrated entropy.** If institutional knowledge, economic capacity, and governance capability are distributed across subnational units, the system can fracture without hitting the absorbing barrier. If they are concentrated at the center, fracture means ruin. Subnational dispersion of HDI (SHDI) and GDP (DOSE) are empirical proxies for this distribution.
+- **Lindy-weighted mass.** Institutions with deep survival records (high Lindy weight) provide structural memory that persists through crises. Post-fracture, these institutions serve as nucleation points for reconstitution. Shallow institutions provide no such anchor.
+- **Trajectory, not position.** A system with $C_d > 0$ and $d_2 > 0$ (super-critical and accelerating) is on a path toward the barrier. A system with $C_d > 0$ and $d_2 < 0$ (super-critical but decelerating) is self-correcting. The derived quantities in §5.2 are the early warning system.
+
+**Implications for the model.** $C_d$ measures where the system is. The absorbing barrier defines where it cannot go and survive. The model's practical value lies in the space between — identifying systems that are approaching the barrier with enough lead time to change trajectory. This is resolved empirically: backtesting identifies historical cases where systems crossed the barrier (and did not recover) versus cases where they fractured and reconstituted. The difference between those cases calibrates what "survivable super-criticality" looks like.
 
 ---
 
@@ -450,6 +472,8 @@ The model captures these trajectories through d1 (velocity) and d2 (acceleration
 14. **Mass threshold** — microstates below a minimum system size may not have enough lattice nodes for SOC dynamics. C_d is undefined, not zero, for these states.
 15. **Z-score normalization by default** — rank normalization as fallback for skewed slugs. Equal-weight aggregation until empirically justified otherwise.
 16. **The model is a diagnostic tool, not a prescription** — it tells states where they are and which direction they're heading. It does not prescribe how to govern. Many different O configurations can achieve criticality.
+17. **Governance is non-ergodic** — ensemble averages can conceal path-dependent ruin. The absorbing barrier (systemic dissolution where S → 0) is the failure mode the model must detect, not just super-criticality.
+18. **Lindy-weighting for institutional mass** — institutional depth sub-components of M are weighted by survival record. Deep institutions carry more inertial signal than shallow ones with identical snapshot scores. Functional form determined empirically.
 
 ---
 

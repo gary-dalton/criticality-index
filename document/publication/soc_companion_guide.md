@@ -21,6 +21,8 @@ A standalone reference companion to the SOC Model Architecture. Contains an 80+ 
 
 Alphabetical. Definitions use plain language first. Where a definition depends on another glossary term, the dependency is marked with →.
 
+**Absorbing barrier.** A state boundary that, once crossed, prevents recovery. In governance, this is systemic dissolution — the point where →entropy collapses toward zero and the system loses its →configuration space. Unlike a crisis (which is recoverable), hitting the absorbing barrier means the system cannot reconstitute. *(See Architecture §5.5.)*
+
 **Acceleration.** The rate of change of →velocity. The second derivative of position with respect to time: d²x/dt². In the model, x = →C_d.
 
 **Aggregation.** Combining multiple measurements into a single score. Common methods: mean, weighted mean, sum. *(See §4.3 for how aggregation is applied in this model.)*
@@ -107,6 +109,8 @@ Alphabetical. Definitions use plain language first. Where a definition depends o
 
 **Lattice failure.** When the →lattice's transmission medium breaks down, signals can no longer →propagate through the system. Modeled by the →Φ function. *(See §4.1.)*
 
+**Lindy-weighting.** The principle that the future life expectancy of a non-perishable entity (a legal system, a social norm, a constitutional framework) is proportional to its current age. Time is the ultimate stress test — survival through multiple crises is evidence of structural fitness. In the model, institutional depth sub-components of →Mass receive a Lindy weight proportional to institutional age, so that deep institutions carry more inertial signal than shallow ones with identical snapshot scores. *(See Architecture §4.2, M component.)*
+
 **Mann-Whitney U test.** A non-parametric test for whether two groups differ. Unlike the →t-test, makes no assumptions about distribution shape — works with →skewed or →heavy-tailed data. Tests whether one group tends to have larger values than the other.
 
 **Mass.** Resistance to state change. Not size or weight — resistance to acceleration. *(See Primer §2.2.)*
@@ -116,6 +120,8 @@ Alphabetical. Definitions use plain language first. Where a definition depends o
 **Mutual information.** A measure of how much knowing one variable tells you about another. Captures nonlinear relationships that →correlation misses. Used for →Signature 2 (→diverging correlation length).
 
 **Node.** In graph theory, a single site in a →lattice or network. Nodes have properties and connect to other nodes through →edges. *(See Primer §2.5.)*
+
+**Non-ergodicity.** A property of systems where the time-average of a single participant does not equal the ensemble-average across many participants. Governance is non-ergodic: a country can look stable "on average" across a panel of peers while steadily approaching the →absorbing barrier. The average conceals the path, and the path determines survival. *(See Architecture §5.5.)*
 
 **Nominal.** Existing in name but non-functioning.
 
