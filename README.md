@@ -7,7 +7,14 @@ A research project applying Self-Organized Criticality (SOC) theory to Quality o
 ```
 criticality-index/
 ├── document/
-│   └── ai-instructions.md           # Cross-phase collaboration rules
+│   ├── publication/                  # Reader-facing cross-phase docs
+│   │   ├── soc_model_architecture.md # SOC model definition
+│   │   ├── soc_companion_guide.md    # Glossary, primers, physics analogs
+│   │   ├── grounding.md              # Criticality validation signatures
+│   │   └── order.md                  # Order/damping component
+│   └── internal/                     # AI-agent & developer continuity
+│       ├── ai-instructions.md        # Collaboration rules
+│       └── new-chat-summary.md       # Project onboarding
 ├── work/
 │   ├── p00_*.ipynb                   # Phase 0 notebooks (see below)
 │   ├── p01_*.ipynb                   # Phase 1 notebooks

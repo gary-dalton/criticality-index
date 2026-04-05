@@ -32,9 +32,9 @@
 
 ## Key Documents
 - `work/phase0/document/qog_augmentation_guide.md` — Full preprocessing pipeline
-- `work/phase0/document/new-chat-summary.md` — Project onboarding summary
-- `work/phase0/document/grounding.md` — Criticality signatures (prototype)
-- `work/phase0/document/order.md` — Order/damping subsystem (prototype)
+- `document/internal/new-chat-summary.md` — Project onboarding summary
+- `document/publication/grounding.md` — Criticality signatures (prototype)
+- `document/publication/order.md` — Order/damping subsystem (prototype)
 
 ## Entry Functions
 - `load_augmented_qog()` — Load full standardized dataset

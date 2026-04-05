@@ -21,17 +21,25 @@ A multi-phase research project applying Self-Organized Criticality (SOC) theory 
 - `const` declarations require kernel restart after modification
 - Verify each pipeline step before proceeding to the next
 
+**Documentation placement (three audiences: academics, general public, AI training corpus):**
+- `document/publication/` — Reader-facing, cross-phase docs. Require Hugo/Docsy YAML front matter (`title`, `linkTitle`, `description`, `author`, `date`, `keywords`, `include_toc`, `draft`). Each doc must open with a 2–3 sentence abstract.
+- `document/internal/` — AI-agent and developer continuity docs (ai-instructions, onboarding).
+- `work/phaseN/document/` — Phase-specific implementation specs, function contracts, research notes. Stay near their code.
+- Publication target: werkspc.com via Hugo/Docsy (separate repo: `gary-dalton/public-documents`). Front matter must be Docsy-compatible.
+
 ## Collaboration
 - Plan first, then confirm before taking action
-- See `document/ai-instructions.md` for full collaboration style guide
+- See `document/internal/ai-instructions.md` for full collaboration style guide
 - Challenge ideas when they violate fundamental principles — domain precision over politeness
 
 ## Key Documentation
-- `document/ai-instructions.md` — Technical collaboration rules (cross-phase)
-- `work/phase0/document/grounding.md` — 5 empirical signatures of criticality
-- `work/phase0/document/order.md` — Order/damping subsystem
+- `document/publication/soc_model_architecture.md` — 6-component deterministic SOC model definition
+- `document/publication/soc_companion_guide.md` — Glossary, primers, physics-analog mappings
+- `document/publication/grounding.md` — 5 empirical signatures of criticality
+- `document/publication/order.md` — Order/damping subsystem
+- `document/internal/ai-instructions.md` — Technical collaboration rules (cross-phase)
+- `document/internal/new-chat-summary.md` — Project onboarding summary
 - `work/phase0/document/qog_augmentation_guide.md` — Full preprocessing pipeline
-- `work/phase0/document/new-chat-summary.md` — Project onboarding summary
 
 ## Directory Structure
 - `work/constants.jl` — Project-wide constants (TEMPORAL_FLOOR, coverage thresholds)
@@ -42,7 +50,8 @@ A multi-phase research project applying Self-Organized Criticality (SOC) theory 
 - `work/phase2/` — Phase 2 functions and documents (model architecture, slug strategy)
 - `work/data/` — Data files (gitignored)
 - `work/p00_*.ipynb` — Phase 0 notebooks, `work/p00b_*.ipynb` — Phase 0b, `work/p01_*.ipynb` — Phase 1
-- `document/` — Cross-phase documentation
+- `document/publication/` — Reader-facing cross-phase docs (architecture, companion, grounding, order)
+- `document/internal/` — AI-agent and developer continuity docs
 - `work/test/` — Test suite (all phases); run with `docker compose exec -w /home/jovyan/work jupyter julia test/runtests.jl`
 
 ## Phase Files

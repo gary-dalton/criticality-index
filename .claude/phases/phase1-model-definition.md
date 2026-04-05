@@ -84,7 +84,7 @@ dissolved, political_exclusion (Taiwan), self_exclusion (USSR, North Korea), nas
 6. **Untagged clusters excluded** — 7 clusters with weak cohesion not used in downstream analysis.
 
 ## Theoretical Foundation
-Five empirical signatures of criticality (see `work/phase0/document/grounding.md`):
+Five empirical signatures of criticality (see `document/publication/grounding.md`):
 1. Power-law distribution of events
 2. Diverging correlation length across sectors
 3. Scale invariance (local vs national governance)

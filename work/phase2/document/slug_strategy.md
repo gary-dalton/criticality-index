@@ -177,7 +177,7 @@ No single data source prefix should dominate any component. If 4 of 5 sub-compon
 
 ### 3.4 Missingness-Aware Weighting
 
-Each sub-component should have ≥2 candidate slugs (primary + fallback). When a country-year is missing the primary slug, the component is computed from available slugs with renormalized weights. The aggregation pattern follows `order.md` section 4.3 — compute each available component, renormalize over what exists, return diagnostics.
+Each sub-component should have ≥2 candidate slugs (primary + fallback). When a country-year is missing the primary slug, the component is computed from available slugs with renormalized weights. The aggregation pattern follows `document/publication/order.md` section 4.3 — compute each available component, renormalize over what exists, return diagnostics.
 
 ### 3.5 Directionality Convention
 
