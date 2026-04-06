@@ -374,6 +374,8 @@ Some slugs point in the "wrong" direction for their component. A corruption inde
 - **Extreme value theory** — Generalized Pareto distribution fitting, Hill estimator for tail index (Signature 5)
 - **Distribution comparison** — Kolmogorov-Smirnov tests for comparing distributions across scales (Signatures 3 & 4)
 - **Group comparison** — t-tests (one-sample, two-sample/Welch's) for comparing signature values between country groups; Mann-Whitney U as non-parametric alternative for skewed/heavy-tailed data
+- **Branching ratio** — average number of subsequent events triggered by a single event. At criticality σ = 1 exactly (the only SOC diagnostic with an exact critical value). Requires high-frequency event-level data; see §7.4 for data constraints
+- **Inter-event time analysis** — distribution of waiting times between successive events. Power-law or stretched exponential at criticality; exponential (Poisson) in pre-SOC or sub-critical regimes. Computable from EM-DAT disaster dates and Laeven & Valencia crisis onset years
 
 ### 7.2 Graph Theory (Nearest-Neighbor Systems)
 
@@ -386,6 +388,7 @@ Some slugs point in the "wrong" direction for their component. A corruption inde
 - **Network renormalization** — coarse-grain by collapsing communities into super-nodes, then compare structural properties across scales (Signature 4: fractal structure)
 - **Fractal dimension** — box-counting on the network to test self-similarity across scales
 - **Network entropy** — structural complexity measure feeding into S
+- **Edge-type separation** — network diagnostics (spectral gap, modularity, path length, centrality) should be computed per edge layer (trade, geographic, colonial/institutional lineage) rather than on an aggregated network. Different edge types carry different stress channels. Per-layer testing reveals which channels carry governance stress; agreement across layers strengthens findings; aggregating before testing risks false negatives from signal masking
 
 ### 7.3 Subnational / Cross-Scale (Secondary Confirmation)
 
@@ -414,6 +417,7 @@ Testing Signature 4 requires two dimensions: whether the distributional pattern 
 
 ### 7.4 Deferred (Insufficient Data)
 
+- **Branching ratio (σ)** — the most direct diagnostic for cascade propagation dynamics and the activation threshold (σ = 1 at criticality, exact value). Requires high-frequency event-level data with sequential causal structure. ACLED (daily conflict events) would be ideal; EM-DAT and Laeven & Valencia can provide rough approximations but lack temporal resolution and causal linkage for reliable σ estimates
 - **Dynamical systems** (Lyapunov exponents, bifurcation analysis) — requires longer/denser time series than QoG provides
 - **Algebraic topology** (persistent homology, Betti numbers) — requires higher-dimensional point clouds
 

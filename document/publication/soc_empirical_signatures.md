@@ -177,6 +177,8 @@ Correlation length has a natural expression in **graph theory**, which provides 
 
 These graph-theoretic diagnostics are directly computable from empirical data — trade networks, institutional linkages, communication flows — making them a practical bridge between the abstract concept of correlation length and observable governance structure.
 
+**Edge-type separation.** The network diagnostics above should be run on each edge type separately (trade layer, geographic layer, colonial/linguistic/institutional lineage layer) rather than on an aggregated network. Different edge types carry different types of stress: a financial contagion propagates via trade and interbank exposure, not via geographic proximity; a political shock may propagate via colonial-era institutional ties that do not appear in trade data. Running diagnostics per layer and checking whether they agree has two benefits: (1) disagreement between layers reveals which channels actually carry governance stress — itself an empirical finding; (2) agreement across layers strengthens the correlation-length finding considerably, as the signal is robust to the choice of connectivity measure. Aggregating before testing risks a false negative — concluding that correlation length does not diverge when in fact it diverges on one layer but is masked by noise on others.
+
 ---
 
 ### Empirical Testing
@@ -399,7 +401,7 @@ The critical distinction: fat tails are not caused by larger shocks. They are ca
 
 **Kurtosis Tracking:** Monitor rolling kurtosis. Rising values indicate instability.
 
-**Power Spectral Density:** Presence of $1/f$ noise. Aggregation of bursts into fat tails.
+**Power Spectral Density:** Confirms fat-tail structure via burst aggregation. (Note: Signature 3 also uses PSD, but to measure temporal memory via the $\beta$ exponent. Same instrument, different quantity — Sig 3 reads the *slope* as a memory diagnostic; Sig 5 reads the *shape* as a tail-structure diagnostic.)
 
 **Wild Randomness Test:** Extreme events dominate variance. Non-Gaussian behavior confirmed.
 
@@ -432,12 +434,60 @@ The five signatures form a coherent diagnostic set:
 | # | Signature | What It Measures | Key Diagnostic |
 |---|-----------|-----------------|----------------|
 | 1 | Power-Law Distribution | Event size distribution | Log-log linearity, MLE exponent |
-| 2 | Diverging Correlation Length | System-wide connectivity | Mutual information, susceptibility |
+| 2 | Diverging Correlation Length | System-wide connectivity | Mutual information, susceptibility, network diagnostics per edge layer |
 | 3 | Scale Invariance | Behavioral self-similarity across scales | Hurst exponent, DFA |
 | 4 | Fractal Structure | Topological self-similarity | Box-counting, coarse-graining |
 | 5 | Fat-Tailed Changes | Incremental volatility | Kurtosis, power spectral density |
+| — | Branching Ratio (σ) | Cascade propagation dynamics | σ = 1 at criticality (exact value); data-constrained |
+| — | Inter-Event Times | Temporal clustering of events | Power-law or stretched exponential waiting times |
 
 Each signature is independently testable, but they are not independent phenomena. Power-law event sizes (1) arise because correlation length diverges (2). Scale invariance in dynamics (3) and structure (4) are the temporal and spatial consequences. Fat-tailed changes (5) are the volatility fingerprint of a system poised at the critical point. Finding all five in a system is strong evidence of Self-Organized Criticality.
+
+---
+
+## Complementary Diagnostics
+
+The five signatures characterize the *shape* of event distributions (Sig 1, 5), the *spatial reach* of coupling (Sig 2), and the *self-similarity* of structure and dynamics across scales (Sig 3, 4). Two additional diagnostics complement these by measuring aspects of criticality that the five do not directly capture: the *mechanics* of perturbation propagation and the *temporal structure* of event sequences.
+
+### Branching Ratio (σ)
+
+The branching ratio measures the average number of subsequent events triggered by a single event. It captures the *propagation dynamics* of cascades — whether a perturbation decays, sustains, or amplifies as it moves through the system step by step.
+
+$$
+\sigma = \frac{\text{number of events at generation } t+1}{\text{number of events at generation } t}
+$$
+
+At criticality, $\sigma = 1$ exactly — each event triggers, on average, exactly one subsequent event. This is the only SOC diagnostic with an exact theoretically predicted critical value, not a range or threshold:
+
+- $\sigma < 1$ — sub-critical. Perturbations decay. Cascades die out. The system damps faster than it propagates.
+- $\sigma = 1$ — critical. Cascades are sustained indefinitely. The system is poised between decay and amplification.
+- $\sigma > 1$ — super-critical. Perturbations amplify. Cascades grow exponentially until the system's capacity is exhausted.
+
+**Relationship to the five signatures:** The branching ratio is the *mechanism* that produces Signatures 1 and 5. When $\sigma = 1$, cascades at all scales are possible — generating power-law event distributions (Sig 1) and fat-tailed changes (Sig 5). When $\sigma \neq 1$, cascades are either truncated (sub-critical) or explosive (super-critical), distorting those signatures.
+
+**Relationship to the activation threshold:** The branching ratio is arguably the most direct diagnostic for the lattice activation threshold (see *Activation Threshold* working document). In a pre-SOC system — one whose lattice connectivity is insufficient for system-spanning cascades — $\sigma < 1$ always, regardless of O-E balance. The activation threshold is the point where $\sigma = 1$ becomes structurally achievable for the first time.
+
+**Data requirement:** Computing σ cleanly requires high-frequency, event-level data with sequential structure — identifying which events triggered which subsequent events. ACLED (daily conflict events) would be ideal but is deferred. EM-DAT (disaster sequences) and Laeven & Valencia (financial crisis cascades) can provide rough approximations for disaster and financial domains respectively, but neither has the temporal resolution or causal linkage for a reliable σ estimate. This is a named gap: the diagnostic is theoretically precise but data-constrained.
+
+### Inter-Event Time Distribution
+
+Signature 1 tests the distribution of event *magnitudes*. The complementary question is the distribution of event *timing* — the waiting times between successive events. Together, magnitude and timing fully characterize the point process.
+
+At criticality, inter-event times follow a **power-law or stretched exponential distribution**:
+
+$$
+P(\Delta t) \propto \Delta t^{-\gamma} \quad \text{or} \quad P(\Delta t) \propto e^{-(\Delta t / \tau_0)^\beta}
+$$
+
+This means events cluster in time — bursts of activity separated by long quiescent periods. There is no characteristic waiting time, just as there is no characteristic event size (Sig 1) or characteristic correlation length (Sig 2).
+
+**Below the activation threshold:** Inter-event times should be approximately exponential (Poisson process) — events occur randomly and independently because the lattice cannot sustain correlated cascading. The shift from exponential to power-law waiting times is a potential marker of threshold crossing.
+
+**Sub-critical systems:** Events are rare and temporally uncorrelated (strong ordering suppresses cascading). Waiting times are long and approximately exponential.
+
+**Super-critical systems:** Events are frequent and clustered but without the power-law structure — more like continuous noise than structured bursts.
+
+**Data availability:** Unlike the branching ratio, inter-event times are computable with currently available data. EM-DAT provides disaster event dates, and Laeven & Valencia provides crisis onset years. Inter-crisis intervals for banking, currency, and sovereign debt crises are directly computable from existing Phase 0b data. This diagnostic can be tested during backtesting without additional data acquisition.
 
 ---
 
