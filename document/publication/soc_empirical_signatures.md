@@ -102,13 +102,13 @@ Because the system sits at a **critical point**, neighboring states vary across 
 
 ---
 
-### Functional Trade-off
+### What Power-Law Distributions Enable
 
-**Benefit — Extreme Sensitivity:** No characteristic scale. The system responds efficiently to inputs of any magnitude, enabling adaptability and information propagation.
+**Capability — Response at every scale:** The system processes inputs of any magnitude using the same mechanism. A small policy adjustment and a major institutional reorganization are produced by the same dynamics, just at different scales. This is what makes the system maximally capable — there is no input size for which the system has no response pathway.
 
-**Cost — Fundamental Unpredictability:** No meaningful "maximum event size." Extreme events are not anomalies—they are **inevitable**. In Gaussian systems, you can engineer for worst-case scenarios. In SOC systems, "worst-case" is undefined.
+**Cost of the alternative:** A Gaussian system can engineer for a "worst case" but cannot respond to anything outside its design envelope. It trades capability across scales for predictability at one scale. SOC systems trade that predictability for the ability to deliver power across the full range of demands.
 
-> The presence of a power-law distribution indicates that the system has traded stability around an average for performance at the critical point. Black Swan events are not rare—they are structurally embedded.
+> The presence of a power-law distribution indicates that the system has access to its full configuration space — every scale of response is available to it. Large reorganizations are not anomalies; they are the system using its full range. This is the signature of a system operating at maximum capability rather than one optimized for a narrow operating point.
 
 ---
 
@@ -208,13 +208,13 @@ $$
 
 ---
 
-### Trade-off of Synchronization
+### What Diverging Correlation Length Enables
 
-**Advantage:** High information processing capacity, coordinated system behavior.
+**Capability:** System-wide power delivery. A perturbation in one sector reaches every other sector through the lattice. Coordinated response, rapid reorganization, maximum information processing.
 
-**Risk:** Systemic fragility, collective failure modes.
+**Cost of the alternative:** A modular system with short correlation length cannot deliver power at scale. Local responses stay local. The system processes demands one sector at a time rather than mobilizing the whole lattice.
 
-> Diverging correlation length signals that the system has transitioned from modular independence to fully integrated interdependence. This creates maximum coordination and maximum systemic risk. Graph theory provides the tools to measure this transition empirically.
+> Diverging correlation length is the mechanism by which a system at criticality delivers power across all scales. The transition from modular independence to fully integrated interdependence is what makes maximum capability possible. A small perturbation can produce a system-wide reorganization because the lattice is structurally capable of transmitting it — that capability is the point, not a side-effect to be minimized. Graph theory provides the tools to measure this transition empirically.
 
 ---
 
@@ -278,13 +278,13 @@ $$
 
 ---
 
-### Complexity vs Control
+### What Scale Invariance Enables
 
-**Advantage:** Adaptive across all scales. No vulnerability to a single frequency or disturbance.
+**Capability:** The same dynamics operate at every temporal scale, so the system delivers governance from the daily-decision scale to the multi-decade institutional scale through one set of mechanisms rather than separate machinery for each timeframe. This is maximum throughput per unit of institutional complexity.
 
-**Challenge:** Cannot impose fixed-scale controls effectively. Regulation may suppress small fluctuations and amplify large events.
+**Implication for control:** Fixed-scale controls — regulations designed for a particular event size or frequency — cannot work in a scale-invariant system. Suppressing small fluctuations does not stabilize the system; it strips away the small avalanches through which capability is delivered, redirecting energy into larger events. Effective governance respects the scale-invariant structure rather than imposing a preferred scale on it.
 
-> Scale invariance indicates that the system behaves identically across all levels of observation. Local mirrors global. Control must respect system-wide structure.
+> Scale invariance indicates that the system delivers power identically across all levels of observation. Local mirrors global because both are produced by the same generating dynamics. Controls that target one scale interfere with capability delivery at every other scale.
 
 ---
 
@@ -347,13 +347,13 @@ Driven by infinite correlation length (Signature 2) and repeated avalanche dynam
 
 ---
 
-### Efficiency vs Vulnerability
+### What Fractal Structure Enables
 
-**Advantage:** Optimal distribution efficiency. Minimal resource use for maximum reach.
+**Capability:** Optimal distribution efficiency at every scale simultaneously. Minimal resource expenditure for maximum reach. Governance hierarchies that deliver service from national ministry down to local office through self-similar structure rather than redundant parallel systems.
 
-**Risk:** Weakness replicated across scales. Local vulnerabilities scale globally.
+**Cost of the alternative:** A system without fractal structure must build separate mechanisms for each scale of operation — national policy, regional implementation, local delivery — each with its own overhead. Capability per unit of resource drops sharply.
 
-> Fractal structure indicates that the system's topology is a direct imprint of its cascade dynamics. Structure encodes history, local mirrors global, and optimization introduces systemic exposure.
+> Fractal structure indicates that the system's topology is a direct imprint of its cascade dynamics. Structure encodes history, local mirrors global, and the same organizational principle delivers governance at every administrative scale. This is how a system at criticality achieves maximum throughput per unit of institutional mass — by reusing the same structural pattern across scales rather than building parallel mechanisms.
 
 ---
 
@@ -417,13 +417,13 @@ The critical distinction: fat tails are not caused by larger shocks. They are ca
 
 ---
 
-### Trade-off
+### What Fat-Tailed Changes Enable
 
-**Advantage:** Enables rapid adaptation. Supports innovation and evolution.
+**Capability:** The system reorganizes through jumps of any size — small adjustments when small adjustments suffice, major reorganizations when conditions demand them. This is how capability is delivered across the full range of operating conditions. A system limited to incremental change cannot respond to demands that require structural reorganization.
 
-**Risk:** Breaks traditional risk models. Extreme events dominate outcomes.
+**Implication for measurement:** Average behavior is not the operating point — it is a statistical artifact of integrating across many different reorganization events. Models that fit the average and treat the tails as noise are fitting the wrong quantity. The tails *are* the capability delivery mechanism.
 
-> Fat-tailed changes indicate that the system evolves through discontinuous jumps rather than smooth transitions. Average behavior is misleading — extremes define system dynamics.
+> Fat-tailed changes indicate that the system delivers power through reorganizations of every size, with no preferred jump scale. Extremes do not break the system — they are how the system handles inputs that exceed local processing capacity. Building risk models around average behavior misses where the work is actually done.
 
 ---
 
