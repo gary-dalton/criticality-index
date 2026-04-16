@@ -336,6 +336,111 @@ end
 
 
 # ==============================================================================
+# BURN-IN / CONVERGENCE DIAGNOSTICS
+# ==============================================================================
+
+"""
+Run a BTW sandpile while logging convergence diagnostics, to determine
+empirically when the system has reached steady state.
+
+Arguments
+    L::Int                            — lattice side length
+    N_grains::Int                     — total grains to drop
+    log_every::Int = 1000             — record diagnostics every N grain drops
+    z_c::Int = Z_C_BTW_2D             — critical toppling threshold
+    initial_condition::Symbol = :empty — :empty or :overloaded
+    seed::Union{Nothing,Int} = nothing — RNG seed
+
+Returns
+    Vector of NamedTuples (one per log point) with fields:
+        step                       — grain drops completed
+        mean_z                     — current mean lattice height
+        cumulative_dissipation     — total grains lost at boundary so far
+        dissipation_rate_recent    — grains lost per drop in last log_every steps
+        mean_avalanche_size_recent — mean avalanche size in last log_every drops
+                                     (including empty avalanches)
+
+Rules
+    - Convergence indicators (for 2D BTW, empty start):
+        * mean_z → 17/8 = 2.125 (Dhar 1999, exact stationary value)
+        * dissipation_rate_recent → 1.0 (one grain out per grain in)
+        * mean_avalanche_size_recent → stationary value
+    - All three should plateau when the system reaches the recurrent class
+    - For :overloaded start: initial relaxation happens before grain dropping
+      (and is not counted in N_grains); convergence should be much faster
+    - Use this once per lattice size to choose an appropriate N_transient,
+      then use that value in btw_sandpile production runs
+
+Usage
+    trace = btw_burnin_trace(128; N_grains=200_000, log_every=2000, seed=1)
+    # Plot trace.mean_z vs trace.step to see convergence
+"""
+function btw_burnin_trace(L::Int;
+                         N_grains::Int,
+                         log_every::Int = 1000,
+                         z_c::Int = Z_C_BTW_2D,
+                         initial_condition::Symbol = :empty,
+                         seed::Union{Nothing, Int} = nothing)
+    rng = isnothing(seed) ? Random.default_rng() : MersenneTwister(seed)
+
+    current_wave = Tuple{Int, Int}[]
+    next_wave = Tuple{Int, Int}[]
+    sizehint!(current_wave, L * L)
+    sizehint!(next_wave, L * L)
+
+    # Initial condition (same as btw_sandpile)
+    if initial_condition == :empty
+        z = zeros(Int, L, L)
+    elseif initial_condition == :overloaded
+        z = rand(rng, z_c:(2 * z_c - 1), L, L)
+        for i in 1:L, j in 1:L
+            push!(current_wave, (i, j))
+        end
+        relax_avalanche!(z, L, z_c, current_wave, next_wave)
+    else
+        error("initial_condition must be :empty or :overloaded, got :$initial_condition")
+    end
+
+    initial_mass = sum(z)
+
+    trace = NamedTuple[]
+    sizes_since_log = Int[]
+    sizehint!(sizes_since_log, log_every)
+    last_dissipation = 0  # cumulative grains lost at end of previous log point
+
+    for k in 1:N_grains
+        i = rand(rng, 1:L)
+        j = rand(rng, 1:L)
+        z[i, j] += 1
+        if z[i, j] >= z_c
+            rec = run_avalanche!(z, i, j, L, z_c, current_wave, next_wave;
+                                record = true)
+            push!(sizes_since_log, rec.size)
+        else
+            push!(sizes_since_log, 0)
+        end
+
+        if k % log_every == 0
+            current_mass = sum(z)
+            cumulative_dissipation = (initial_mass + k) - current_mass
+            recent_dissipation = cumulative_dissipation - last_dissipation
+            push!(trace, (
+                step = k,
+                mean_z = current_mass / (L * L),
+                cumulative_dissipation = cumulative_dissipation,
+                dissipation_rate_recent = recent_dissipation / log_every,
+                mean_avalanche_size_recent = mean(sizes_since_log),
+            ))
+            last_dissipation = cumulative_dissipation
+            empty!(sizes_since_log)
+        end
+    end
+
+    return trace
+end
+
+
+# ==============================================================================
 # CATALOG UTILITIES
 # ==============================================================================
 
