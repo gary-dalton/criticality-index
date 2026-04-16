@@ -6,6 +6,10 @@ This document lays out the theoretical framework of **Inductive SOC** — a prop
 
 This document should be read alongside the Capacitive SOC framework document. Where that document concerns suppression and deficit, this one concerns amplification and excess. The grounding concepts — SOC, criticality, signatures, and the evidentiary standard — are established in the Capacitive SOC document and assumed here.
 
+### Terminology Note
+
+This document uses **"amplification"** to describe the mechanism that sustains and extends cascades beyond their natural SOC boundaries — energy injected *during* propagation. This is distinct from **"excitation" (E)** as used in the SOC Model Architecture, which refers to the slow driving force that adds energy to the system between events (grains added to the sandpile). The distinction matters: architecture-E is the pressure that accumulates; ISOC amplification is the boost that extends cascades once they begin. Where "excitation" appears below, it refers to the ISOC amplification mechanism, not the architecture's E component.
+
 ---
 
 ## Part I: Definition and Core Mechanism

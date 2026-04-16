@@ -4,6 +4,10 @@
 
 This document lays out the theoretical framework of **Capacitive SOC** — a proposed dynamic regime in which a Self-Organized Critical system is subject to suppression of small events, producing a characteristic cycle of deficit accumulation and disproportionate large-scale release. The framework is developed from established SOC and criticality theory, with two components — the percolation threshold as termination condition and the maximum energy boundary — treated as speculative and flagged accordingly.
 
+### Terminology Note
+
+This document uses **"suppression"** to describe the mechanism that blocks small avalanches — distinct from strong **"ordering" (O)** as used in the SOC Model Architecture. The paired counterpart (Inductive SOC) uses **"amplification"** to describe energy injected during cascade propagation — distinct from **"excitation" (E)** in the architecture, which is the slow driving force between events. CSOC suppression and ISOC amplification are mechanisms that *distort* an SOC substrate; architecture O and E *determine* the phase state. Whether these describe the same phenomenon or genuinely different dynamics is an open question addressed by the experimental program.
+
 ---
 
 ## Part I: Grounding Concepts
