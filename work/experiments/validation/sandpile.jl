@@ -69,6 +69,8 @@ Arguments
     N_transient::Int       — grains dropped before recording (steady state)
     N_record::Int          — avalanches recorded after transient
     z_c::Int = Z_C_BTW_2D  — critical toppling threshold
+    initial_condition::Symbol = :empty — :empty (build up from z=0) or
+                                          :overloaded (z >> z_c, original BTW 1987)
     seed::Union{Nothing,Int} = nothing — RNG seed for reproducibility
 
 Returns
@@ -78,7 +80,12 @@ Returns
         n_grains      — total grains dropped (N_transient + N_record)
 
 Rules
-    - Initialize lattice to all zeros
+    - :empty initial condition (default): lattice starts at z=0, fills via
+      grain-by-grain dropping. Tests self-organization from below.
+    - :overloaded initial condition: each site initialized to a uniform
+      random integer in [z_c, 2*z_c). Initial massive cascade brings the
+      system into the recurrent class quickly. This is the original BTW
+      1987 setup. Either way, transient phase is discarded.
     - Drop one grain per step at uniformly random site
     - If receiving site reaches z_c, run avalanche to completion before next drop
     - Parallel toppling: all sites unstable at start of wave topple simultaneously
@@ -88,6 +95,9 @@ Rules
 
 Usage
     result = btw_sandpile(128, N_transient=100_000, N_record=10_000, seed=42)
+    # Or with original BTW 1987 initial condition:
+    result = btw_sandpile(128, N_transient=10_000, N_record=10_000,
+                          initial_condition=:overloaded, seed=42)
     catalog = result.catalog
     sizes = [a.size for a in catalog if a.size > 0]
 """
@@ -95,15 +105,32 @@ function btw_sandpile(L::Int;
                      N_transient::Int,
                      N_record::Int,
                      z_c::Int = Z_C_BTW_2D,
+                     initial_condition::Symbol = :empty,
                      seed::Union{Nothing, Int} = nothing)
     rng = isnothing(seed) ? Random.default_rng() : MersenneTwister(seed)
-    z = zeros(Int, L, L)
 
-    # Pre-allocated buffers reused across avalanches
+    # Pre-allocated buffers reused across avalanches and any initial relaxation
     current_wave = Tuple{Int, Int}[]
     next_wave = Tuple{Int, Int}[]
     sizehint!(current_wave, L * L)
     sizehint!(next_wave, L * L)
+
+    # --- Initial condition ---
+    if initial_condition == :empty
+        z = zeros(Int, L, L)
+    elseif initial_condition == :overloaded
+        # Original BTW 1987: random heights above critical threshold.
+        # Uniform integers in [z_c, 2*z_c) ensures every site is unstable.
+        z = rand(rng, z_c:(2 * z_c - 1), L, L)
+        # Relax the initial overloaded state to a stable configuration
+        # before starting the transient grain-drop counting.
+        for i in 1:L, j in 1:L
+            push!(current_wave, (i, j))
+        end
+        relax_avalanche!(z, L, z_c, current_wave, next_wave)
+    else
+        error("initial_condition must be :empty or :overloaded, got :$initial_condition")
+    end
 
     # --- Transient phase: reach steady state ---
     for _ in 1:N_transient
@@ -246,6 +273,65 @@ function run_avalanche!(z::Matrix{Int}, i_start::Int, j_start::Int,
         sqrt(max_extent_sq),
         wave_profile
     )
+end
+
+
+"""
+Relax the lattice from an arbitrary unstable configuration to a stable one.
+
+Arguments
+    z::Matrix{Int}                       — lattice heights (modified in place)
+    L::Int                               — lattice side length
+    z_c::Int                             — toppling threshold
+    current_wave::Vector{Tuple{Int,Int}} — pre-populated with all initially
+                                           unstable sites; modified in place
+    next_wave::Vector{Tuple{Int,Int}}    — pre-allocated scratch buffer
+
+Returns
+    nothing — modifies z to a fully stable configuration (all sites < z_c)
+
+Rules
+    - Used when initializing with the :overloaded condition (BTW 1987)
+    - Same parallel toppling logic as run_avalanche! but without per-avalanche
+      bookkeeping and without a single origin point
+    - Caller must seed current_wave with all unstable sites before calling
+"""
+function relax_avalanche!(z::Matrix{Int}, L::Int, z_c::Int,
+                         current_wave::Vector{Tuple{Int, Int}},
+                         next_wave::Vector{Tuple{Int, Int}})
+    while !isempty(current_wave)
+        for (i, j) in current_wave
+            z[i, j] -= z_c
+            for (di, dj) in NEIGHBOR_OFFSETS_2D
+                ni = i + di
+                nj = j + dj
+                if 1 <= ni <= L && 1 <= nj <= L
+                    z[ni, nj] += 1
+                end
+            end
+        end
+
+        empty!(next_wave)
+        seen = Set{Tuple{Int, Int}}()
+        for (i, j) in current_wave
+            if z[i, j] >= z_c && !((i, j) in seen)
+                push!(next_wave, (i, j))
+                push!(seen, (i, j))
+            end
+            for (di, dj) in NEIGHBOR_OFFSETS_2D
+                ni = i + di
+                nj = j + dj
+                if 1 <= ni <= L && 1 <= nj <= L &&
+                   z[ni, nj] >= z_c && !((ni, nj) in seen)
+                    push!(next_wave, (ni, nj))
+                    push!(seen, (ni, nj))
+                end
+            end
+        end
+
+        current_wave, next_wave = next_wave, current_wave
+    end
+    return nothing
 end
 
 

@@ -42,6 +42,12 @@ z(i,j±1) → z(i,j±1) + 1
 
 **Boundary dissipation:** Sites at the lattice edge lose grains that would go off-grid. This is the only energy exit.
 
+**Initial condition.** Two conventions exist:
+- **Empty (z = 0):** Default. Lattice fills via grain-by-grain dropping; long transient (~10 × L²) reaches steady state. Tests self-organization from below.
+- **Overloaded (z >> z_c):** Original BTW 1987 setup. Each site initialized to a random integer in [z_c, 2*z_c); single massive cascade brings the system into the recurrent class. Faster transient but the initial cascade is non-stationary and discarded.
+
+Both end up in the same statistical steady state (Dhar's recurrent class). Default is empty start.
+
 **Abelian property:** The final stable configuration and total toppling counts are independent of toppling order (Dhar 1990). This means sequential or parallel toppling give the same avalanche statistics. Parallel toppling (all unstable sites topple simultaneously) defines the natural "wave" structure for duration measurement and is computationally faster.
 
 **Avalanche:** A single grain addition may trigger zero, one, or many topplings. The total number of topplings before the system re-stabilizes is the avalanche size s. The number of parallel toppling waves is the avalanche duration T.
