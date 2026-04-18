@@ -30,6 +30,68 @@ using FFTW
 
 
 # ==============================================================================
+# LOG-BINNED PMF (FOR VISUALIZATION)
+# ==============================================================================
+
+"""
+Log-binned probability mass function for heavy-tailed data.
+
+Arguments
+    data::Vector{<:Real} — positive-valued sample
+    n_bins::Int = 50     — number of log-spaced bins
+
+Returns
+    NamedTuple with:
+        bin_centers — geometric centers of bins
+        pmf         — count in bin / (bin_width * total_count), i.e.
+                      an estimate of P(x) at each bin center
+        counts      — raw counts per bin
+
+Rules
+    - Linear binning wastes bins in the tail (mostly empty); log binning
+      spreads bin widths so each decade gets equal resolution
+    - Bins that are empty are dropped before returning
+    - Bin width normalization (dividing by bin width) is essential to get
+      a correct PMF — otherwise the apparent slope on log-log is distorted
+
+Usage
+    h = log_binned_pmf(sizes)
+    # Plot: plot(h.bin_centers, h.pmf, xaxis=:log, yaxis=:log)
+"""
+function log_binned_pmf(data::Vector{<:Real}; n_bins::Int = 50)
+    positive = filter(x -> x > 0, data)
+    if length(positive) < 10
+        return (bin_centers = Float64[], pmf = Float64[], counts = Int[])
+    end
+    x_min = minimum(positive)
+    x_max = maximum(positive)
+    edges = exp.(range(log(x_min), log(x_max + 1), length = n_bins + 1))
+
+    counts = zeros(Int, n_bins)
+    for x in positive
+        # Find bin for x
+        b = searchsortedlast(edges, x)
+        b = clamp(b, 1, n_bins)
+        counts[b] += 1
+    end
+
+    N = length(positive)
+    bin_centers = Float64[]
+    pmf = Float64[]
+    kept_counts = Int[]
+    for b in 1:n_bins
+        if counts[b] > 0
+            width = edges[b + 1] - edges[b]
+            push!(bin_centers, sqrt(edges[b] * edges[b + 1]))  # geometric center
+            push!(pmf, counts[b] / (width * N))
+            push!(kept_counts, counts[b])
+        end
+    end
+    return (bin_centers = bin_centers, pmf = pmf, counts = kept_counts)
+end
+
+
+# ==============================================================================
 # SIGNATURE 1 — POWER-LAW DISTRIBUTION (Clauset MLE)
 # ==============================================================================
 
@@ -69,37 +131,70 @@ end
 
 
 """
-Find the optimal xmin via Kolmogorov-Smirnov minimization (Clauset method).
+Fit a power-law distribution to sample data.
 
 Arguments
     data::Vector{<:Real}                     — sample of positive values
-    candidate_xmins::Union{Nothing, Vector} = nothing — xmin values to try
+    xmin::Union{Nothing, Real} = nothing     — if provided, fix xmin to this value
+                                              (skips the KS-minimization search)
+    candidate_xmins::Union{Nothing, Vector} = nothing — xmin values to search
                                               (default: unique values in data
-                                              up to the 95th percentile)
+                                              up to the 95th percentile). Ignored
+                                              if xmin is provided explicitly.
+    xmax::Union{Nothing, Real} = nothing     — if provided, exclude data above this
+                                              (useful for truncating finite-size
+                                              cutoff regions that distort the fit)
 
 Returns
     NamedTuple with:
-        xmin        — optimal xmin minimizing KS distance
-        alpha       — MLE alpha at optimal xmin
+        xmin        — xmin used (either provided or found by KS minimization)
+        alpha       — MLE alpha at xmin
         sigma_alpha — standard error
-        ks_distance — KS distance between empirical and fitted distribution
-        n_tail      — number of observations in the tail
+        ks_distance — KS distance between empirical and fitted power-law CDF
+        n_tail      — number of observations in the tail (xmin <= x <= xmax)
 
 Rules
-    - For each candidate xmin: fit alpha via MLE on x >= xmin, compute KS
-      distance between empirical CDF and theoretical power-law CDF
-    - Optimal xmin is the one minimizing KS distance
-    - Skips xmin values with n_tail < 50 (insufficient data for reliable fit)
+    - If xmin is provided: fit MLE alpha on data in [xmin, xmax], compute KS
+    - If xmin is not provided: for each candidate, fit MLE + compute KS,
+      return the xmin with minimum KS distance (Clauset et al. 2009 method)
+    - Providing xmin manually is essential when the automatic search lands in
+      a finite-size cutoff region rather than the true scaling regime
+    - xmax is useful for BTW-like systems where the upper tail curves away
+      from power-law behavior due to finite L
 
 Usage
-    fit = fit_power_law(sizes)
+    fit = fit_power_law(sizes)                           # auto xmin search
+    fit = fit_power_law(sizes; xmin=10)                  # manual xmin
+    fit = fit_power_law(sizes; xmin=10, xmax=1000)       # scaling regime only
 """
 function fit_power_law(data::Vector{<:Real};
-                       candidate_xmins::Union{Nothing, Vector} = nothing)
-    sorted_unique = sort(unique(data))
+                       xmin::Union{Nothing, Real} = nothing,
+                       candidate_xmins::Union{Nothing, Vector} = nothing,
+                       xmax::Union{Nothing, Real} = nothing)
+    if !isnothing(xmin)
+        # Manual xmin — single fit
+        tail = if isnothing(xmax)
+            filter(x -> x >= xmin, data)
+        else
+            filter(x -> xmin <= x <= xmax, data)
+        end
+        n_tail = length(tail)
+        if n_tail < 50
+            return (xmin = Float64(xmin), alpha = NaN, sigma_alpha = NaN,
+                    ks_distance = NaN, n_tail = n_tail)
+        end
+        mle = fit_power_law_mle(collect(tail), xmin)
+        ks = isnan(mle.alpha) ? NaN : ks_distance_power_law(tail, xmin, mle.alpha)
+        return (xmin = Float64(xmin), alpha = mle.alpha,
+                sigma_alpha = mle.sigma_alpha, ks_distance = ks,
+                n_tail = n_tail)
+    end
+
+    # Automatic xmin search via KS minimization
+    data_capped = isnothing(xmax) ? data : filter(x -> x <= xmax, data)
+    sorted_unique = sort(unique(data_capped))
     if isnothing(candidate_xmins)
-        # Use unique values up to 95th percentile as candidates
-        cutoff = quantile(data, 0.95)
+        cutoff = quantile(data_capped, 0.95)
         candidate_xmins = filter(x -> x <= cutoff, sorted_unique)
     end
 
@@ -109,22 +204,22 @@ function fit_power_law(data::Vector{<:Real};
     best_sigma = NaN
     best_n_tail = 0
 
-    for xmin in candidate_xmins
-        tail = filter(x -> x >= xmin, data)
+    for xm in candidate_xmins
+        tail = filter(x -> x >= xm, data_capped)
         n_tail = length(tail)
         if n_tail < 50
             continue
         end
 
-        fit = fit_power_law_mle(data, xmin)
+        fit = fit_power_law_mle(collect(tail), xm)
         if isnan(fit.alpha) || fit.alpha <= 1.0
             continue
         end
 
-        ks = ks_distance_power_law(tail, xmin, fit.alpha)
+        ks = ks_distance_power_law(tail, xm, fit.alpha)
         if ks < best_ks
             best_ks = ks
-            best_xmin = xmin
+            best_xmin = xm
             best_alpha = fit.alpha
             best_sigma = fit.sigma_alpha
             best_n_tail = n_tail
