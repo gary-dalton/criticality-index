@@ -364,6 +364,51 @@ end
 # ==============================================================================
 
 """
+Build the microscopic time series of instantaneous activity (topplings per wave),
+concatenated across all non-empty avalanches in temporal order.
+
+Arguments
+    catalog — Vector of AvalancheRecord (or similar) with .size and .wave_profile
+
+Returns
+    Vector{Int} — toppling count per wave, across all avalanches
+
+Rules
+    - This is the "microscopic time" signal for 1/f noise detection
+      (what Bak-Tang-Wiesenfeld 1987 actually measured)
+    - Macroscopic time (one tick per grain drop) gives white noise because
+      avalanches are nearly independent events; temporal correlations live
+      within avalanches at the wave-by-wave scale
+    - Empty avalanches are skipped (they contribute no activity ticks)
+    - For 1/f analysis, feed this into power_spectrum() and hurst_rs()
+
+Usage
+    micro = microscopic_activity_series(catalog)
+    spec = power_spectrum(Float64.(micro))
+    beta = spectral_exponent(spec.freq, spec.psd)  # should be ~1.5 for BTW
+"""
+function microscopic_activity_series(catalog)
+    # Pre-size: sum of wave_profile lengths for non-empty avalanches
+    total_waves = 0
+    for a in catalog
+        if a.size > 0
+            total_waves += length(a.wave_profile)
+        end
+    end
+    series = Vector{Int}(undef, total_waves)
+    idx = 1
+    for a in catalog
+        if a.size > 0
+            n = length(a.wave_profile)
+            series[idx:(idx + n - 1)] .= a.wave_profile
+            idx += n
+        end
+    end
+    return series
+end
+
+
+"""
 Power spectral density of a time series via FFT.
 
 Arguments
