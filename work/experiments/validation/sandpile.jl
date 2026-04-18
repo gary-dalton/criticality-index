@@ -164,6 +164,166 @@ end
 
 
 """
+Run a BTW sandpile with adaptive burn-in — detect steady state automatically
+from the observed mean height and dissipation rate, then begin recording.
+
+Arguments
+    L::Int                               — lattice side length
+    N_record::Int                        — avalanches to record after steady state
+    z_c::Int = Z_C_BTW_2D                — critical toppling threshold
+    initial_condition::Symbol = :empty   — :empty or :overloaded
+    check_every::Int = 1000              — check convergence every N grains
+    z_range_threshold::Float64 = 0.02    — max range of mean_z over check window
+    dissipation_band::Tuple = (0.9, 1.1) — acceptable range for dissipation_rate
+    consecutive_passes::Int = 5          — windows that must pass both tests
+    max_burnin_grains::Union{Nothing,Int} = nothing — safety cap (default 20*L²)
+    seed::Union{Nothing,Int} = nothing   — RNG seed
+
+Returns
+    NamedTuple with:
+        catalog          — Vector{AvalancheRecord} of length N_record
+        final_height     — lattice heights at end of simulation
+        n_burnin_grains  — grains consumed during adaptive burn-in
+        converged        — true if steady state was detected; false if
+                           max_burnin_grains hit first
+        burnin_trace     — Vector of NamedTuples (same as btw_burnin_trace)
+                           for diagnosis
+
+Rules
+    - Burn-in runs without recording until convergence conditions hold:
+        * range(mean_z) over last K windows < z_range_threshold
+        * mean(dissipation_rate_recent) over last K windows in dissipation_band
+      where K = consecutive_passes
+    - Once detected, records exactly N_record avalanches
+    - Safety cap: if max_burnin_grains is reached without convergence,
+      returns converged=false and proceeds to recording anyway
+    - Default max_burnin_grains = 20*L² is very generous (transition happens
+      at ~2.15*L² empirically)
+
+Usage
+    result = btw_sandpile_adaptive(128; N_record=200_000, seed=42)
+    if !result.converged
+        @warn "Burn-in did not converge; results may be non-stationary"
+    end
+    println("Burn-in took \$(result.n_burnin_grains) grains")
+"""
+function btw_sandpile_adaptive(L::Int;
+                              N_record::Int,
+                              z_c::Int = Z_C_BTW_2D,
+                              initial_condition::Symbol = :empty,
+                              check_every::Int = 1000,
+                              z_range_threshold::Float64 = 0.02,
+                              dissipation_band::Tuple = (0.9, 1.1),
+                              consecutive_passes::Int = 5,
+                              max_burnin_grains::Union{Nothing, Int} = nothing,
+                              seed::Union{Nothing, Int} = nothing)
+    rng = isnothing(seed) ? Random.default_rng() : MersenneTwister(seed)
+    max_burnin = isnothing(max_burnin_grains) ? 20 * L * L : max_burnin_grains
+
+    current_wave = Tuple{Int, Int}[]
+    next_wave = Tuple{Int, Int}[]
+    sizehint!(current_wave, L * L)
+    sizehint!(next_wave, L * L)
+
+    # Initial condition
+    if initial_condition == :empty
+        z = zeros(Int, L, L)
+    elseif initial_condition == :overloaded
+        z = rand(rng, z_c:(2 * z_c - 1), L, L)
+        for i in 1:L, j in 1:L
+            push!(current_wave, (i, j))
+        end
+        relax_avalanche!(z, L, z_c, current_wave, next_wave)
+    else
+        error("initial_condition must be :empty or :overloaded, got :$initial_condition")
+    end
+
+    initial_mass = sum(z)
+
+    # Adaptive burn-in with trace
+    trace = NamedTuple[]
+    sizes_since_log = Int[]
+    sizehint!(sizes_since_log, check_every)
+    last_dissipation = 0
+    k = 0  # grain counter
+
+    recent_mean_z = Float64[]
+    recent_dissipation = Float64[]
+    converged = false
+
+    while k < max_burnin
+        k += 1
+        i = rand(rng, 1:L)
+        j = rand(rng, 1:L)
+        z[i, j] += 1
+        if z[i, j] >= z_c
+            rec = run_avalanche!(z, i, j, L, z_c, current_wave, next_wave;
+                                record = true)
+            push!(sizes_since_log, rec.size)
+        else
+            push!(sizes_since_log, 0)
+        end
+
+        if k % check_every == 0
+            current_mass = sum(z)
+            cumulative_dissipation = (initial_mass + k) - current_mass
+            recent_diss = (cumulative_dissipation - last_dissipation) / check_every
+            mean_z_val = current_mass / (L * L)
+            push!(trace, (
+                step = k,
+                mean_z = mean_z_val,
+                cumulative_dissipation = cumulative_dissipation,
+                dissipation_rate_recent = recent_diss,
+                mean_avalanche_size_recent = mean(sizes_since_log),
+            ))
+            last_dissipation = cumulative_dissipation
+            empty!(sizes_since_log)
+
+            # Convergence test
+            push!(recent_mean_z, mean_z_val)
+            push!(recent_dissipation, recent_diss)
+            if length(recent_mean_z) > consecutive_passes
+                popfirst!(recent_mean_z)
+                popfirst!(recent_dissipation)
+            end
+
+            if length(recent_mean_z) == consecutive_passes
+                z_range = maximum(recent_mean_z) - minimum(recent_mean_z)
+                diss_mean = mean(recent_dissipation)
+                if z_range < z_range_threshold &&
+                   dissipation_band[1] <= diss_mean <= dissipation_band[2]
+                    converged = true
+                    break
+                end
+            end
+        end
+    end
+
+    n_burnin_grains = k
+
+    # Recording phase
+    catalog = Vector{AvalancheRecord}(undef, N_record)
+    for j in 1:N_record
+        ii = rand(rng, 1:L)
+        jj = rand(rng, 1:L)
+        z[ii, jj] += 1
+        if z[ii, jj] >= z_c
+            catalog[j] = run_avalanche!(z, ii, jj, L, z_c,
+                                       current_wave, next_wave; record = true)
+        else
+            catalog[j] = EMPTY_AVALANCHE
+        end
+    end
+
+    return (catalog = catalog,
+            final_height = copy(z),
+            n_burnin_grains = n_burnin_grains,
+            converged = converged,
+            burnin_trace = trace)
+end
+
+
+"""
 Run a single avalanche to completion using parallel toppling waves.
 
 Arguments
