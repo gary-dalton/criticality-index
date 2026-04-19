@@ -1,0 +1,15 @@
+services:
+  julia:
+    image: julia:1.12.3
+    container_name: julia_compute
+    volumes:
+      - ./work:/work
+      - /home/gary/projects/julia_depot:/julia_depot
+    environment:
+      - JULIA_DEPOT_PATH=/julia_depot
+      - JULIA_NUM_THREADS=auto
+    working_dir: /work
+    tty: true
+    stdin_open: true
+    restart: "no"
+    mem_limit: 12g
