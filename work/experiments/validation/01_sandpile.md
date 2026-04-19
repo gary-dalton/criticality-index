@@ -447,9 +447,32 @@ The experiment fails if:
 
 ## Dependencies
 
-- Julia packages: `Distributions.jl`, `StatsBase.jl`, `FFTW.jl`, `LsqFit.jl`, `Arrow.jl`, `DataFrames.jl`
+- Julia packages: `Distributions.jl`, `StatsBase.jl`, `FFTW.jl`, `LsqFit.jl`, `Arrow.jl`, `DataFrames.jl`, `JLD2.jl`, `Plots.jl`
 - No external data required — entirely synthetic
 - No GPU required — both models are sequential by construction
+
+## Running the experiment
+
+This experiment uses the three-phase workflow described in [WORKFLOW.md](WORKFLOW.md): explore in Jupyter, run the ensemble in a headless Julia container, analyze in Jupyter.
+
+### Quick summary
+
+1. **Explore** — open `work/exp01_01_btw_sandpile.ipynb`, set `MODE = :explore`, run top-to-bottom. Executes a small L=64 single-seed simulation live for iterating on diagnostics.
+
+2. **Ensemble** — in a host terminal:
+   ```bash
+   docker compose -f docker-compose.julia.yml up -d
+   docker compose -f docker-compose.julia.yml exec julia bash
+   # inside the container:
+   julia --project experiments/validation/run_btw_ensemble.jl
+   ```
+   Runs the full grid (L=128/256/512/1024 with 40/30/20/10 seeds). Outputs per-seed Arrow files under `work/data/exp01_01/`. Per-seed progress is logged to stdout and `run.log`. Resumable — re-running skips completed seeds.
+
+3. **Analyze** — back in the notebook, set `MODE = :analyze`, run top-to-bottom. Loads the ensemble from disk and runs all signature diagnostics (sections 3–11) against pooled per-seed data. Section 11 produces ensemble error bars and the finite-size extrapolation α∞.
+
+### Customization
+
+Override defaults via `run_btw_ensemble` kwargs — see [WORKFLOW.md](WORKFLOW.md) for examples (smoke tests, custom L grids, alternate output directories). The simulation constants `DEFAULT_L_SEEDS`, `DEFAULT_N_RECORD`, `DEFAULT_OUT_DIR` live at the top of [`streaming.jl`](streaming.jl).
 
 ## Next Experiment
 

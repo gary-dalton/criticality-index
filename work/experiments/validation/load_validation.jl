@@ -19,11 +19,13 @@ Arguments
 Available modules:
   :sandpile
   :diagnostics
+  :streaming
 """
 function include_validation(modules::Vector{Symbol} = Symbol[])
     all_modules = [
         :sandpile    => "sandpile.jl",
         :diagnostics => "diagnostics.jl",
+        :streaming   => "streaming.jl",
     ]
 
     load_all = isempty(modules)
