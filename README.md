@@ -7,30 +7,34 @@ A research project applying Self-Organized Criticality (SOC) theory to Quality o
 ```
 criticality-index/
 ├── document/
-│   ├── publication/                  # Reader-facing cross-phase docs
-│   │   ├── soc_model_architecture.md # SOC model definition
-│   │   ├── soc_companion_guide.md    # Glossary, primers, physics analogs
-│   │   ├── grounding.md              # Criticality validation signatures
-│   │   └── order.md                  # Order/damping component
-│   └── internal/                     # AI-agent & developer continuity
-│       ├── ai-instructions.md        # Collaboration rules
-│       └── new-chat-summary.md       # Project onboarding
+│   ├── publication/                    # Reader-facing cross-phase docs
+│   │   ├── soc_model_architecture.md   # SOC model definition
+│   │   ├── soc_companion_guide.md      # Glossary, primers, physics analogs
+│   │   ├── soc_empirical_signatures.md # Five signatures of criticality
+│   │   ├── grounding.md                # Criticality validation signatures
+│   │   └── order.md                    # Order/damping component
+│   └── internal/                       # AI-agent & developer continuity
+│       ├── ai-instructions.md          # Collaboration rules
+│       └── new-chat-summary.md         # Project onboarding
 ├── work/
-│   ├── p00_*.ipynb                   # Phase 0 notebooks (see below)
-│   ├── p01_*.ipynb                   # Phase 1 notebooks
-│   ├── data/                         # Data files (gitignored)
-│   ├── phase0/                       # Phase 0: Preprocessing
-│   │   ├── document/                 # Phase 0 documentation
-│   │   └── functions/                # Phase 0 Julia modules
-│   ├── phase1/                       # Phase 1: Model Definition
-│   │   └── functions/                # Phase 1 Julia modules
-│   └── test/                         # Test suite (all phases)
-│       ├── runtests.jl               # Entry point
-│       ├── phase0/                   # Phase 0 tests
-│       └── phase1/                   # Phase 1 tests
-├── .claude/phases/                   # Phase-specific context files
-├── CLAUDE.md                         # AI collaboration context
-├── docker-compose.yml                # JupyterLab container config
+│   ├── p00_*.ipynb / p00b_*.ipynb      # Phase 0 / 0b notebooks
+│   ├── p01_*.ipynb / p01b_*.ipynb      # Phase 1 / 1b notebooks
+│   ├── p02_*.ipynb                     # Phase 2 notebooks
+│   ├── exp*_*.ipynb                    # Validation experiment notebooks
+│   ├── data/                           # Data files (gitignored)
+│   ├── phase0/                         # Phase 0: Preprocessing
+│   ├── phase00b/                       # Phase 0b: Extended preprocessing (EM-DAT, DOSE, SHDI, CEPII)
+│   ├── phase1/                         # Phase 1: Slug Classification
+│   ├── phase01b/                       # Phase 1b: Structural Integration
+│   ├── phase2/                         # Phase 2: Variable Mapping
+│   ├── experiments/                    # Synthetic SOC validation experiments
+│   │   ├── ideas/                      # CSOC/ISOC frameworks, feasibility, mapping
+│   │   └── validation/                 # Simulator, diagnostics, runners, WORKFLOW.md
+│   └── test/                           # Test suite
+├── .claude/phases/                     # Phase-specific context files
+├── CLAUDE.md                           # AI collaboration context
+├── docker-compose.yml                  # JupyterLab container
+├── docker-compose.julia.yml            # Headless Julia container for batch compute
 └── README.md
 ```
 
@@ -38,15 +42,21 @@ criticality-index/
 
 | Phase | Name | Status |
 |-------|------|--------|
-| 0 | Preprocessing | Complete — data loading, metadata, geographic mapping, output integrity verified |
-| 1 | Model Definition (Conceptual & Mathematical) | Complete — missingness scoring, slug reclassification, 9 labeled clusters |
-| 2 | Variable Mapping (Slug Selection) | **Next** |
+| 0 | Preprocessing | Complete |
+| 0b | Extended Preprocessing (EM-DAT, DOSE, SHDI, CEPII, Laeven & Valencia) | Complete |
+| 1 | Slug Classification | Complete — missingness scoring, reclassification, 9 labeled clusters |
+| 1b | Structural Integration (master country ref, coverage matrix) | In progress |
+| 2 | Variable Mapping (Slug Selection) | In progress |
 | 3 | Locked Analysis | Not started |
 | 4 | Synthesis & Writing | Not started |
 
+Parallel to the main phases, the `work/experiments/` directory contains synthetic SOC validation experiments (BTW sandpile, Manna, percolation, etc.) that test the diagnostic machinery on systems where the answer is known before applying to governance data. See [work/experiments/validation/WORKFLOW.md](work/experiments/validation/WORKFLOW.md).
+
 ## Notebook Convention
 
-Notebooks are named `pNN_SS_name.ipynb` where `NN` is the two-digit phase number and `SS` is the sequence order. Special prefixes: `ref` for reference/utility, `xx` for exploratory.
+Notebooks are named `pNN_SS_name.ipynb` where `NN` is the two-digit phase number (optional `b` suffix for sub-phases) and `SS` is the sequence order. Validation experiment notebooks use `expNN_SS_name.ipynb`. Special prefixes: `ref` for reference/utility, `xx` for exploratory.
+
+### Phase 0 / 0b — Preprocessing
 
 | Notebook | Role |
 |----------|------|
@@ -58,11 +68,42 @@ Notebooks are named `pNN_SS_name.ipynb` where `NN` is the two-digit phase number
 | `p00_05_geo_region` | UN geographic region assignment |
 | `p00_06_clustering` | Legacy variable clustering (superseded by Phase 1) |
 | `p00_ref_reference` | Function reference & diagnostics |
-| `p00_xx_early_explore` | Initial data exploration (exploratory) |
+| `p00_xx_early_explore` | Initial data exploration |
 | `p00_xx_maps` | UN region/subregion/continent choropleth maps |
-| `p01_01_country_missingness` | Country missingness scoring & status classification (run first) |
-| `p01_02_slug_reclassification` | Revised penetration, UN vectors, clustering pool filter (after manual review) |
-| `p01_03_slug_clustering` | Slug clustering by country coverage (Jaccard/binary, re-run with filtered pool) |
+| `p00b_emdat` | EM-DAT disaster database (Phase 0b) |
+| `p00b_dose` | DOSE subnational GDP (Phase 0b) |
+| `p00b_shdi` | SHDI subnational HDI (Phase 0b) |
+| `p00b_cepii_geodist` | CEPII geographic distances (Phase 0b) |
+| `p00b_cepii_gravity` | CEPII bilateral trade flows (Phase 0b) |
+| `p00b_laeven_valencia` | Systemic crisis database (Phase 0b) |
+
+### Phase 1 / 1b — Classification & Structural Integration
+
+| Notebook | Role |
+|----------|------|
+| `p01_01_country_missingness` | Country missingness scoring & status classification |
+| `p01_02_slug_reclassification` | Revised penetration, UN vectors, clustering pool filter |
+| `p01_03_slug_clustering` | Slug clustering by country coverage |
+| `p01b_structural_integration` | Master country reference + coverage matrix |
+
+### Phase 2 — Variable Mapping
+
+| Notebook | Role |
+|----------|------|
+| `p02_network_data` | Network layer construction (trade, geographic, lineage edges) |
+
+### Validation experiments
+
+| Notebook | Role |
+|----------|------|
+| `exp01_01_btw_sandpile` | BTW sandpile simulation and SOC signature validation |
+
+See [work/experiments/validation/WORKFLOW.md](work/experiments/validation/WORKFLOW.md) for the three-phase (explore → ensemble → analyze) workflow used by experiment notebooks.
+
+### Shared
+
+| Notebook | Role |
+|----------|------|
 | `pALL_test` | Test runner notebook |
 
 ## Running Tests
@@ -122,6 +163,26 @@ docker compose up -d
 ```
 
 Then open http://localhost:8888 with token: `my-prosperity-token`
+
+## Headless Julia container (for batch compute)
+
+For long-running simulations (validation experiments) that shouldn't hold data in a Jupyter kernel, a separate headless Julia container is available via `docker-compose.julia.yml`. It shares the Julia depot with the Jupyter container so packages installed in either are visible to both.
+
+```sh
+# Start
+docker compose -f docker-compose.julia.yml up -d
+
+# Shell in
+docker compose -f docker-compose.julia.yml exec julia bash
+
+# Inside container, run a validation experiment
+julia --project experiments/validation/run_btw_ensemble.jl
+
+# Stop
+docker compose -f docker-compose.julia.yml down
+```
+
+See [work/experiments/validation/WORKFLOW.md](work/experiments/validation/WORKFLOW.md) for the full workflow.
 
 ## Stop
 

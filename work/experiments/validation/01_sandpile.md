@@ -474,6 +474,41 @@ This experiment uses the three-phase workflow described in [WORKFLOW.md](WORKFLO
 
 Override defaults via `run_btw_ensemble` kwargs — see [WORKFLOW.md](WORKFLOW.md) for examples (smoke tests, custom L grids, alternate output directories). The simulation constants `DEFAULT_L_SEEDS`, `DEFAULT_N_RECORD`, `DEFAULT_OUT_DIR` live at the top of [`streaming.jl`](streaming.jl).
 
+## Findings from the 100-seed ensemble run (2026-04-19)
+
+### Auto-xmin Clauset search is unreliable for BTW — do not use
+
+Across the full ensemble (L=128/256/512/1024, 40/30/20/10 seeds), auto-xmin landed in the finite-size cutoff region at every L:
+
+| L | auto xmin | auto α | α(xmin=5) manual |
+|---|----------|--------|------------------|
+| 128 | 6049 | 2.41 | **1.275** |
+| 256 | 21434 | 2.15 | **1.243** |
+| 512 | 88912 | 2.02 | **1.222** |
+| 1024 | 270K | 1.85 | **1.208** |
+
+Worth noting: a single-seed L=1024 run earlier did find xmin=3 / α=1.20. The 10-seed pooled ensemble does not — **more data made auto-xmin worse**, because the KS-minimization prefers narrow high-xmin tails with small KS distance once sample size is large enough to populate them well.
+
+Conclusion: **auto-xmin is unreliable for BTW regardless of L or sample size.** Always use manual `xmin=5` for BTW size and duration distributions. Auto-xmin for the **area** distribution still works cleanly (BTW area has no multiscaling).
+
+The α(xmin=5) values converge to the published BTW α ≈ 1.20 as L grows — the finite-size extrapolation in section 11d will give the asymptotic value with honest ensemble error bars.
+
+### Action items for Exp 01.02 (Manna)
+
+Manna has simple finite-size scaling (no multiscaling, C-DP universality class). Auto-xmin may work there.
+
+Plan: run auto-xmin AND xmin=5 side-by-side on the Manna ensemble. If they agree, auto-xmin is appropriate for clean-scaling systems and we can use it for other cleanly-scaling SOC experiments. If they disagree, standardize on manual xmin=5 universally.
+
+## Deferred items
+
+After completing the full section-by-section pass through the analysis notebook, these cleanups:
+
+1. **Plot label bug** — legend labels currently render as `L=$L` literal (JSON double-escape issue when the notebook was written by Python). Fix to proper Julia string interpolation. One-line fix per plot cell.
+
+2. **Headless analysis module** — add `run_btw_analysis.jl` alongside `run_btw_ensemble.jl` that pre-computes all power-law fits, ensemble statistics, and micro-stat aggregations in the Julia container and saves to `work/data/exp01_01/analysis/*.arrow`. The notebook becomes pure load + plot, running in seconds instead of 15-30 minutes. Same pattern reusable for Manna (and future experiments).
+
+Neither is blocking — both are cleanups after the current analysis pass validates the pipeline end-to-end.
+
 ## Next Experiment
 
 **Experiment 02: Synthetic Percolation** — validate percolation threshold detection on random lattices, establishing the p_c measurement tools needed for Experiment 03 (joined sandpile-percolation system).

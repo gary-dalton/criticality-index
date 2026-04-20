@@ -531,6 +531,9 @@ Arguments
     initial_condition::Symbol = :empty        — passed to btw_sandpile_adaptive
     log_path::Union{Nothing, AbstractString} = nothing — log file path
                                                          (default: out_dir/run.log)
+    expected_mean_z::Real = 17/8              — target stationary mean height
+                                                 for BTW; used only for warnings
+    mean_z_tol::Real = 0.1                    — warn if |measured - expected| > tol
 
 Returns
     nothing — all results are written to disk
@@ -542,6 +545,10 @@ Rules
     - Final height preserved only for seed 1 of each L
     - Per-seed progress logged to stdout AND log_path
     - Per-L manifest written after each L's loop completes
+    - Per-seed sanity checks emit [WARN] lines (don't halt):
+        * converged=false
+        * |mean_z - expected_mean_z| > mean_z_tol
+        * zero non-empty avalanches (emits [ERROR] line)
 
 Usage
     run_btw_ensemble()                                    # full defaults
@@ -553,7 +560,9 @@ function run_btw_ensemble(;
         n_record::Int = DEFAULT_N_RECORD,
         out_dir::AbstractString = DEFAULT_OUT_DIR,
         initial_condition::Symbol = :empty,
-        log_path::Union{Nothing, AbstractString} = nothing)
+        log_path::Union{Nothing, AbstractString} = nothing,
+        expected_mean_z::Real = 17/8,
+        mean_z_tol::Real = 0.1)
 
     mkpath(out_dir)
     Ls = sort(collect(keys(L_seeds)))
@@ -587,6 +596,24 @@ function run_btw_ensemble(;
                 # Capture scalars BEFORE freeing res (used in progress log)
                 converged = res.converged
                 burnin = res.n_burnin_grains
+                seed_mean_z = mean(res.final_height)
+                n_nonempty = count(a -> a.size > 0, res.catalog)
+
+                # --- Per-seed sanity checks ---
+                if !converged
+                    warn_line = "[WARN] L=$L seed=$s did not converge within max_burnin_grains"
+                    println(warn_line); println(logio, warn_line)
+                end
+                if abs(seed_mean_z - expected_mean_z) > mean_z_tol
+                    warn_line = @sprintf("[WARN] L=%d seed=%d mean_z=%.3f deviates from expected %.3f by >%.2f",
+                                         L, s, seed_mean_z, expected_mean_z, mean_z_tol)
+                    println(warn_line); println(logio, warn_line)
+                end
+                if n_nonempty == 0
+                    warn_line = "[ERROR] L=$L seed=$s produced ZERO non-empty avalanches — simulator may be broken"
+                    println(warn_line); println(logio, warn_line)
+                end
+                flush(stdout); flush(logio)
 
                 pieces = summarize_seed(res.catalog, L, s;
                                         final_height = res.final_height,
