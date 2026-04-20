@@ -72,6 +72,34 @@ For producing the final power-law fits, finite-size extrapolations, and ensemble
 
 In the notebook, set `MODE = :analyze` in the Mode cell. Section 2 loads from `ENSEMBLE_DATA_DIR` (default `data/exp01_01`). Sections 3 onward work uniformly across both modes.
 
+### 3b. Optional: pre-compute analysis in the Julia container
+
+If you want the notebook to run in seconds instead of minutes, run the headless analysis first:
+
+```bash
+docker compose -f docker-compose.julia.yml exec julia \
+    julia --project experiments/validation/run_btw_analysis.jl
+```
+
+This runs all power-law fits, FSS extrapolations, pooled PSD/b(x) statistics, and writes them to `work/data/exp01_01/analysis/`. The notebook's section 2b then loads these Arrow tables into the `A` object, and section 12 plots from `A` directly. Heavy cells in sections 3 and 11 become optional.
+
+Output files under `analysis/`:
+
+- `pooled_size_fits.arrow` — pooled power-law fits per L (auto-xmin, manual xmin=5/10, with/without xmax)
+- `per_seed_size_fits.arrow` — per-seed α at fixed xmin=5
+- `multiscaling_grid.arrow` — per-seed α across a grid of xmin values
+- `area_fits.arrow` — pooled + per-seed area α (auto-xmin works cleanly)
+- `duration_fits.arrow` — pooled + per-seed duration α (manual xmin)
+- `pooled_psd.arrow` — PSD averaged across seeds with per-bin std
+- `pooled_bx.arrow` — activity-dependent branching ratio averaged across seeds
+- `inter_event_ccdfs.arrow` — waiting-time CCDFs per L and per quantile threshold
+- `correlation.arrow` — G(r) for L ≤ 256 (O(L^4) cost prohibits larger)
+- `log_binned_pmfs.arrow` — log-binned size and area distributions for plotting
+- `summary_stats.arrow` — per-L scalar summary (mean_z, kurtosis, hurst, β_high, …)
+- `fss_extrapolation.arrow` — finite-size extrapolation α∞ per observable
+- `analysis_manifest.arrow` — run metadata
+- `analysis.log` — text log with per-stage timings
+
 ---
 
 ## Arrow file layout
