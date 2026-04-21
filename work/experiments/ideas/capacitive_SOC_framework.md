@@ -472,13 +472,13 @@ To confirm or refute:
 
 ---
 
-## Part VIII: Suppression Structure Fragility (Refinement of Parts VI and VII)
+## Part VIII: Overtopping Dynamics (Refinement of Parts VI and VII)
 
-> **Status:** This section refines the speculative Parts VI and VII with a concrete, simulation-ready mechanism. Full theoretical development is in `dam_overtopping_extension.md`. The experimental test is specified in `../validation/01_03_manna_csoc_overtopping.md`.
+> **Status:** This section refines the speculative Parts VI and VII with a concrete, simulation-ready mechanism named **overtopping** (after the canonical dam-overtopping example). Full theoretical development is in `overtopping.md`. The experimental test is specified in `../validation/01_03_manna_overtopping.md`.
 
 ### 8.1 The Central Insight
 
-Parts VI and VII treat the percolation threshold (below which cascades terminate) and the maximum energy boundary (above which pathway capacity is exceeded) as fixed properties of the underlying system. The dam-overtopping analysis reveals a stronger claim:
+Parts VI and VII treat the percolation threshold (below which cascades terminate) and the maximum energy boundary (above which pathway capacity is exceeded) as fixed properties of the underlying system. The overtopping analysis reveals a stronger claim:
 
 > **The suppression structure and the system structure may be the same thing.**
 
@@ -503,7 +503,7 @@ between grain drops:
 
 Parameters: T (suppression intensity), E_crit (damage threshold), α (damage rate per damaging event), recovery_rate (repair rate between events).
 
-See `dam_overtopping_extension.md` for the full exposition.
+See `overtopping.md` for the full exposition.
 
 ### 8.3 Refinement of Parts VI and VII
 
@@ -530,16 +530,16 @@ This is the concrete mechanism for the architecture's **fracture vs. ruin** dist
 
 ### 8.5 Connection to the Absorbing Barrier
 
-The architecture (§5.5) asserts the absorbing barrier exists but does not specify where. In the dam-overtopping extension, the barrier is the boundary in (T, α, recovery_rate) parameter space between regimes where:
+The architecture (§5.5) asserts the absorbing barrier exists but does not specify where. In the overtopping extension, the barrier is the boundary in (T, α, recovery_rate) parameter space between regimes where:
 
 - damage is recovered between events (CSOC cycles persist), vs.
 - damage compounds faster than recovery (σ trends to 0, structural failure)
 
-This makes the absorbing barrier empirically locatable via simulation, not just a theoretical assertion. The experiment design in `../validation/01_03_manna_csoc_overtopping.md` specifies how to find it.
+This makes the absorbing barrier empirically locatable via simulation, not just a theoretical assertion. The experiment design in `../validation/01_03_manna_overtopping.md` specifies how to find it.
 
 ### 8.6 Status
 
-The extension is a theoretical proposal, not a validated result. Its quantitative predictions (Part VII of `dam_overtopping_extension.md`) are simulation-testable on the Manna substrate. Confirmation or refutation depends on that experiment. If confirmed, the extension becomes part of CSOC proper rather than a speculative refinement.
+The extension is a theoretical proposal, not a validated result. Its quantitative predictions (Part VII of `overtopping.md`) are simulation-testable on the Manna substrate. Confirmation or refutation depends on that experiment. If confirmed, the extension becomes part of CSOC proper rather than a speculative refinement.
 
 ---
 

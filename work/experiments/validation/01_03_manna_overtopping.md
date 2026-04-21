@@ -1,12 +1,12 @@
-# Experiment 01.03: Manna + CSOC Threshold Elevation + Structural Integrity (Dam Overtopping)
+# Experiment 01.03: Manna + CSOC Threshold Elevation + Overtopping
 
 ## Purpose
 
-Implement and test the dam-overtopping extension to CSOC on the Manna (stochastic, C-DP universality) model. Three concrete goals:
+Implement and test the overtopping extension to CSOC on the Manna (stochastic, C-DP universality) model. Three concrete goals:
 
 1. **Detect CSOC signatures** in a system where they are guaranteed by construction (threshold elevation) and cleaner than on BTW (multiscaling-free Manna substrate).
 2. **Locate the absorbing barrier in parameter space** by mapping the (T, α, recovery_rate) phase space and finding the boundary between "recovering CSOC" and "runaway structural failure."
-3. **Falsify or confirm** the quantitative predictions of the dam-overtopping extension (see `../ideas/dam_overtopping_extension.md` Part VII).
+3. **Falsify or confirm** the quantitative predictions of the overtopping extension (see `../ideas/overtopping.md` Part VII).
 
 ## Dependencies
 
@@ -59,7 +59,7 @@ for all i:
     σ_i ← min(1.0, σ_i + recovery_rate)
 ```
 
-Full model specification in `../ideas/dam_overtopping_extension.md` Part III.
+Full model specification in `../ideas/overtopping.md` Part III.
 
 Purpose: test whether the σ-damage mechanism produces:
 - Sudden runaway failure above a critical combination of (T, α, recovery_rate)
@@ -221,7 +221,7 @@ If these are present, CSOC is correctly implemented on Manna.
 4. Runaway onset is sudden at a critical σ value.
 5. Recovery_rate rescues parameter combinations that would otherwise run away.
 
-Meeting all five is "the dam-overtopping extension is confirmed." Meeting 1-3 but not 4-5 is "mechanism is roughly correct but the sharp-transition claim is too strong." Meeting none is "the mechanism is wrong" — in which case, back to the drawing board with updated ideas.
+Meeting all five is "the overtopping extension is confirmed." Meeting 1-3 but not 4-5 is "mechanism is roughly correct but the sharp-transition claim is too strong." Meeting none is "the mechanism is wrong" — in which case, back to the drawing board with updated ideas.
 
 ### For the broader project
 
@@ -238,7 +238,7 @@ If Stage 3 fails to produce a clean phase diagram, the extension returns to `ide
 
 ## Related Documents
 
-- `../ideas/dam_overtopping_extension.md` — theoretical framework for this experiment
+- `../ideas/overtopping.md` — theoretical framework for this experiment
 - `../ideas/capacitive_SOC_framework.md` Part VIII and new Suppression-Structure-Fragility section — where this extension sits in the CSOC hierarchy
 - `04_absorbing_barrier.md` — abstract framing of what this experiment concretely measures
 - `05_csoc_isoc.md` — Model B of that doc is the multi-model analog of this experiment's Model B

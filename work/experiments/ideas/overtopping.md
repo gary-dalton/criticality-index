@@ -1,12 +1,18 @@
-# Dam-Overtopping Extension to CSOC
+# Overtopping — A CSOC Extension
 
 ## Preamble
 
-This document extends the Capacitive SOC (CSOC) framework with a structural-fragility mechanism modeled on dam overtopping dynamics. The extension formalizes what was previously speculative in CSOC Parts VII and VIII (percolation-threshold termination and maximum energy boundary) and gives a concrete, simulation-ready mathematical form.
+This document extends the Capacitive SOC (CSOC) framework with a structural-fragility mechanism we call **overtopping**. The name comes from the canonical physical example (water overtopping a dam), but the mechanism generalizes beyond hydrology to any system where the suppression structure and the system structure share material or function.
+
+The extension formalizes what was previously speculative in CSOC Parts VII and VIII (percolation-threshold termination and maximum energy boundary) and gives a concrete, simulation-ready mathematical form. It establishes a three-way naming parallel to the existing CSOC / ISOC framework:
+
+- **CSOC** — suppression of small events
+- **ISOC** — amplification of events
+- **Overtopping** — CSOC where the release damages the suppression
 
 The central insight is that in CSOC, **the suppression structure and the system structure may be the same thing**. When the system fails by release, the release destroys the structure that was providing containment. This means post-failure dynamics can be qualitatively different from pre-failure dynamics, and the upper energy boundary is not merely about propagation capacity but about structural survivability.
 
-This document should be read alongside `capacitive_SOC_framework.md` (which establishes CSOC proper) and `01_03_manna_csoc_overtopping.md` (the corresponding experiment design).
+This document should be read alongside `capacitive_SOC_framework.md` (which establishes CSOC proper) and `../validation/01_03_manna_overtopping.md` (the corresponding experiment design).
 
 ---
 
@@ -97,7 +103,7 @@ if flux_i > E_crit:
 
 where α ∈ (0, 1) is the damage rate per damaging event.
 
-The flux definition is an important modeling choice (see Open Questions). For the canonical form we use **cumulative topplings at site i during the current avalanche**: this captures the "repeated stress damages" intuition and matches the dam-overtopping mechanism in which prolonged flow erodes more than a single surge.
+The flux definition is an important modeling choice (see Open Questions). For the canonical form we use **cumulative topplings at site i during the current avalanche**: this captures the "repeated stress damages" intuition and matches the dam analogy in which prolonged flow erodes more than a single surge.
 
 ### Recovery mechanism
 
@@ -203,7 +209,7 @@ The extension makes specific quantitative predictions that could be wrong:
 
 5. **Recovery_rate rescues high-damage regimes.** Increasing recovery_rate at fixed (T, α) should move the system from runaway to recovering. If the regime is determined solely by damage rate without recovery mattering, the framework's timescale-ratio interpretation is wrong.
 
-Each of these is testable in the Manna + overtopping simulation (see `01_03_manna_csoc_overtopping.md`).
+Each of these is testable in the Manna + overtopping simulation (see `../validation/01_03_manna_overtopping.md`).
 
 ---
 
@@ -253,10 +259,58 @@ Standard Manna has no bulk dissipation (grains only leave at boundaries). Adding
 
 ---
 
+## Part IX: Related Work
+
+Overtopping is not the first SOC extension with activity-damages-substrate feedback. Several published SOC models contain closely related mechanisms, and overtopping should be understood as a specific novel combination rather than an entirely novel mechanism.
+
+### Forest fire model with regrowth (Drossel & Schwabl 1992)
+
+The Drossel-Schwabl forest fire model has trees that regrow at rate p and fires that consume connected tree clusters at rate f. The consumed-tree / regrowth cycle is the closest published precedent for the overtopping damage-recovery loop:
+
+- Fire (release event) → tree consumed (substrate damaged)
+- Slow regrowth (analog of recovery_rate)
+- Runaway if p << consumption rate × fire frequency
+
+What's different in overtopping: the DS model modifies binary lattice occupancy (site present / absent); overtopping modulates a continuous σ field that changes a **suppression threshold**. DS has no "suppressed" regime; the whole model lives at its natural critical state. Overtopping sits on top of CSOC (threshold elevation) and asks what happens when that elevation is fragile.
+
+### Rate-and-state friction in earthquake models (Dieterich 1979, Ruina 1983; OFC variants)
+
+Fault surfaces have a state variable that decays with slip (slip weakens the fault) and heals during quiescent periods. Slip-weakening drives slip instability (positive feedback); healing restores state between events. Mapped onto overtopping: state variable is σ-like, slip is toppling, healing is recovery_rate.
+
+The dynamics are formally similar. What's different: friction models typically aim to reproduce the Gutenberg-Richter law (natural SOC distribution); overtopping explicitly asks about the CSOC regime (suppression elevated) and the failure of that suppression. Different motivating question, similar mathematics.
+
+### Neural SOC with synaptic plasticity (Levina, Herrmann, Geisel 2007; Hernández-Urbina & Herrmann 2017)
+
+Neural avalanche models where synapse strengths adapt based on activity. Activity strengthens some synapses (LTP), sustained activity causes long-term depression (LTD). Analog to overtopping's σ dynamics but richer — synapses can increase or decrease, not just damage and recover.
+
+### Self-organized quasi-criticality (Bonachela & Muñoz 2010)
+
+Broader framing: systems where the control parameter is dynamically driven by activity in a way that keeps the system near (but not exactly at) the critical point. Overtopping fits this family — σ is dynamically modified by activity, and in the "recovering CSOC" regime the system sits near a quasi-critical state defined by the damage-recovery balance.
+
+### Adaptive network SOC (Gross & Blasius 2008 review)
+
+Networks where edges form or break based on node activity. Topology-responds-to-dynamics is the general frame. Overtopping is a node-local version (σ per site) rather than an edge version, but fits the same conceptual family.
+
+### What's novel in overtopping
+
+Given these precedents, what's distinctive about overtopping:
+
+1. **The combination of CSOC (threshold elevation T) with substrate damage (σ degradation).** None of the above precedents are specifically CSOC — they operate on natural SOC substrates. Overtopping asks what happens when a suppressed system fails, with the suppression mechanism itself being the fragile structure.
+
+2. **Explicit link to the absorbing barrier concept.** Overtopping provides the mechanism by which the architecture's absorbing barrier (§5.5) becomes empirically locatable in parameter space. Forest fire and RAS-friction models aren't typically framed this way.
+
+3. **Three-timescale structure with recovery_rate as a specific phase-space dimension.** The parameter (T, α, recovery_rate) phase space is a novel formulation; earlier models have two of these three but not all three simultaneously.
+
+4. **Release-damages-containment framing.** The overtopping mechanism has a specific physical intuition (release energy damages the pathway that's carrying it) that's distinct from fire-consumes-fuel or slip-weakens-fault.
+
+When results are published, the Related Work discussion should explicitly cite the precedents above and state overtopping's contribution as the combination, not as inventing the feedback dynamic in isolation.
+
+---
+
 ## Summary
 
-The dam-overtopping extension gives CSOC a concrete, simulation-ready mechanism for the previously-speculative "maximum energy boundary" and for the architecture's "absorbing barrier." The σ field couples suppression strength to release energy via a positive-feedback damage-recovery loop. Three parameters (T, α, recovery_rate) generate a phase space whose "recovering ↔ runaway" boundary is the absorbing barrier in parameter space.
+The overtopping extension gives CSOC a concrete, simulation-ready mechanism for the previously-speculative "maximum energy boundary" and for the architecture's "absorbing barrier." The σ field couples suppression strength to release energy via a positive-feedback damage-recovery loop. Three parameters (T, α, recovery_rate) generate a phase space whose "recovering ↔ runaway" boundary is the absorbing barrier in parameter space.
 
-The extension is testable via simulation on the Manna model (see `01_03_manna_csoc_overtopping.md`) and generates quantitative predictions that could falsify it.
+The extension is testable via simulation on the Manna model (see `../validation/01_03_manna_overtopping.md`) and generates quantitative predictions that could falsify it. Related work (Part IX) situates overtopping within the existing literature on activity-substrate feedback in SOC; the mechanism draws on precedents but is distinctive in its CSOC framing and its explicit tie to the absorbing-barrier concept.
 
 Status: **theoretical framework, not yet implemented or tested.** All numerical values, parameter choices, and expected regime boundaries are hypothesis, not fact.

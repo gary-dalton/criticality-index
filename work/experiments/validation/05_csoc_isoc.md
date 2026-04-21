@@ -1,6 +1,6 @@
 # Experiment 05: CSOC and ISOC — Suppression, Amplification, and Distinguishability
 
-> **See also:** [`01_03_manna_csoc_overtopping.md`](01_03_manna_csoc_overtopping.md) implements "Model B: Capacitive SOC (Suppression)" from this doc specifically on the Manna substrate (stochastic, C-DP universality — cleaner scaling than BTW). Model B of 01_03 matches Model B here; Model C of 01_03 adds the structural integrity field σ from the dam-overtopping extension — a concrete test of the "max energy boundary" concept.
+> **See also:** [`01_03_manna_overtopping.md`](01_03_manna_overtopping.md) implements "Model B: Capacitive SOC (Suppression)" from this doc specifically on the Manna substrate (stochastic, C-DP universality — cleaner scaling than BTW). Model B of 01_03 matches Model B here; Model C of 01_03 adds the structural integrity field σ from the overtopping extension — a concrete test of the "max energy boundary" concept.
 
 ## Purpose
 
