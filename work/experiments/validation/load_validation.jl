@@ -18,16 +18,18 @@ Arguments
 
 Available modules:
   :sandpile
+  :manna_sandpile
   :diagnostics
   :streaming
   :analysis
 """
 function include_validation(modules::Vector{Symbol} = Symbol[])
     all_modules = [
-        :sandpile    => "sandpile.jl",
-        :diagnostics => "diagnostics.jl",
-        :streaming   => "streaming.jl",
-        :analysis    => "analysis.jl",
+        :sandpile       => "sandpile.jl",
+        :manna_sandpile => "manna_sandpile.jl",
+        :diagnostics    => "diagnostics.jl",
+        :streaming      => "streaming.jl",
+        :analysis       => "analysis.jl",
     ]
 
     load_all = isempty(modules)

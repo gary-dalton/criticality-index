@@ -97,6 +97,7 @@ Notebooks are named `pNN_SS_name.ipynb` where `NN` is the two-digit phase number
 | Notebook | Role |
 |----------|------|
 | `exp01_01_btw_sandpile` | BTW sandpile simulation and SOC signature validation |
+| `exp01_02_manna_sandpile` | Manna stochastic sandpile (C-DP universality) — auto-xmin decision point, per-avalanche dissipation tracking |
 
 See [work/experiments/validation/WORKFLOW.md](work/experiments/validation/WORKFLOW.md) for the three-phase (explore → ensemble → analyze) workflow used by experiment notebooks.
 
@@ -176,11 +177,18 @@ docker compose -f docker-compose.julia.yml up -d
 docker compose -f docker-compose.julia.yml exec julia bash
 
 # Inside container, run a validation experiment
-julia --project experiments/validation/run_btw_ensemble.jl
+julia --project experiments/validation/run_btw_ensemble.jl     # Exp 01.01
+julia --project experiments/validation/run_manna_ensemble.jl   # Exp 01.02
+
+# One-shot run (no persistent container)
+docker compose -f docker-compose.julia.yml run --rm julia \
+    julia --project=. experiments/validation/run_manna_ensemble.jl
 
 # Stop
 docker compose -f docker-compose.julia.yml down
 ```
+
+Both runners are resumable — they skip any `(L, seed)` pair whose summary Arrow file already exists. Logs stream to stdout and to `work/data/exp01_0N/run.log`.
 
 See [work/experiments/validation/WORKFLOW.md](work/experiments/validation/WORKFLOW.md) for the full workflow.
 
@@ -188,12 +196,6 @@ See [work/experiments/validation/WORKFLOW.md](work/experiments/validation/WORKFL
 
 ```sh
 docker compose down
-```
-
-To also remove volumes:
-
-```sh
-docker compose down -v
 ```
 
 ## View logs
