@@ -43,18 +43,27 @@ Fields
     duration       — number of parallel toppling waves
     area           — distinct sites that toppled at least once
     max_extent     — maximum Euclidean distance from origin to any toppled site
+    n_dissipated   — grains that left the lattice during this avalanche
     wave_profile   — topplings per wave (length == duration)
+
+Rules
+    - `n_dissipated` counts grains that exit the system from any cause.
+      Today only perimeter out-of-bounds distributions increment it.
+      Future surface-dissipation mechanisms (bulk leak ε, per-site leak
+      field, discrete drain sites, height-cap overflow) increment the
+      same counter so downstream analysis is mechanism-agnostic.
 """
 struct AvalancheRecord
     size::Int
     duration::Int
     area::Int
     max_extent::Float64
+    n_dissipated::Int
     wave_profile::Vector{Int}
 end
 
 """Empty avalanche (grain dropped on a stable site that did not topple)."""
-const EMPTY_AVALANCHE = AvalancheRecord(0, 0, 0, 0.0, Int[])
+const EMPTY_AVALANCHE = AvalancheRecord(0, 0, 0, 0.0, 0, Int[])
 
 
 # ==============================================================================
@@ -360,6 +369,7 @@ function run_avalanche!(z::Matrix{Int}, i_start::Int, j_start::Int,
     total_topplings = 0
     duration = 0
     max_extent_sq = 0.0
+    n_dissipated_local = 0
     wave_profile = record ? Int[] : Int[]
     # Track unique sites for area count via a Set
     area_set = record ? Set{Tuple{Int, Int}}() : Set{Tuple{Int, Int}}()
@@ -391,6 +401,8 @@ function run_avalanche!(z::Matrix{Int}, i_start::Int, j_start::Int,
                 nj = j + dj
                 if 1 <= ni <= L && 1 <= nj <= L
                     z[ni, nj] += 1
+                elseif record
+                    n_dissipated_local += 1
                 end
             end
         end
@@ -431,6 +443,7 @@ function run_avalanche!(z::Matrix{Int}, i_start::Int, j_start::Int,
         duration,
         length(area_set),
         sqrt(max_extent_sq),
+        n_dissipated_local,
         wave_profile
     )
 end
@@ -652,5 +665,33 @@ function avalanche_extents(catalog::Vector{AvalancheRecord}; exclude_empty::Bool
         return [a.max_extent for a in catalog if a.size > 0]
     else
         return [a.max_extent for a in catalog]
+    end
+end
+
+"""Extract grains that left the lattice during each avalanche.
+
+Arguments
+    catalog::Vector{AvalancheRecord}
+    exclude_empty::Bool = true — drop avalanches with size == 0
+
+Returns
+    Vector{Int} of dissipation counts
+
+Rules
+    - In steady state, mean value should approach 1 (one grain in per grain drop,
+      one grain out for conservation). Per-event values range from 0 (interior
+      avalanche) to many (large boundary-reaching avalanche).
+    - Currently reflects perimeter-only dissipation; extensions to bulk leak,
+      drain sites, or graph surfaces will increment the same field with no
+      signature change.
+
+Usage
+    diss = avalanche_dissipations(result.catalog)
+"""
+function avalanche_dissipations(catalog::Vector{AvalancheRecord}; exclude_empty::Bool = true)
+    if exclude_empty
+        return [a.n_dissipated for a in catalog if a.size > 0]
+    else
+        return [a.n_dissipated for a in catalog]
     end
 end

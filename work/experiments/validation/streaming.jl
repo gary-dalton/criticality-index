@@ -37,6 +37,9 @@ const DEFAULT_N_RECORD = 200_000
 """Default output directory (relative to work/)."""
 const DEFAULT_OUT_DIR = "data/exp01_01"
 
+"""Default output directory for Manna ensemble."""
+const DEFAULT_MANNA_OUT_DIR = "data/exp01_02"
+
 """High-frequency cutoff for the microscopic PSD fit (see section 5 of notebook)."""
 const F_HIGH_CUTOFF = 1e-3
 
@@ -210,6 +213,7 @@ function summarize_seed(catalog, L::Int, seed::Int;
         duration = Int32[a.duration for a in catalog],
         area     = Int32[a.area for a in catalog],
         max_extent = Float32[a.max_extent for a in catalog],
+        n_dissipated = Int32[a.n_dissipated for a in catalog],
     )
 
     # Microscopic activity time series (requires raw wave_profile)
@@ -642,6 +646,133 @@ function run_btw_ensemble(;
     end
 
     println("=== run_btw_ensemble finished in $(format_duration(time() - t_start)) ===")
+    return nothing
+end
+
+
+# ==============================================================================
+# MANNA ENSEMBLE RUNNER
+# ==============================================================================
+
+"""
+Run a full Manna ensemble, streaming per-seed Arrow outputs. Parallel of
+run_btw_ensemble with Manna-specific defaults.
+
+Arguments
+    L_seeds::Dict{Int, Int} = DEFAULT_L_SEEDS       — seed count per L
+    n_record::Int = DEFAULT_N_RECORD                — avalanches per seed
+    out_dir::AbstractString = DEFAULT_MANNA_OUT_DIR — output directory
+    initial_condition::Symbol = :empty              — passed to manna_sandpile_adaptive
+    log_path::Union{Nothing, AbstractString} = nothing — log file path
+                                                         (default: out_dir/run.log)
+    expected_mean_z::Real = 0.70                    — target stationary mean height
+                                                      (empirical; published ρ_c ≈ 0.683
+                                                      but open-boundary driven variant
+                                                      drifts slightly upward with L;
+                                                      smoke run at L=128 gave 0.71)
+    mean_z_tol::Real = 0.1                          — warn if |measured - expected| > tol
+
+Returns
+    nothing — all results are written to disk
+
+Rules (same as run_btw_ensemble)
+    - Resumable: skips (L, seed) pairs whose summary file already exists
+    - Bounded memory: one seed's catalog at a time, GC'd before next seed
+    - Raw wave profiles preserved only for L=1024 seed 1
+    - Final height preserved only for seed 1 of each L
+    - Per-seed progress logged to stdout AND log_path
+    - Per-L manifest written after each L's loop completes
+    - Per-seed sanity checks emit [WARN]/[ERROR] lines (don't halt)
+
+Usage
+    run_manna_ensemble()                                    # full defaults
+    run_manna_ensemble(L_seeds=Dict(64=>3), n_record=10_000,
+                       out_dir="data/exp01_02_test")        # smoke test
+"""
+function run_manna_ensemble(;
+        L_seeds::Dict{Int, Int} = DEFAULT_L_SEEDS,
+        n_record::Int = DEFAULT_N_RECORD,
+        out_dir::AbstractString = DEFAULT_MANNA_OUT_DIR,
+        initial_condition::Symbol = :empty,
+        log_path::Union{Nothing, AbstractString} = nothing,
+        expected_mean_z::Real = 0.70,
+        mean_z_tol::Real = 0.1)
+
+    mkpath(out_dir)
+    Ls = sort(collect(keys(L_seeds)))
+    total_seeds = sum(values(L_seeds))
+    seeds_done = 0
+    t_start = time()
+
+    actual_log_path = isnothing(log_path) ? joinpath(out_dir, "run.log") : log_path
+    logio = open(actual_log_path, "a")
+
+    banner = @sprintf("=== run_manna_ensemble start: L_seeds=%s n_record=%d out_dir=%s ic=%s ===",
+                     L_seeds, n_record, out_dir, initial_condition)
+    println(banner)
+    println(logio, banner)
+    flush(stdout); flush(logio)
+
+    try
+        for L in Ls
+            n_seeds = L_seeds[L]
+            for s in 1:n_seeds
+                if seed_already_done(out_dir, L, s)
+                    seeds_done += 1
+                    continue
+                end
+                t_seed = time()
+                res = manna_sandpile_adaptive(L;
+                                              N_record = n_record,
+                                              seed = s,
+                                              initial_condition = initial_condition)
+
+                converged = res.converged
+                burnin = res.n_burnin_grains
+                seed_mean_z = mean(res.final_height)
+                n_nonempty = count(a -> a.size > 0, res.catalog)
+
+                if !converged
+                    warn_line = "[WARN] L=$L seed=$s did not converge within max_burnin_grains"
+                    println(warn_line); println(logio, warn_line)
+                end
+                if abs(seed_mean_z - expected_mean_z) > mean_z_tol
+                    warn_line = @sprintf("[WARN] L=%d seed=%d mean_z=%.3f deviates from expected %.3f by >%.2f",
+                                         L, s, seed_mean_z, expected_mean_z, mean_z_tol)
+                    println(warn_line); println(logio, warn_line)
+                end
+                if n_nonempty == 0
+                    warn_line = "[ERROR] L=$L seed=$s produced ZERO non-empty avalanches — simulator may be broken"
+                    println(warn_line); println(logio, warn_line)
+                end
+                flush(stdout); flush(logio)
+
+                pieces = summarize_seed(res.catalog, L, s;
+                                        final_height = res.final_height,
+                                        wallclock_s = time() - t_seed,
+                                        n_burnin_grains = burnin,
+                                        converged = converged)
+                write_seed(out_dir, L, s, pieces;
+                           write_height = (s == 1),
+                           write_raw_waves = (L == 1024 && s == 1),
+                           catalog = res.catalog)
+
+                res = nothing
+                pieces = nothing
+                GC.gc()
+
+                seeds_done += 1
+                log_progress(logio, L, s, n_seeds, seeds_done, total_seeds,
+                             time() - t_seed, time() - t_start;
+                             res_converged = converged, res_burnin = burnin)
+            end
+            write_manifest(out_dir, L)
+        end
+    finally
+        close(logio)
+    end
+
+    println("=== run_manna_ensemble finished in $(format_duration(time() - t_start)) ===")
     return nothing
 end
 

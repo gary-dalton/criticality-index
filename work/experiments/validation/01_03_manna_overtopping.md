@@ -236,6 +236,25 @@ If Stage 3 fails to produce a clean phase diagram, the extension returns to `ide
 - Docker container: headless Julia from `docker-compose.julia.yml`.
 - Storage: analogous to BTW. Path root `work/data/exp01_03/`.
 
+## Dissipation-Surface Generalization
+
+The `n_dissipated::Int` field added to `AvalancheRecord` in Exp 01.02 counts grains that exit the lattice during each avalanche. Today this reflects **perimeter-only dissipation**: a 128×128 lattice has ~3% of its sites on the perimeter, and out-of-bounds neighbor distributions are the sole escape mechanism. The instrumentation is generic — any mechanism that removes grains increments the same counter — so extensions to richer "surface" dissipation require no changes to downstream analysis code, only to the simulator.
+
+Forward-looking options for generalizing where grains can leave:
+
+| Mechanism | Description | Use case |
+|-----------|-------------|----------|
+| **Bulk leak ε** (Vespignani & Zapperi 1997) | Each toppled grain has probability ε of being annihilated | Tunable non-conservative SOC; cutoff at s* ~ 1/ε |
+| **Per-site leak field ε_i** | Heterogeneous leakiness across the lattice | Porous / channel-bearing substrates; models weakness zones |
+| **Discrete drain sites** | Designated interior sites absorb all incoming grains | Explicit outlets; cleanest coupling interface for SOC-to-SOC |
+| **Graph topology** | Surface defined by graph structure (degree-deficit nodes) | Governance application — a country's surface is its edge set |
+| **Height-cap overflow** | Dissipation at sites exceeding z_max, independent of geometry | Natural tie to overtopping σ-damage (flux-triggered) |
+| **Activity-proportional leak** | Each wave loses ε · n_active grains | Wear-and-tear dissipation tied to system state |
+
+**Implications for Exp 01.04 (coupled SOC).** SOC-to-SOC coupling — feeding dissipated grains from system A into system B as driving — requires **per-site-of-origin** accounting, not just a scalar total. Upgrade path when needed: replace `n_dissipated::Int` with `dissipated_sites::Vector{Tuple{Int,Int}}` or a sparse-counter representation. Downstream analysis that only uses the scalar total gets it via `sum(…)` or the existing helper.
+
+No code change today; this note exists so the concept has a home when we reach the coupling experiment.
+
 ## Related Documents
 
 - `../ideas/overtopping.md` — theoretical framework for this experiment
