@@ -1,5 +1,7 @@
 # Experiment 04: Overloading the Joined System — The Absorbing Barrier
 
+> **See also:** [`01_03_manna_csoc_overtopping.md`](01_03_manna_csoc_overtopping.md) is a concrete Manna-based implementation of the absorbing-barrier concept via the dam-overtopping mechanism (structural integrity field σ). Where this doc abstractly describes "lattice degradation" rules, 01_03 gives specific mathematical dynamics, specific parameter sweeps (T, α, recovery_rate), and specific falsifiability predictions. Consider 01_03 the operational version of what this doc lays out conceptually.
+
 ## Purpose
 
 Push the sandpile-on-percolation-lattice system past criticality to determine whether an irreversible dissolution boundary (absorbing barrier) exists and can be measured. The model architecture (§5.5) claims that a super-critical excursion can destroy not just the current configuration but the system's capacity to reconstitute. This experiment tests that claim computationally.

@@ -472,7 +472,78 @@ To confirm or refute:
 
 ---
 
-## Part VIII: Summary of the Framework
+## Part VIII: Suppression Structure Fragility (Refinement of Parts VI and VII)
+
+> **Status:** This section refines the speculative Parts VI and VII with a concrete, simulation-ready mechanism. Full theoretical development is in `dam_overtopping_extension.md`. The experimental test is specified in `../validation/01_03_manna_csoc_overtopping.md`.
+
+### 8.1 The Central Insight
+
+Parts VI and VII treat the percolation threshold (below which cascades terminate) and the maximum energy boundary (above which pathway capacity is exceeded) as fixed properties of the underlying system. The dam-overtopping analysis reveals a stronger claim:
+
+> **The suppression structure and the system structure may be the same thing.**
+
+When a CSOC release occurs, the release propagates through the same physical or institutional medium that was providing suppression. If that medium is damaged by the release, post-event suppression is weakened or absent. This is not an academic refinement — it is the general case for physical dams, for institutional frameworks, for ecological regulatory mechanisms. The exogenous-suppression model in Part II is the special case.
+
+### 8.2 Formal Mechanism
+
+A per-site structural integrity field σ_i ∈ [0,1] couples suppression strength to release energy. The modified CSOC dynamics (on a Manna substrate) are:
+
+```
+effective_threshold_i = z_c + T · σ_i
+topple site i when z_i ≥ effective_threshold_i
+
+during toppling:
+    track cumulative topplings n_i at this site during this avalanche
+    if n_i > E_crit:
+        σ_i ← σ_i · (1 − α)    [damage]
+
+between grain drops:
+    σ_i ← min(1, σ_i + recovery_rate)    [repair]
+```
+
+Parameters: T (suppression intensity), E_crit (damage threshold), α (damage rate per damaging event), recovery_rate (repair rate between events).
+
+See `dam_overtopping_extension.md` for the full exposition.
+
+### 8.3 Refinement of Parts VI and VII
+
+**Part VI (percolation termination):** as σ degrades, the effective connectivity of the suppressed lattice degrades with it. A site with σ=0 topples at the natural threshold (no suppression) and transmits to its neighbors normally, but the suppressed system as a whole has lost coverage. Structural failure is a mechanism by which effective p_c can be lost independent of activity level.
+
+**Part VII (maximum energy boundary):** the upper bound is not just about propagation capacity in a static sense. It is about whether the release energy exceeds what the structure can survive structurally intact. The positive feedback — release damages structure, weakened structure allows more release, more release damages more structure — is what makes the boundary sharp rather than gradual.
+
+### 8.4 Qualitatively Different Pre- and Post-Failure Dynamics
+
+A CSOC cycle with intact σ:
+- Quiet accumulation phase
+- Trigger + large release
+- σ mostly recovers via recovery_rate
+- Next cycle resembles the previous one
+
+A CSOC cycle that crosses the absorbing barrier:
+- σ degrades faster than it recovers
+- Suppression erodes across consecutive events
+- Eventually σ_mean ≈ 0 system-wide
+- Post-failure: no suppression mechanism remains, system cannot enter another CSOC accumulation phase
+- What follows may be closer to natural SOC (if the pathway structure is otherwise intact) or to dissolution (if the pathway structure itself has been compromised)
+
+This is the concrete mechanism for the architecture's **fracture vs. ruin** distinction (§5.5): whether the post-failure system retains enough structure to reconstitute, or whether it is irretrievably damaged.
+
+### 8.5 Connection to the Absorbing Barrier
+
+The architecture (§5.5) asserts the absorbing barrier exists but does not specify where. In the dam-overtopping extension, the barrier is the boundary in (T, α, recovery_rate) parameter space between regimes where:
+
+- damage is recovered between events (CSOC cycles persist), vs.
+- damage compounds faster than recovery (σ trends to 0, structural failure)
+
+This makes the absorbing barrier empirically locatable via simulation, not just a theoretical assertion. The experiment design in `../validation/01_03_manna_csoc_overtopping.md` specifies how to find it.
+
+### 8.6 Status
+
+The extension is a theoretical proposal, not a validated result. Its quantitative predictions (Part VII of `dam_overtopping_extension.md`) are simulation-testable on the Manna substrate. Confirmation or refutation depends on that experiment. If confirmed, the extension becomes part of CSOC proper rather than a speculative refinement.
+
+---
+
+## Part IX: Summary of the Framework
 
 ### The Core Architecture
 

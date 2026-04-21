@@ -509,6 +509,10 @@ After completing the full section-by-section pass through the analysis notebook,
 
 Neither is blocking — both are cleanups after the current analysis pass validates the pipeline end-to-end.
 
-## Next Experiment
+## Next Experiments
+
+**Experiment 01.02: Plain Manna** — validate the diagnostic pipeline on a stochastic simple-scaling (C-DP universality) SOC system. Test whether auto-xmin works on clean-scaling systems where BTW multiscaling doesn't break it.
+
+**Experiment 01.03: Manna + CSOC threshold elevation + dam-overtopping structural integrity** — see [`01_03_manna_csoc_overtopping.md`](01_03_manna_csoc_overtopping.md). Builds on plain Manna to concretely test the CSOC framework (Model B: threshold elevation only) and the dam-overtopping extension (Model C: threshold elevation + σ field + damage/recovery dynamics). Primary deliverable: phase-space map locating the absorbing barrier. See also [`../ideas/dam_overtopping_extension.md`](../ideas/dam_overtopping_extension.md) for the theoretical framework.
 
 **Experiment 02: Synthetic Percolation** — validate percolation threshold detection on random lattices, establishing the p_c measurement tools needed for Experiment 03 (joined sandpile-percolation system).
