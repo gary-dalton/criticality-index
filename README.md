@@ -176,9 +176,13 @@ docker compose -f docker-compose.julia.yml up -d
 # Shell in
 docker compose -f docker-compose.julia.yml exec julia bash
 
-# Inside container, run a validation experiment
-julia --project experiments/validation/run_btw_ensemble.jl     # Exp 01.01
-julia --project experiments/validation/run_manna_ensemble.jl   # Exp 01.02
+# Inside container, run a validation experiment — ensemble production
+julia --project experiments/validation/run_btw_ensemble.jl      # Exp 01.01 (BTW)
+julia --project experiments/validation/run_manna_ensemble.jl    # Exp 01.02 (Manna)
+
+# Or run the headless analysis pre-compute (after the ensemble completes)
+julia --project experiments/validation/run_btw_analysis.jl      # Exp 01.01 analysis
+julia --project experiments/validation/run_manna_analysis.jl    # Exp 01.02 analysis
 
 # One-shot run (no persistent container)
 docker compose -f docker-compose.julia.yml run --rm julia \
@@ -188,9 +192,15 @@ docker compose -f docker-compose.julia.yml run --rm julia \
 docker compose -f docker-compose.julia.yml down
 ```
 
-Both runners are resumable — they skip any `(L, seed)` pair whose summary Arrow file already exists. Logs stream to stdout and to `work/data/exp01_0N/run.log`.
+**Three-phase experiment workflow** (see [work/experiments/validation/WORKFLOW.md](work/experiments/validation/WORKFLOW.md)):
 
-See [work/experiments/validation/WORKFLOW.md](work/experiments/validation/WORKFLOW.md) for the full workflow.
+1. **Explore** — iterate live in a Jupyter notebook at small L (one seed per L)
+2. **Ensemble production** — run the `run_*_ensemble.jl` in the headless container; persists per-seed Arrow files under `work/data/expNN_SS/`
+3. **Analysis pre-compute** — run `run_*_analysis.jl` in the headless container; produces pooled Arrow files under `work/data/expNN_SS/analysis/` that the notebook's `:analyze` mode loads in seconds instead of re-computing
+
+All runners are resumable — they skip any `(L, seed)` pair whose summary Arrow file already exists. Logs stream to stdout and to `work/data/exp01_0N/run.log` (ensemble) or `work/data/exp01_0N/analysis/analysis.log` (analysis).
+
+See [work/experiments/validation/WORKFLOW.md](work/experiments/validation/WORKFLOW.md) for full workflow details and the `work/experiments/ideas/` directory for the theoretical framework (overtopping, liquefaction, distorted SOC signatures, energy accounting, real-data considerations).
 
 ## Stop
 

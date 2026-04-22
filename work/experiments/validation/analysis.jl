@@ -582,6 +582,188 @@ end
 
 
 # ==============================================================================
+# FRACTAL DIMENSIONS (D_s, D_a, γ) — top-50% and top-1% variants
+# ==============================================================================
+
+"""
+Compute fractal-dimension slopes at two subsample variants for one L.
+
+Arguments
+    summaries::DataFrame — all-seeds summary table for one L. Must carry
+                          `size`, `area`, `max_extent` columns.
+    L::Int
+
+Returns
+    DataFrame with rows for `:top50` and `:top1` variants and columns:
+    (L, variant, D_s, D_a, gamma, gamma_check, n_used)
+
+Rules
+    - D_s from log(size) vs log(max_extent) slope
+    - D_a from log(area) vs log(max_extent) slope
+    - gamma from log(size) vs log(area) slope
+    - gamma_check = D_s / D_a (algebraic identity)
+    - top50 = avalanches at or above the median size (inclusive)
+    - top1 = avalanches at or above the 99th-percentile size (tail only;
+      mirrors published moment-ratio methods)
+    - Excludes avalanches with max_extent < 2 (discreteness floor)
+    - Uses simple OLS on log-log scatter
+
+Usage
+    fractal_df = fractal_dimensions(summaries, 1024)
+"""
+function fractal_dimensions(summaries::DataFrame, L::Int)
+    rows = NamedTuple[]
+    sizes   = Float64.(summaries.size)
+    areas   = Float64.(summaries.area)
+    extents = Float64.(summaries.max_extent)
+    mask    = (sizes .> 0) .& (extents .>= 2.0)
+    if sum(mask) < 100
+        for v in (:top50, :top1)
+            push!(rows, (L = L, variant = String(v),
+                         D_s = NaN, D_a = NaN, gamma = NaN,
+                         gamma_check = NaN, n_used = 0))
+        end
+        return DataFrame(rows)
+    end
+    s = sizes[mask]; a = areas[mask]; R = extents[mask]
+
+    function _slope(x, y)
+        mx = mean(x); my = mean(y)
+        return sum((x .- mx) .* (y .- my)) / sum((x .- mx).^2)
+    end
+
+    for (variant, q) in ((:top50, 0.5), (:top1, 0.99))
+        thresh = quantile(s, q)
+        sub = s .>= thresh
+        n_used = sum(sub)
+        if n_used < 50
+            push!(rows, (L = L, variant = String(variant),
+                         D_s = NaN, D_a = NaN, gamma = NaN,
+                         gamma_check = NaN, n_used = n_used))
+            continue
+        end
+        ls = log.(s[sub]); la = log.(a[sub]); lR = log.(R[sub])
+        D_s = _slope(lR, ls)
+        D_a = _slope(lR, la)
+        gamma = _slope(la, ls)
+        push!(rows, (L = L, variant = String(variant),
+                     D_s = D_s, D_a = D_a, gamma = gamma,
+                     gamma_check = D_s / D_a, n_used = n_used))
+    end
+    return DataFrame(rows)
+end
+
+
+"""
+Finite-size extrapolate fractal dimensions for each variant.
+
+Arguments
+    fractal_df::DataFrame — vertically-concatenated output of
+                           fractal_dimensions across L values. Must carry
+                           (L, variant, D_s, D_a, gamma) columns.
+
+Returns
+    DataFrame with one row per (variant, observable) and columns:
+    (variant, observable, X_inf, c, n_L)
+    where observable ∈ {"D_s", "D_a", "gamma"}
+
+Rules
+    - Linear 1/L fit for each (variant, observable) combination
+    - Requires at least 3 distinct L values per variant for a fit;
+      otherwise returns NaN extrapolation
+    - Uses unweighted OLS (no per-L uncertainty stored in fractal_df);
+      for weighted extrapolation with error bars, compute per-seed
+      D_s/D_a/gamma first and pool.
+"""
+function fractal_extrapolation(fractal_df::DataFrame)
+    rows = NamedTuple[]
+    for variant in unique(fractal_df.variant)
+        vsub = filter(r -> r.variant == variant, fractal_df)
+        isempty(vsub) && continue
+        Ls = Float64.(vsub.L)
+        for (obs, col) in (("D_s", :D_s), ("D_a", :D_a), ("gamma", :gamma))
+            ys = Float64.(vsub[!, col])
+            mask = .!isnan.(ys)
+            if sum(mask) < 3
+                push!(rows, (variant = variant, observable = obs,
+                             X_inf = NaN, c = NaN, n_L = sum(mask)))
+                continue
+            end
+            x = 1.0 ./ Ls[mask]
+            y = ys[mask]
+            n = length(x)
+            sx = sum(x); sy = sum(y); sxx = sum(x.^2); sxy = sum(x .* y)
+            c_fit = (n * sxy - sx * sy) / (n * sxx - sx^2)
+            a_inf = (sy - c_fit * sx) / n
+            push!(rows, (variant = variant, observable = obs,
+                         X_inf = a_inf, c = c_fit, n_L = n))
+        end
+    end
+    return DataFrame(rows)
+end
+
+
+# ==============================================================================
+# BRACKETED-XMIN FSS (size distribution only, uses multiscaling_grid output)
+# ==============================================================================
+
+"""
+Finite-size extrapolation at multiple xmin values — implements the bracketed-
+reporting methodology (see `feedback_xmin_bracketed_reporting` memory).
+
+Arguments
+    multiscaling_df::DataFrame — combined multiscaling_grid output across L
+                                (columns: L, seed, xmin, alpha, ...)
+    xmins::Vector{Int} = [5, 10] — the xmin values to bracket
+
+Returns
+    DataFrame: (xmin, alpha_inf, sigma_alpha_inf, c, sigma_c, n_L, chi2)
+    plus summary row with (xmin = :bracket_width) giving the α_∞ range
+    between the low and high xmin extrapolations.
+
+Rules
+    - For each xmin in the grid, compute per-L mean ± std across seeds,
+      then call `finite_size_extrapolation` with those as weighted inputs.
+    - The bracket_width row is α_inf(max xmin) − α_inf(min xmin); its
+      sign matters (finite-size cutoff bias pushes higher xmin α_inf up).
+"""
+function fss_extrapolation_bracketed(multiscaling_df::DataFrame;
+                                     xmins::Vector = [5, 10])
+    rows = NamedTuple[]
+    inf_by_xmin = Dict{Float64, Float64}()
+    for xm in xmins
+        xm_f = Float64(xm)
+        sub = filter(r -> r.xmin == xm_f, multiscaling_df)
+        isempty(sub) && continue
+        by_L = combine(groupby(sub, :L),
+                      :alpha => mean => :alpha_mean,
+                      :alpha => std  => :alpha_std)
+        nrow(by_L) < 3 && continue
+        fs = finite_size_extrapolation(Float64.(by_L.L),
+                                       by_L.alpha_mean,
+                                       by_L.alpha_std)
+        push!(rows, (xmin = xm_f,
+                     alpha_inf = fs.alpha_inf,
+                     sigma_alpha_inf = fs.sigma_alpha_inf,
+                     c = fs.c, sigma_c = fs.sigma_c,
+                     n_L = fs.n_points, chi2 = fs.chi2))
+        inf_by_xmin[xm_f] = fs.alpha_inf
+    end
+    # Bracket width row (α_∞ at max xmin − α_∞ at min xmin)
+    if length(inf_by_xmin) >= 2
+        xm_low, xm_high = extrema(keys(inf_by_xmin))
+        width = inf_by_xmin[xm_high] - inf_by_xmin[xm_low]
+        push!(rows, (xmin = -1.0,  # sentinel marker for "bracket width"
+                     alpha_inf = width,
+                     sigma_alpha_inf = NaN,
+                     c = NaN, sigma_c = NaN,
+                     n_L = length(inf_by_xmin), chi2 = NaN))
+    end
+    return DataFrame(rows)
+end
+
+
+# ==============================================================================
 # SUMMARY STATS PER L
 # ==============================================================================
 
@@ -888,6 +1070,257 @@ function run_btw_analysis(;
 end
 
 
+# ==============================================================================
+# MANNA ANALYSIS RUNNER
+# ==============================================================================
+
+"""
+Run the full Manna ensemble analysis, producing all pre-computed Arrow files
+that the notebook's fast-path loads.
+
+Arguments
+    data_dir::AbstractString = "data/exp01_02" — ensemble root directory
+    out_subdir::AbstractString = DEFAULT_ANALYSIS_SUBDIR — analysis/ under data_dir
+    L_values::Union{Nothing, Vector{Int}} = nothing — auto-discover if nothing
+    xmin_fixed::Real = XMIN_FIXED — primary xmin for single-xmin outputs (5.0)
+    xmin_grid::Vector = XMIN_GRID — [5, 10, 30, 100, 300] for multiscaling
+    xmins_bracket::Vector = [5, 10] — xmins for bracketed FSS reporting
+    expected_mean_z::Real = 0.70 — empirical driven-open-boundary stationary
+                                   density (published fixed-energy ρ_c = 0.683;
+                                   driven offset is ~3-5% above ρ_c)
+    mean_z_tol::Real = 0.1 — sanity-check tolerance on mean_z
+
+Returns
+    nothing — all outputs written to disk as Arrow files
+
+Rules
+    - Mirrors run_btw_analysis file layout. Notebook fast-path reads all
+      Arrow files via load_analysis and displays them.
+    - Adds two Manna-specific outputs beyond the BTW set:
+        * fractal_dimensions.arrow — D_s, D_a, γ at (L, top50/top1 variant)
+        * fractal_extrapolation.arrow — 1/L extrapolation per variant
+        * fss_extrapolation_bracketed.arrow — α_∞ at xmin=5 AND xmin=10
+          (the primary methodology per feedback_xmin_bracketed_reporting)
+    - Spatial correlation computed only for L <= 256 (expensive)
+    - Per-seed heights available only for seed=1 of each L
+
+Usage
+    run_manna_analysis()
+    run_manna_analysis(data_dir="data/exp01_02_test",
+                       L_values=[128, 256])
+"""
+function run_manna_analysis(;
+        data_dir::AbstractString = DEFAULT_MANNA_OUT_DIR,
+        out_subdir::AbstractString = DEFAULT_ANALYSIS_SUBDIR,
+        L_values::Union{Nothing, Vector{Int}} = nothing,
+        xmin_fixed::Real = XMIN_FIXED,
+        xmin_grid::Vector = XMIN_GRID,
+        xmins_bracket::Vector = [5, 10],
+        expected_mean_z::Real = 0.70,
+        mean_z_tol::Real = 0.1)
+
+    out_dir = joinpath(data_dir, out_subdir)
+    mkpath(out_dir)
+    log_path = joinpath(out_dir, "analysis.log")
+    logio = open(log_path, "a")
+
+    Ls = if isnothing(L_values)
+        _discover_L_values(data_dir)
+    else
+        L_values
+    end
+
+    t_start = time()
+    stage_times = NamedTuple[]
+
+    all_pooled_size = DataFrame[]
+    all_per_seed_size = DataFrame[]
+    all_multiscaling = DataFrame[]
+    all_area = DataFrame[]
+    all_duration = DataFrame[]
+    all_pooled_psd = DataFrame[]
+    all_pooled_bx = DataFrame[]
+    all_iet = DataFrame[]
+    all_corr = DataFrame[]
+    all_pmfs = DataFrame[]
+    all_summary = NamedTuple[]
+    all_fractal = DataFrame[]
+    all_warnings = String[]
+
+    function banner(msg)
+        ts = Dates.format(now(), "yyyy-mm-dd HH:MM:SS")
+        line = "[$ts] $msg"
+        println(line); flush(stdout)
+        println(logio, line); flush(logio)
+    end
+
+    banner("=== run_manna_analysis start  data_dir=$data_dir  out=$out_dir  Ls=$Ls ===")
+    banner("    xmins_bracket=$xmins_bracket  expected_mean_z=$expected_mean_z")
+
+    for L in Ls
+        banner("--- L=$L ---")
+        t_L = time()
+
+        loaded = load_ensemble(data_dir, L)
+        summaries = loaded.summaries
+        diagnostics = loaded.diagnostics
+        micro = loaded.micro
+
+        # Sanity checks (Manna tolerances)
+        warnings = sanity_check_ensemble(diagnostics, summaries, L;
+                                        expected_mean_z = expected_mean_z,
+                                        mean_z_tol = mean_z_tol)
+        if isempty(warnings)
+            banner("  sanity OK")
+        else
+            for w in warnings
+                banner("  WARN $w")
+            end
+            append!(all_warnings, warnings)
+        end
+
+        # Pooled size fits (auto, manual 5, manual 10, scaling-regime)
+        t0 = time()
+        sizes_pool = Float64.(filter(>(0), summaries.size))
+        push!(all_pooled_size, pooled_size_fits(sizes_pool, L))
+        banner("  pooled_size_fits         $(round(time()-t0, digits=1))s")
+
+        # Per-seed size fits — at BOTH xmin values in bracket (vcat'd)
+        t0 = time()
+        for xm in xmins_bracket
+            push!(all_per_seed_size,
+                  per_seed_size_fits(summaries, L; xmin = Float64(xm)))
+        end
+        banner("  per_seed_size_fits×$(length(xmins_bracket))     $(round(time()-t0, digits=1))s")
+
+        # Multiscaling grid (captures xmin=5, 10, 30, 100, 300 per seed)
+        t0 = time()
+        push!(all_multiscaling,
+              multiscaling_grid(summaries, L; xmin_grid = xmin_grid))
+        banner("  multiscaling_grid        $(round(time()-t0, digits=1))s")
+
+        # Area fits (pooled auto + per-seed auto)
+        t0 = time()
+        push!(all_area, area_fits(summaries, L))
+        banner("  area_fits                $(round(time()-t0, digits=1))s")
+
+        # Duration fits (manual xmin)
+        t0 = time()
+        push!(all_duration, duration_fits(summaries, L; xmin = xmin_fixed))
+        banner("  duration_fits            $(round(time()-t0, digits=1))s")
+
+        # Pooled PSD
+        t0 = time()
+        push!(all_pooled_psd, pooled_psd(micro, L))
+        banner("  pooled_psd               $(round(time()-t0, digits=1))s")
+
+        # Pooled b(x)
+        t0 = time()
+        push!(all_pooled_bx, pooled_bx(micro, L))
+        banner("  pooled_bx                $(round(time()-t0, digits=1))s")
+
+        # Inter-event CCDFs
+        t0 = time()
+        push!(all_iet, inter_event_ccdfs(summaries, L))
+        banner("  inter_event_ccdfs        $(round(time()-t0, digits=1))s")
+
+        # Log-binned PMFs
+        t0 = time()
+        push!(all_pmfs, log_binned_pmfs(summaries, L))
+        banner("  log_binned_pmfs          $(round(time()-t0, digits=1))s")
+
+        # Fractal dimensions (top50 and top1 variants)
+        t0 = time()
+        push!(all_fractal, fractal_dimensions(summaries, L))
+        banner("  fractal_dimensions       $(round(time()-t0, digits=1))s")
+
+        # Spatial correlation — expensive, only for L <= 256
+        if L <= 256 && !isnothing(loaded.heights)
+            t0 = time()
+            push!(all_corr, spatial_correlation(loaded.heights, L))
+            banner("  spatial_correlation      $(round(time()-t0, digits=1))s")
+        else
+            banner("  spatial_correlation      skipped (L>256 or no heights)")
+        end
+
+        # Summary stats
+        fh = isnothing(loaded.heights) ? nothing : reconstruct_height_field(loaded.heights)
+        push!(all_summary, summary_stats(summaries, diagnostics, L; final_height = fh))
+
+        push!(stage_times, (L = L, total_s = time() - t_L))
+        banner("  L=$L total: $(round(time() - t_L, digits=1))s")
+    end
+
+    # Consolidate per-L DataFrames
+    pooled_size_df   = isempty(all_pooled_size) ? DataFrame() : reduce(vcat, all_pooled_size)
+    per_seed_size_df = isempty(all_per_seed_size) ? DataFrame() : reduce(vcat, all_per_seed_size)
+    multiscaling_df  = isempty(all_multiscaling) ? DataFrame() : reduce(vcat, all_multiscaling)
+    area_df          = isempty(all_area) ? DataFrame() : reduce(vcat, all_area)
+    duration_df      = isempty(all_duration) ? DataFrame() : reduce(vcat, all_duration)
+    psd_df           = isempty(all_pooled_psd) ? DataFrame() : reduce(vcat, all_pooled_psd)
+    bx_df            = isempty(all_pooled_bx) ? DataFrame() : reduce(vcat, all_pooled_bx)
+    iet_df           = isempty(all_iet) ? DataFrame() : reduce(vcat, all_iet)
+    corr_df          = isempty(all_corr) ? DataFrame() : reduce(vcat, all_corr)
+    pmfs_df          = isempty(all_pmfs) ? DataFrame() : reduce(vcat, all_pmfs)
+    fractal_df       = isempty(all_fractal) ? DataFrame() : reduce(vcat, all_fractal)
+    summary_df       = DataFrame(all_summary)
+
+    # Standard FSS extrapolations (size@xmin5, area, duration, mean_z)
+    t0 = time()
+    # Use xmin=5 rows for the standard FSS size row
+    per_seed_size_5 = filter(r -> r.xmin == Float64(xmin_fixed), per_seed_size_df)
+    fss_df = all_fss_extrapolations(per_seed_size_5, area_df, duration_df, summary_df)
+    banner("all_fss_extrapolations     $(round(time()-t0, digits=1))s")
+
+    # Bracketed FSS for size (xmin=5 and xmin=10 from multiscaling_grid)
+    t0 = time()
+    fss_bracket_df = fss_extrapolation_bracketed(multiscaling_df;
+                                                 xmins = xmins_bracket)
+    banner("fss_extrapolation_bracketed  $(round(time()-t0, digits=1))s")
+
+    # Fractal-dimension extrapolations (top50 and top1)
+    t0 = time()
+    fractal_ext_df = fractal_extrapolation(fractal_df)
+    banner("fractal_extrapolation        $(round(time()-t0, digits=1))s")
+
+    # Write outputs
+    _write_if_nonempty(pooled_size_df,     _apath(out_dir, "pooled_size_fits.arrow"))
+    _write_if_nonempty(per_seed_size_df,   _apath(out_dir, "per_seed_size_fits.arrow"))
+    _write_if_nonempty(multiscaling_df,    _apath(out_dir, "multiscaling_grid.arrow"))
+    _write_if_nonempty(area_df,            _apath(out_dir, "area_fits.arrow"))
+    _write_if_nonempty(duration_df,        _apath(out_dir, "duration_fits.arrow"))
+    _write_if_nonempty(psd_df,             _apath(out_dir, "pooled_psd.arrow"))
+    _write_if_nonempty(bx_df,              _apath(out_dir, "pooled_bx.arrow"))
+    _write_if_nonempty(iet_df,             _apath(out_dir, "inter_event_ccdfs.arrow"))
+    _write_if_nonempty(corr_df,            _apath(out_dir, "correlation.arrow"))
+    _write_if_nonempty(pmfs_df,            _apath(out_dir, "log_binned_pmfs.arrow"))
+    _write_if_nonempty(summary_df,         _apath(out_dir, "summary_stats.arrow"))
+    _write_if_nonempty(fss_df,             _apath(out_dir, "fss_extrapolation.arrow"))
+    _write_if_nonempty(fss_bracket_df,     _apath(out_dir, "fss_extrapolation_bracketed.arrow"))
+    _write_if_nonempty(fractal_df,         _apath(out_dir, "fractal_dimensions.arrow"))
+    _write_if_nonempty(fractal_ext_df,     _apath(out_dir, "fractal_extrapolation.arrow"))
+
+    # Manifest
+    manifest = DataFrame(
+        timestamp = [Dates.format(now(), "yyyy-mm-dd HH:MM:SS")],
+        data_dir = [String(data_dir)],
+        L_values = [string(Ls)],
+        xmin_fixed = [Float64(xmin_fixed)],
+        xmin_grid = [string(xmin_grid)],
+        xmins_bracket = [string(xmins_bracket)],
+        expected_mean_z = [Float64(expected_mean_z)],
+        n_warnings = [length(all_warnings)],
+        total_wallclock_s = [time() - t_start],
+        model = ["manna"],
+    )
+    Arrow.write(_apath(out_dir, "analysis_manifest.arrow"), manifest)
+
+    banner("=== run_manna_analysis finished in $(round(time() - t_start, digits=1))s  warnings=$(length(all_warnings)) ===")
+    close(logio)
+    return nothing
+end
+
+
 """Auto-discover L values by scanning summary filenames under data_dir/summaries/."""
 function _discover_L_values(data_dir::AbstractString)
     sum_dir = joinpath(data_dir, "summaries")
@@ -929,18 +1362,21 @@ function load_analysis(analysis_dir::AbstractString)
         return isfile(p) ? DataFrame(Arrow.Table(p)) : DataFrame()
     end
     return (
-        pooled_size   = _load_or_empty("pooled_size_fits.arrow"),
-        per_seed_size = _load_or_empty("per_seed_size_fits.arrow"),
-        multiscaling  = _load_or_empty("multiscaling_grid.arrow"),
-        area          = _load_or_empty("area_fits.arrow"),
-        duration      = _load_or_empty("duration_fits.arrow"),
-        psd           = _load_or_empty("pooled_psd.arrow"),
-        bx            = _load_or_empty("pooled_bx.arrow"),
-        inter_event   = _load_or_empty("inter_event_ccdfs.arrow"),
-        correlation   = _load_or_empty("correlation.arrow"),
-        pmfs          = _load_or_empty("log_binned_pmfs.arrow"),
-        summary       = _load_or_empty("summary_stats.arrow"),
-        fss           = _load_or_empty("fss_extrapolation.arrow"),
-        manifest      = _load_or_empty("analysis_manifest.arrow"),
+        pooled_size          = _load_or_empty("pooled_size_fits.arrow"),
+        per_seed_size        = _load_or_empty("per_seed_size_fits.arrow"),
+        multiscaling         = _load_or_empty("multiscaling_grid.arrow"),
+        area                 = _load_or_empty("area_fits.arrow"),
+        duration             = _load_or_empty("duration_fits.arrow"),
+        psd                  = _load_or_empty("pooled_psd.arrow"),
+        bx                   = _load_or_empty("pooled_bx.arrow"),
+        inter_event          = _load_or_empty("inter_event_ccdfs.arrow"),
+        correlation          = _load_or_empty("correlation.arrow"),
+        pmfs                 = _load_or_empty("log_binned_pmfs.arrow"),
+        summary              = _load_or_empty("summary_stats.arrow"),
+        fss                  = _load_or_empty("fss_extrapolation.arrow"),
+        fss_bracketed        = _load_or_empty("fss_extrapolation_bracketed.arrow"),
+        fractal              = _load_or_empty("fractal_dimensions.arrow"),
+        fractal_extrapolation = _load_or_empty("fractal_extrapolation.arrow"),
+        manifest             = _load_or_empty("analysis_manifest.arrow"),
     )
 end

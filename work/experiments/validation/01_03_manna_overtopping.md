@@ -114,8 +114,8 @@ Refined grids are not committed upfront — they come from inspecting the initia
 
 All signatures from the BTW pipeline apply:
 
-- Avalanche size distribution (manual xmin=5 or auto if 01.02 confirms auto works on Manna)
-- Avalanche area distribution (auto-xmin should work cleanly — simple scaling)
+- Avalanche size distribution — fit at BOTH xmin=5 and xmin=10 per bracketed-reporting rule (see `feedback_xmin_bracketed_reporting` memory and 01.02 ensemble results). The **width of the xmin=5 ↔ xmin=10 bracket** at fixed L is itself a CSOC-like detection signal (see `../ideas/distorted_soc_signatures.md` II.1). Natural Manna gives bracket ≈ 0.013 at L=1024; suppression is expected to widen this substantially.
+- Avalanche area distribution (auto-xmin works cleanly — simple scaling)
 - Avalanche duration distribution
 - Microscopic-time PSD and β_high
 - Hurst exponent from microscopic activity series

@@ -41,6 +41,14 @@ A multi-phase research project applying Self-Organized Criticality (SOC) theory 
 - `document/internal/new-chat-summary.md` — Project onboarding summary
 - `work/phase0/document/qog_augmentation_guide.md` — Full preprocessing pipeline
 
+### Validation experiments framework (parallel track)
+- `work/experiments/validation/WORKFLOW.md` — Three-phase workflow: explore (notebook) → ensemble (headless) → analyze (headless + notebook fast-path)
+- `work/experiments/ideas/overtopping.md` — Primary mechanism for suppressed-release SOC (σ field, damage, recovery)
+- `work/experiments/ideas/liquefaction.md` — Mirror mechanism for amplified-cascade SOC
+- `work/experiments/ideas/distorted_soc_signatures.md` — Detection catalog (CSOC-like / ISOC-like signature bundles, adjective-form)
+- `work/experiments/ideas/energy_accounting.md` — Two-reservoir PE/KE/DE framework, percolation extension
+- `work/experiments/ideas/real_data_considerations.md` — Under-reporting and other real-data artifacts that mimic distorted signatures
+
 ## Directory Structure
 - `work/constants.jl` — Project-wide constants (TEMPORAL_FLOOR, coverage thresholds)
 - `work/phase0/` — Phase 0 functions and documents (preprocessing)
@@ -48,11 +56,25 @@ A multi-phase research project applying Self-Organized Criticality (SOC) theory 
 - `work/phase1/` — Phase 1 functions (slug classification, clustering)
 - `work/phase01b/` — Phase 1b functions (structural integration: master country reference, coverage matrix)
 - `work/phase2/` — Phase 2 functions and documents (model architecture, slug strategy)
-- `work/data/` — Data files (gitignored)
+- `work/experiments/` — SOC validation experiments (parallel to main phases)
+  - `work/experiments/ideas/` — Theoretical framework (mechanisms, signatures, methodology)
+  - `work/experiments/validation/` — Simulators + diagnostics + headless runners + experiment design docs
+  - `work/exp01_01_btw_sandpile.ipynb`, `work/exp01_02_manna_sandpile.ipynb` — Validation notebooks
+- `work/archive/docs/` — Superseded framework docs (CSOC/ISOC original versions)
+- `work/data/` — Data files (gitignored; includes `exp01_01/`, `exp01_02/` ensemble + analysis Arrow outputs)
 - `work/p00_*.ipynb` — Phase 0 notebooks, `work/p00b_*.ipynb` — Phase 0b, `work/p01_*.ipynb` — Phase 1
+- `work/exp*_*.ipynb` — Validation experiment notebooks
 - `document/publication/` — Reader-facing cross-phase docs (architecture, companion, grounding, order)
 - `document/internal/` — AI-agent and developer continuity docs
 - `work/test/` — Test suite (all phases); run with `docker compose exec -w /home/jovyan/work jupyter julia test/runtests.jl`
+
+## Headless Julia container
+For long-running simulations and headless analysis pre-compute (won't hold data in a Jupyter kernel), use the dedicated headless container:
+```sh
+docker compose -f docker-compose.julia.yml run --rm julia \
+    julia --project=. experiments/validation/run_manna_ensemble.jl
+```
+Pattern: `run_<model>_ensemble.jl` produces per-seed Arrow files; `run_<model>_analysis.jl` produces pooled analysis Arrow files. All resumable. See the Validation framework docs above.
 
 ## Phase Files
 Phase-specific context lives in `.claude/phases/`:
