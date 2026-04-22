@@ -18,7 +18,7 @@ Read alongside:
 - `liquefaction.md` — the ISOC-side counterpart (deferred corollary)
 - `distorted_soc_signatures.md` — empirical detection categories
 - `architecture_mapping.md` — connection to the SOC Model Architecture's C_d framework
-- `../validation/01_03_manna_overtopping.md` — the corresponding experiment design
+- `../validation/01_04_manna_overtopping.md` — the corresponding experiment design
 
 ---
 
@@ -247,7 +247,7 @@ In overtopping:
 - Ruin corresponds to σ → 0 globally. The suppression mechanism is destroyed.
 - The absorbing barrier is the set of parameter values where the damage-recovery balance tips from net recovery to net degradation.
 
-This makes the architecture's absorbing barrier empirically locatable via simulation, not just a theoretical assertion. The experiment design in `../validation/01_03_manna_overtopping.md` specifies how to find it.
+This makes the architecture's absorbing barrier empirically locatable via simulation, not just a theoretical assertion. The experiment design in `../validation/01_04_manna_overtopping.md` specifies how to find it.
 
 ### Connection to detection categories
 
@@ -273,7 +273,7 @@ The extension makes specific quantitative predictions that could be wrong:
 
 7. **Trickle lengthens inter-event intervals monotonically.** At fixed (T, α, recovery_rate), increasing `r` should increase the mean time between overtopping events (more deficit bled off continuously → longer accumulation times before crossing the failure threshold). If intervals do not lengthen with `r`, the trickle-as-deficit-relief model is wrong.
 
-Each of these is testable in the Manna + overtopping simulation (see `../validation/01_03_manna_overtopping.md`).
+Each of these is testable in the Manna + overtopping simulation (see `../validation/01_04_manna_overtopping.md`).
 
 ---
 
@@ -379,7 +379,7 @@ Four parameters (T, α, recovery_rate, r) generate a phase space with two primar
 1. The **absorbing barrier** — the (T, α) boundary at fixed (recovery_rate, r) between recovering and runaway regimes.
 2. The **trickle sufficiency boundary** — the critical `r` above which suppressed-release dynamics disappear at fixed (T, α, recovery_rate).
 
-Both are testable via simulation on the Manna substrate (see `../validation/01_03_manna_overtopping.md`). The formalism subsumes abstract suppression (α = 0, σ = 1 corner) and natural SOC (T = 0 corner) as free baselines.
+Both are testable via simulation on the Manna substrate (see `../validation/01_04_manna_overtopping.md`). The formalism subsumes abstract suppression (α = 0, σ = 1 corner) and natural SOC (T = 0 corner) as free baselines.
 
 Related Work (Part IX) situates overtopping within existing literature on activity-substrate feedback in SOC; the mechanism draws on precedents (Drossel-Schwabl forest-fire regrowth, rate-and-state friction, synaptic plasticity models, self-organized quasi-criticality, adaptive-network SOC) but is distinctive in its three-timescale structure with explicit trickle-release and its tie to the absorbing-barrier concept.
 

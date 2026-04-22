@@ -6,9 +6,9 @@ Apply the signature battery validated on BTW (Exp 01.01) to the Manna (1991) sto
 
 1. **Cross-substrate validation.** Confirm the signature battery works on a fundamentally different dynamical substrate (stochastic toppling, independent random-neighbor dispatch) and reproduces published C-DP exponents.
 2. **Resolve the auto-xmin question.** BTW's auto-xmin Clauset fitting was unreliable due to intrinsic multiscaling (see Exp 01.01). Does it work on a simply-scaling substrate?
-3. **Produce a clean asymptotic reference for downstream overtopping / distorted-SOC work.** Model B and Model C of Exp 01.03 modify the Manna dynamics; they need a pristine baseline.
+3. **Produce a clean asymptotic reference for downstream overtopping / distorted-SOC work.** Model B and Model C of Exp 01.04 modify the Manna dynamics; they need a pristine baseline.
 
-Manna's role in the overall program: it is the **preferred substrate** for distortion-detection experiments (01.03, 05) because simple scaling makes signature deviations attributable to the mechanism under study rather than to substrate artifacts.
+Manna's role in the overall program: it is the **preferred substrate** for distortion-detection experiments (01.04, 01.05, 05) because simple scaling makes signature deviations attributable to the mechanism under study rather than to substrate artifacts.
 
 > **Prerequisite:** [`01_01_btw_sandpile.md`](01_01_btw_sandpile.md) — BTW-specific methodology, negative results on auto-xmin, and multiscaling diagnostic.
 
@@ -357,7 +357,11 @@ Methodology decisions made or refined during 01.02 that carry forward to all dow
 
 ## Next Experiments
 
-**Experiment 01.03: Manna + Overtopping** — see [`01_03_manna_overtopping.md`](01_03_manna_overtopping.md). Adds threshold elevation (Model B, "abstract-CSOC baseline" — corner case of the overtopping simulator) and structural fragility (Model C, full overtopping: σ field + flux-driven damage + slow recovery). Primary deliverable: phase-space map locating the absorbing barrier in (T, α, recovery_rate) space. The bracketed-xmin reporting rule established here applies; the bracket-widening under suppression is itself a detection signal to watch for.
+**Experiment 01.03: Negative Controls** — see [`01_03_negatives.md`](01_03_negatives.md). Rejection tests for Poisson, subcritical (bulk dissipation), and supercritical (excess distribution) regimes on both BTW and Manna. Produces the rejection matrix that quantifies each signature's discriminating power against non-SOC regimes.
+
+**Experiment 01.04: Manna + Overtopping** — see [`01_04_manna_overtopping.md`](01_04_manna_overtopping.md). Adds threshold elevation (Model B, "abstract-CSOC baseline" — corner case of the overtopping simulator) and structural fragility (Model C, full overtopping: σ field + flux-driven damage + slow recovery). Primary deliverable: phase-space map locating the absorbing barrier in (T, α, recovery_rate) space. The bracketed-xmin reporting rule established here applies; the bracket-widening under suppression is itself a detection signal to watch for.
+
+**Experiment 01.05: Manna + Liquefaction** — see [`01_05_manna_liquefaction.md`](01_05_manna_liquefaction.md). ISOC-side corollary to overtopping — cyclic-driving amplification with transmission-medium (π field) dynamics. Skeleton only; full design pending.
 
 **Experiment 02: Synthetic Percolation** — see [`02_percolation.md`](02_percolation.md). Prerequisite for Exp 03 (sandpile-on-percolation). The fractal dimensions measured here on Manna contrast with percolation's D_f = 91/48 ≈ 1.896; the comparison clarifies which signatures are substrate-dependent.
 

@@ -142,7 +142,7 @@ Each stage adds the minimum needed for that experiment's interpretation. Nothing
 ## Related documents
 
 - `overtopping.md` — defines σ, damage rule, recovery rule
-- `../validation/01_03_manna_overtopping.md` — Model B/C/D experiment design
+- `../validation/01_04_manna_overtopping.md` — Model B/C/D experiment design
 - `../validation/03_activation_threshold.md` — percolation-substrate experiment
 - `../validation/04_absorbing_barrier.md` — where structural collapse becomes absorbing
 - `energy_depletion_percolation_research_paths.md` — literature-mapping for the p_c-as-termination proposition

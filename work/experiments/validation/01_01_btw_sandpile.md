@@ -292,6 +292,10 @@ These methodology decisions were made during 01.01 and carry forward to all down
 
 **Experiment 01.02: Plain Manna** — see [`01_02_manna_sandpile.md`](01_02_manna_sandpile.md). Validate the diagnostic pipeline on a stochastic simple-scaling (C-DP universality) SOC system. Tests whether auto-xmin works on clean-scaling systems; establishes the bracketed-xmin reporting rule; produces cleaner references for downstream overtopping / distorted-SOC work.
 
-**Experiment 01.03: Manna + overtopping** — see [`01_03_manna_overtopping.md`](01_03_manna_overtopping.md). Add CSOC-like threshold elevation (Model B) and structural fragility (Model C) to the Manna substrate.
+**Experiment 01.03: Negative Controls** — see [`01_03_negatives.md`](01_03_negatives.md). Validation by counter-example: rejection tests on Poisson synthetic, subcritical, and supercritical variants of BTW and Manna. Builds a rejection matrix quantifying which signatures discriminate which non-SOC regimes.
+
+**Experiment 01.04: Manna + overtopping** — see [`01_04_manna_overtopping.md`](01_04_manna_overtopping.md). Add CSOC-like threshold elevation (Model B) and structural fragility (Model C) to the Manna substrate.
+
+**Experiment 01.05: Manna + liquefaction** — see [`01_05_manna_liquefaction.md`](01_05_manna_liquefaction.md). ISOC-side corollary to overtopping — cyclic-driving amplification with transmission-medium (π field) dynamics. Skeleton only; full design pending.
 
 **Experiment 02: Synthetic Percolation** — see [`02_percolation.md`](02_percolation.md). Validate p_c measurement tools on random lattices, prerequisite for Exp 03 (sandpile-on-percolation).

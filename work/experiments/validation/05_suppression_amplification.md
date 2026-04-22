@@ -4,7 +4,7 @@
 > - [`../ideas/distorted_soc_signatures.md`](../ideas/distorted_soc_signatures.md) — the signature catalog (CSOC-like / ISOC-like detection categories). This experiment is the empirical test of whether those categories are measurable and discriminable.
 > - [`../ideas/overtopping.md`](../ideas/overtopping.md) — primary mechanistic formalism for suppressed-release dynamics.
 > - [`../ideas/liquefaction.md`](../ideas/liquefaction.md) — symmetric mechanism for amplified-cascade dynamics.
-> - [`01_03_manna_overtopping.md`](01_03_manna_overtopping.md) — Manna-substrate implementation. Model B of 01_03 is a Manna-specific instance of Model B here (suppression); Model C adds structural fragility (the full overtopping extension).
+> - [`01_04_manna_overtopping.md`](01_04_manna_overtopping.md) — Manna-substrate implementation. Model B of 01_04 is a Manna-specific instance of Model B here (suppression); Model C adds structural fragility (the full overtopping extension).
 
 ## Purpose
 
@@ -14,7 +14,7 @@ Apply **suppression** and **amplification** mechanisms to the validated sandpile
 2. Amplification mechanisms produce **ISOC-like signatures** (inflated large events, continuous activity, steepened spectrum, etc.) per `distorted_soc_signatures.md` Part III.
 3. CSOC-like and ISOC-like signature bundles are distinguishable from each other, from natural SOC, and from genuine sub/super-criticality.
 
-This experiment determines whether the signatures catalog is empirically testable on a controlled BTW substrate before being applied to governance data. It is paired with `01_03_manna_overtopping.md`, which runs the same logic on the Manna substrate with a richer set of mechanisms (including structural damage).
+This experiment determines whether the signatures catalog is empirically testable on a controlled BTW substrate before being applied to governance data. It is paired with `01_04_manna_overtopping.md`, which runs the same logic on the Manna substrate with a richer set of mechanisms (including structural damage).
 
 ---
 
@@ -325,7 +325,7 @@ The experiment fails if the distorted signatures cannot be distinguished from th
 
 ## Relationship to 01_03 (Manna substrate)
 
-This experiment and [`01_03_manna_overtopping.md`](01_03_manna_overtopping.md) are complementary:
+This experiment and [`01_04_manna_overtopping.md`](01_04_manna_overtopping.md) are complementary:
 
 - **05 (this doc, BTW):** broad test of the signature bundles across both suppression and amplification, including genuine sub/super controls. BTW substrate known to multiscale — complicates power-law fits but provides the strongest sub/super controls (BTW is the canonical SOC system).
 - **01_03 (Manna):** focused on suppression mechanisms specifically (Models B and C), with structural damage (σ field) in Model C. C-DP universality — cleaner scaling, auto-xmin viable. Does not test amplification.

@@ -69,7 +69,7 @@ Large bracket width is a *flag for further investigation*, not a detection claim
 
 Before trusting the signature battery on real data, validate it on **artificially-under-reported synthetic Manna data**:
 
-**Model F (proposed addition to Experiment 05 or Experiment 01.04):** apply a censoring function `P_record(s) = 1 - exp(-s/s_censor)` to the natural-Manna catalog (retains large events with probability ≈ 1, drops small events with probability approaching 1 as s → 0). Sweep `s_censor ∈ {1, 5, 10, 30, 100}`. Run the full signature battery on the censored catalog.
+**Model F (proposed addition to Experiment 01.03 or Experiment 05):** apply a censoring function `P_record(s) = 1 - exp(-s/s_censor)` to the natural-Manna catalog (retains large events with probability ≈ 1, drops small events with probability approaching 1 as s → 0). Sweep `s_censor ∈ {1, 5, 10, 30, 100}`. Run the full signature battery on the censored catalog.
 
 **Expected outcome:** the single-observable signatures (α, spectral β, kurtosis) will mimic CSOC as `s_censor` grows, but the multi-signature bundle (σ(t) stationarity, shape collapse, post-event quiescence, quasi-periodicity) will *fail* to match CSOC predictions — because no physical redistribution is happening, only censoring.
 
