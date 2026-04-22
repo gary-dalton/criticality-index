@@ -1,3 +1,13 @@
+> **ARCHIVED — SUPERSEDED.** This document is retained for historical reference. Operational content has moved to:
+> - `work/experiments/ideas/overtopping.md` — primary mechanism framework for suppressed-release SOC dynamics (subsumes Parts II, VI–VIII of this document).
+> - `work/experiments/ideas/distorted_soc_signatures.md` — empirical detection categories including the "CSOC-like signature bundle" (subsumes Parts III, IV, V of this document).
+> - `work/experiments/ideas/falsifiability_requirements.md` — generalized falsifiability methodology (subsumes Part V research-design content).
+> - `work/experiments/ideas/architecture_mapping.md` — mapping to the SOC Model Architecture.
+>
+> The standalone CSOC framework has been superseded by mechanism-specific formalisms. "CSOC-like" survives as an adjective-form detection category name in the signatures catalog, with rigorous referents.
+
+---
+
 # Capacitive SOC: A Theoretical Framework
 
 ## Preamble

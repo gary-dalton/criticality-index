@@ -1,12 +1,12 @@
-# Experiment 01.03: Manna + CSOC Threshold Elevation + Overtopping
+# Experiment 01.03: Manna + Overtopping
 
 ## Purpose
 
-Implement and test the overtopping extension to CSOC on the Manna (stochastic, C-DP universality) model. Three concrete goals:
+Implement and test the overtopping mechanism on the Manna (stochastic, C-DP universality) model. Three concrete goals:
 
-1. **Detect CSOC signatures** in a system where they are guaranteed by construction (threshold elevation) and cleaner than on BTW (multiscaling-free Manna substrate).
-2. **Locate the absorbing barrier in parameter space** by mapping the (T, α, recovery_rate) phase space and finding the boundary between "recovering CSOC" and "runaway structural failure."
-3. **Falsify or confirm** the quantitative predictions of the overtopping extension (see `../ideas/overtopping.md` Part VII).
+1. **Detect CSOC-like signatures** (see `../ideas/distorted_soc_signatures.md`) in a system where they are guaranteed by construction (threshold elevation) and cleaner than on BTW (multiscaling-free Manna substrate).
+2. **Locate the absorbing barrier in parameter space** by mapping the (T, α, recovery_rate) phase space and finding the boundary between "recovering suppressed-release" and "runaway structural failure."
+3. **Falsify or confirm** the quantitative predictions of the overtopping mechanism (see `../ideas/overtopping.md` Part VII).
 
 ## Dependencies
 
@@ -22,7 +22,7 @@ Build and test in order. Each stage validates the previous before adding complex
 
 Standard Manna: stochastic toppling at `z_i ≥ z_c` with z_c = 2. Reference for what "natural SOC" looks like on this substrate. Already covered; not reimplemented here.
 
-### Model B: Manna + Threshold Elevation (CSOC baseline)
+### Model B: Manna + Threshold Elevation (abstract-CSOC baseline)
 
 Adds a single parameter T (uniform across sites). Modified toppling condition:
 
@@ -30,9 +30,9 @@ Adds a single parameter T (uniform across sites). Modified toppling condition:
 topple site i when z_i ≥ z_c + T
 ```
 
-Everything else identical to plain Manna. The σ field is absent (equivalent to σ_i ≡ 1 permanently). This produces pure CSOC: small avalanches suppressed, deficit accumulates, large events occur when accumulated deficit overcomes the elevated threshold.
+Everything else identical to plain Manna. The σ field is absent (equivalent to σ_i ≡ 1 permanently; in overtopping simulator terms, this is the α = 0, σ₀ = 1 corner with no trickle). This produces pure threshold-elevation dynamics: small avalanches suppressed, deficit accumulates, large events occur when accumulated deficit overcomes the elevated threshold.
 
-Purpose: verify that threshold elevation alone produces the distinctive CSOC signatures on Manna (truncation at low end, excess at high end, quasi-periodic large events, spectral knee). Establishes the baseline against which the full extension (Model C) is compared.
+Purpose: test whether threshold elevation alone produces the distinctive CSOC-like signatures on Manna (truncation at low end, excess at high end, quasi-periodic large events, spectral knee) — **or reduces to natural SOC at a rescaled operating point**. The framework prediction is the latter: uncoupled suppression is approximately a renormalization of natural SOC, which is why the full overtopping model (Model C) adds structural coupling. If Model B produces distinct CSOC-like signatures, that prediction fails. If Model B reproduces natural SOC statistics at rescaled parameters, that prediction holds and the full overtopping model is the minimum interesting case.
 
 ### Model C: Manna + Threshold Elevation + Structural Integrity (full extension)
 
@@ -63,9 +63,25 @@ Full model specification in `../ideas/overtopping.md` Part III.
 
 Purpose: test whether the σ-damage mechanism produces:
 - Sudden runaway failure above a critical combination of (T, α, recovery_rate)
-- Quantitative phase-space structure matching the extension's predictions
-- Σ recovery trajectory matching `recovery_rate` timescale
+- Quantitative phase-space structure matching the mechanism's predictions
+- σ recovery trajectory matching `recovery_rate` timescale
 - Post-failure dynamics qualitatively different from pre-failure
+
+### Model D: Manna + Overtopping + Spillway (future extension)
+
+Adds the trickle-release parameter `r` and threshold `z_leak` from `overtopping.md` Part III. Between grain drops, sites with `z_i > z_leak` discharge grains at rate proportional to `r · (z_i − z_leak)`.
+
+Not part of the initial experimental program — introduced once Model C's (T, α, recovery_rate) phase diagram is mapped. Purpose: test whether a sharp trickle-sufficiency boundary exists (`r*` at which CSOC-like signatures disappear) and how it varies with (T, α).
+
+## Initial Baseline Runs (free corner cases)
+
+Before the main (T, α, recovery_rate) parameter sweep, run the overtopping simulator at two corner cases to establish baselines:
+
+1. **T = 0 (natural SOC baseline).** The overtopping simulator at T=0 must reproduce natural Manna statistics — the same signatures as Exp 01.02. This is a simulator-correctness sanity check: if Manna statistics are not recovered at T=0, the overtopping simulator has an implementation bug that must be fixed before any meaningful suppressed-release measurement.
+
+2. **α = 0, σ₀ = 1 (abstract-CSOC test).** Run the simulator with σ pinned at 1 (no damage dynamics) and various T > 0. This tests whether uncoupled suppression produces distinct CSOC-like signatures or merely reproduces natural SOC at a shifted operating point. Framework prediction: the latter — signatures should be indistinguishable from T=0 after rescaling. If distinct signatures appear, the argument that "structural coupling is required to produce CSOC-like dynamics" is wrong and a simpler suppression-only framework becomes viable.
+
+These two corners are parameter-space corners of the overtopping simulator, not separate models to build. They produce the data needed to validate the simulator and test the theoretical assumption that Model B is not sufficient to produce the phenomenon of interest.
 
 ## Parameter Sweeps
 
@@ -75,7 +91,7 @@ Fix system size L = 128 for initial exploration (keeps runtime manageable). Swee
 
 | Parameter | Values | Rationale |
 |-----------|--------|-----------|
-| T (suppression) | 0, 1, 3, 10 | T=0 is plain Manna; T=10 is strongly CSOC |
+| T (suppression) | 0, 1, 3, 10 | T=0 is plain Manna; T=10 is strongly suppressed |
 | α (damage rate) | 0, 0.01, 0.1, 0.5 | α=0 is Model B (no damage); α=0.5 is very fragile |
 | recovery_rate | 0, 1e-4, 1e-2 | Very slow, slow, fast recovery |
 | E_crit | 5 (fixed initially) | Site must topple 5+ times in one avalanche to damage. Can be swept after initial results. |
@@ -131,7 +147,7 @@ These are stored as long-form Arrow tables under `micro_stats/` or a new `sigma_
 For each (T, α, recovery_rate) combination, assign a regime label based on the ensemble behavior:
 
 - **Near-natural** — avalanche distribution close to Manna's natural scaling; σ remains near 1
-- **CSOC-recovering** — CSOC signatures present (truncation, quasi-periodicity, large events); σ damages then recovers; no runaway
+- **Suppressed-release recovering** — CSOC-like signatures present (truncation, quasi-periodicity, large events); σ damages then recovers; no runaway
 - **Marginal** — behavior fluctuates between recovering and runaway across seeds
 - **Runaway** — σ drops monotonically toward 0 and avalanche dynamics break down
 
@@ -139,7 +155,7 @@ A per-combination regime classification produces a phase-space map.
 
 ## Phase-Space Map as Primary Result
 
-The headline deliverable of this experiment is a 2D heatmap in (T, α) space (at fixed recovery_rate), with cells colored by regime. The boundary between CSOC-recovering and Runaway is the absorbing barrier at that recovery_rate value. Repeating at multiple recovery_rate values produces a 3D phase diagram.
+The headline deliverable of this experiment is a 2D heatmap in (T, α) space (at fixed recovery_rate), with cells colored by regime. The boundary between suppressed-release recovering and Runaway is the absorbing barrier at that recovery_rate value. Repeating at multiple recovery_rate values produces a 3D phase diagram.
 
 This is the first quantitative location of the absorbing barrier for any SOC system. Previously it was only asserted to exist (architecture §5.5).
 
@@ -183,9 +199,9 @@ From `diagnostics.jl`: `fit_power_law`, `microscopic_activity_series`, `power_sp
 
 ## Implementation Plan (Sequencing)
 
-1. **Stage 1: Plain Manna (Exp 01.02).** Build `manna_sandpile.jl` and `run_manna_ensemble.jl`. Validate signatures against published C-DP values (τ_s ~ 1.27, τ_t ~ 1.50). Determine whether auto-xmin works on Manna. Complete before any CSOC work.
+1. **Stage 1: Plain Manna (Exp 01.02).** Build `manna_sandpile.jl` and `run_manna_ensemble.jl`. Validate signatures against published C-DP values (τ_s ~ 1.27, τ_t ~ 1.50). Determine whether auto-xmin works on Manna. Complete before any suppressed-release work.
 
-2. **Stage 2: CSOC baseline (Model B).** Add threshold elevation to the Manna simulator. Sweep T at fixed L = 128 with ~20 seeds per T. Verify CSOC signatures emerge as expected (truncation at low end, excess at high end, spectral knee, quasi-periodic large events). This stage has no σ field; it's the simplest extension.
+2. **Stage 2: Abstract-CSOC baseline (Model B).** Add threshold elevation to the Manna simulator. Sweep T at fixed L = 128 with ~20 seeds per T. Test whether CSOC-like signatures emerge (truncation at low end, excess at high end, spectral knee, quasi-periodic large events) **or whether Manna statistics are reproduced at rescaled parameters** (framework prediction). This stage has no σ field; it's the simplest case of the overtopping simulator.
 
 3. **Stage 3: Full overtopping (Model C).** Add σ field, damage rule, recovery rule. Implement the runaway-detection halt condition. Run the initial (T, α, recovery_rate) grid. Produce the phase-space map.
 
@@ -197,17 +213,18 @@ Each stage commits before the next starts. If a stage produces anomalous results
 
 ## Success Criteria
 
-### For Model B (CSOC baseline)
+### For Model B (abstract-CSOC baseline)
 
-- Avalanche size distribution at high T shows truncation below T and excess above (CSOC signature Part IV.1 of framework).
-- Inter-event intervals for large events show characteristic quasi-periodicity absent in Model A (plain Manna).
-- Spectral knee appears at a frequency corresponding to the quasi-periodic cycle.
+Framework prediction: Model B should **not** produce distinct CSOC-like signatures; it should reproduce natural Manna statistics at rescaled parameters. Two possible outcomes:
 
-If these are present, CSOC is correctly implemented on Manna.
+- **Framework confirmed (expected):** Avalanche size distribution, quasi-periodicity measures, and spectral characteristics are indistinguishable from plain Manna after rescaling. This establishes that structural coupling (Model C's σ dynamics) is required to produce CSOC-like signatures.
+- **Framework refuted:** Model B produces CSOC-like signatures on its own (truncation below T, excess above, quasi-periodic large events, spectral knee per `distorted_soc_signatures.md` Part II). This would mean uncoupled threshold elevation is sufficient, and the overtopping extension is not the minimum interesting case.
+
+Either outcome is informative. The prediction must be stated before the results are examined.
 
 ### For Model C (full extension)
 
-**Primary success criterion** — the (T, α) phase-space map shows a clear boundary between CSOC-recovering and Runaway regimes. "Clear" means:
+**Primary success criterion** — the (T, α) phase-space map shows a clear boundary between suppressed-release-recovering and Runaway regimes. "Clear" means:
 
 - For each grid cell, at least 80% of seeds fall into the same regime classification.
 - The boundary is narrow (width of one grid cell or less at resolution of initial grid).
@@ -257,10 +274,13 @@ No code change today; this note exists so the concept has a home when we reach t
 
 ## Related Documents
 
-- `../ideas/overtopping.md` — theoretical framework for this experiment
-- `../ideas/capacitive_SOC_framework.md` Part VIII and new Suppression-Structure-Fragility section — where this extension sits in the CSOC hierarchy
+- `../ideas/overtopping.md` — primary mechanism framework for this experiment
+- `../ideas/distorted_soc_signatures.md` — detection-category specifications for CSOC-like signatures this experiment should produce
+- `../ideas/energy_accounting.md` — two-reservoir energy accounting (grain + structural) that formalizes the σ-damage coupling; specifies KE as the coupling channel and what instrumentation needs to be added for Model C
+- `../ideas/falsifiability_requirements.md` — methodological requirements for the mechanism-falsification claims
+- `../ideas/architecture_mapping.md` — connection to the SOC Model Architecture's C_d framework
 - `04_absorbing_barrier.md` — abstract framing of what this experiment concretely measures
-- `05_csoc_isoc.md` — Model B of that doc is the multi-model analog of this experiment's Model B
+- `05_suppression_amplification.md` — BTW-substrate analogue; Models B and C of 05 are the BTW versions of Models B and C here
 - `01_sandpile.md` — BTW experiment whose methodology this extends
 
 ## Next Experiment

@@ -1,12 +1,14 @@
-# From Structured Speculation to Falsifiable Theory: CSOC and ISOC in Human Systems
+# Falsifiability Requirements for Modified-SOC Mechanism Frameworks
 
 ## Preamble
 
-The Capacitive SOC and Inductive SOC frameworks, as currently developed, are internally consistent structured speculations. They are not yet falsifiable scientific theories. This document defines what is required to close that gap — the specific conditions, predictions, and research designs that would allow the framework to be confirmed or refuted.
+The modified-SOC mechanism frameworks — **overtopping** (suppressed-release SOC with structural fragility) and **liquefaction** (amplified-cascade SOC with cyclic external driving) — must meet falsifiability standards before any empirical claim based on them can be considered scientific rather than speculative. This document defines those standards: the specific conditions, predictions, and research designs that allow a mechanism claim to be confirmed or refuted.
 
 The standard is explicit and non-negotiable:
 
-> **A theory that cannot be falsified is not a scientific theory. The framework must make specific predictions that could be wrong.**
+> **A theory that cannot be falsified is not a scientific theory. A mechanism framework must make specific predictions that could be wrong.**
+
+This document is mechanism-agnostic: its methodology applies equally to overtopping, liquefaction, and future modified-SOC mechanism proposals. For the specific predictions each mechanism makes, see `overtopping.md` Part VII and `liquefaction.md` Part VI. For the observable signatures these mechanisms should produce (separate from mechanism identification), see `distorted_soc_signatures.md`.
 
 ---
 
@@ -25,32 +27,38 @@ These predictions must follow **necessarily** from the framework — not be retr
 
 ### 1.2 Predictions That Could Be Wrong
 
-The framework currently has a serious absorptive capacity — almost any observation can be accommodated:
+A modified-SOC framework has serious absorptive capacity if any observation can be retrofitted to it:
 
-- Quiet system → CSOC accumulation phase
-- Large events → CSOC release
-- Continuous high activity → ISOC
-- Looks subcritical → CSOC in disguise
-- Looks supercritical → ISOC in disguise
+- Quiet system → suppressed-release accumulation phase
+- Large events → suppressed-release event
+- Continuous high activity → amplified-cascade dynamics
+- Looks subcritical → suppressed-release in disguise
+- Looks supercritical → amplified-cascade in disguise
 
-This is a fatal weakness. The following must be stated explicitly and in advance — observations that would **falsify** the framework:
+This is a fatal weakness. The falsifying observations must be stated explicitly and in advance.
 
-**Falsifying observations for CSOC:**
+**Falsifying observations for overtopping (suppressed-release with structural damage):**
 - Systems with documented strong suppression mechanisms show no excess of large events relative to weakly suppressed systems
-- The distributional distortion does not scale with suppression intensity
+- Distributional distortion does not scale with suppression intensity
 - Large event timing is no more regular than natural SOC or simple subcritical systems would predict
 - Removing a documented suppression mechanism does not shift the event distribution toward natural SOC
 - The post-large-event quiescence duration does not correlate with pre-event suppression duration
+- **Overtopping-specific:** no phase transition in (T, α) at fixed recovery_rate; σ degradation does not scale with event size; runaway onset is gradual rather than sudden; recovery_rate does not rescue high-damage regimes. See `overtopping.md` Part VII for the full list.
+- **Trickle-specific:** the trickle sufficiency boundary is gradual rather than sharp; adding controlled release does not lengthen inter-event intervals.
 
-**Falsifying observations for ISOC:**
+**Falsifying observations for liquefaction (amplified-cascade with cyclic driving):**
 - Systems with documented amplification mechanisms show no excess of large events relative to non-amplified systems
-- Event size does not scale with excitation intensity
+- Event size does not scale with cyclic-driving amplitude
 - History dependence — post-large-event depletion — is absent
-- Removing the excitation mechanism does not shift signatures toward natural SOC
+- Removing the cyclic driver does not shift signatures toward natural SOC
+- **Liquefaction-specific:** preconditions (saturation, density analogs) do not form a sharp activation boundary; pore-pressure analog does not accumulate with cumulative driving; densification does not shift the precondition boundary. See `liquefaction.md` Part VI for the full list.
 
 **Falsifying the underlying SOC substrate claim:**
 - The system does not exhibit the four SOC preconditions — slow driving, threshold dynamics, redistribution, dissipation
 - The structural argument for SOC cannot be made independently of the distributional signatures
+
+**Falsifying the detection category claim (separate from any mechanism):**
+- See `distorted_soc_signatures.md` Parts IV and VI for the signature-bundle falsification conditions.
 
 ### 1.3 Measurements That Are Actually Obtainable
 
@@ -180,7 +188,7 @@ These predictions must be derivable from the model parameters, not fitted to dat
 **Structure:**
 - Pre-intervention period: estimate event size distribution, temporal structure, network signatures
 - Post-intervention period: estimate same quantities
-- Prediction: specific directional and quantitative changes in each quantity consistent with CSOC or ISOC
+- Prediction: specific directional and quantitative changes in each quantity consistent with the hypothesized mechanism (overtopping, liquefaction, etc.)
 - Falsification: changes are absent, opposite in direction, or inconsistent in magnitude with predictions
 
 ### 4.2 Cross-Sectional Comparison Design
@@ -257,17 +265,17 @@ Build the case across multiple systems with different intervention types and int
 
 ## Summary
 
-The CSOC and ISOC framework is currently a structured speculation. To become a falsifiable scientific theory it requires:
+A modified-SOC mechanism framework becomes a falsifiable scientific theory when it has:
 
-- A formal mathematical model generating specific quantitative predictions
-- Identification of the minimum viable human system for initial testing
+- A formal mathematical model generating specific quantitative predictions (overtopping and liquefaction both meet this minimum; see their respective Part VI/VII)
+- Identification of the minimum viable test system for initial investigation (simulation: Manna substrate; empirical: TBD per domain)
 - Pre-registered falsifying conditions stated before data examination
-- Natural experiment, cross-sectional, or intervention removal research designs
+- Natural experiment, cross-sectional, intervention-removal, or intensity-gradient research designs
 - Honest reporting of falsifying as well as confirming observations
 - Extension to complex human systems only after the clean case is established
 
-The work is substantial. The standard is demanding. That is appropriate — the claim being made is significant and deserves rigorous treatment.
+The work is substantial. The standard is demanding. That is appropriate — the claims being made are significant and deserve rigorous treatment.
 
 ---
 
-*This document should be read alongside the Capacitive SOC framework, the Inductive SOC framework, and the Energy Depletion — Percolation Threshold research pathways document.*
+*This document should be read alongside `overtopping.md`, `liquefaction.md`, `distorted_soc_signatures.md`, `soc_study_guide.md`, and `energy_depletion_percolation_research_paths.md`.*

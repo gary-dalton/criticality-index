@@ -53,6 +53,8 @@ Reduce the rate at which energy leaves the system. In the standard BTW, energy e
 
 Introduce a mechanism where extreme overloading damages the lattice itself. This is the computational analogue of the absorbing barrier — the system loses structural capacity.
 
+> **Connection to overtopping.** This "lattice degradation" mechanism is an all-or-nothing (site-binary) cousin of the continuous-valued σ integrity field formalized in [`../ideas/overtopping.md`](../ideas/overtopping.md). Where this approach removes sites permanently when a topple-count threshold is exceeded, overtopping reduces σ_i multiplicatively on each flux-driven damage event and allows slow recovery. The two share the positive-feedback mechanism (damage makes further damage more likely) and the absorbing-barrier prediction (a parameter-space boundary exists beyond which recovery is impossible). Model C of [`01_03_manna_overtopping.md`](01_03_manna_overtopping.md) is the concrete Manna-based implementation of the overtopping version; Approach 3 here is the BTW-based binary-damage version. See [`../ideas/energy_accounting.md`](../ideas/energy_accounting.md) for the two-reservoir framework that formalizes both.
+
 **Degradation rule:** When a site topples more than k_damage times in a single avalanche (or accumulates more than z_damage total height), it becomes permanently inactive. This removes a node from the lattice, reducing connectivity.
 
 | Parameter | Default | Interpretation |
@@ -240,4 +242,4 @@ The experiment is inconclusive if no clear barrier exists (gradual degradation w
 
 ## Next Experiment
 
-**Experiment 05: CSOC and ISOC Signatures** — apply suppression (capacitive) and amplification (inductive) to the validated sandpile system. Test whether the distorted signatures predicted by the CSOC and ISOC frameworks are detectable and distinguishable from natural SOC and from each other.
+**Experiment 05: Suppression, Amplification, and Distinguishability** — see [`05_suppression_amplification.md`](05_suppression_amplification.md). Apply suppression (overtopping-like) and amplification (liquefaction-like) to the validated sandpile system. Test whether the distorted signatures cataloged in [`../ideas/distorted_soc_signatures.md`](../ideas/distorted_soc_signatures.md) are detectable and distinguishable from natural SOC and from each other.

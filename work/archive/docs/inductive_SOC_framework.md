@@ -1,3 +1,13 @@
+> **ARCHIVED — SUPERSEDED.** This document is retained for historical reference. Operational content has moved to:
+> - `work/experiments/ideas/liquefaction.md` — primary mechanism framework for amplified-cascade SOC dynamics (subsumes Parts II, VI–VIII of this document). Currently a skeleton; full development deferred as a corollary to the overtopping experimental program.
+> - `work/experiments/ideas/distorted_soc_signatures.md` — empirical detection categories including the "ISOC-like signature bundle" and the three-regime comparison table (subsumes Parts III, IV, V, and Part IX appendix of this document).
+> - `work/experiments/ideas/falsifiability_requirements.md` — generalized falsifiability methodology.
+> - `work/experiments/ideas/architecture_mapping.md` — mapping to the SOC Model Architecture.
+>
+> The standalone ISOC framework has been superseded by mechanism-specific formalisms. "ISOC-like" survives as an adjective-form detection category name in the signatures catalog, with rigorous referents.
+
+---
+
 # Inductive SOC: A Theoretical Framework
 
 ## Preamble

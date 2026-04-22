@@ -4,7 +4,7 @@
 
 Test what happens when two (or more) SOC systems are coupled — where avalanche energy from one system leaks into another. This goes beyond slow driving (one grain at a time) to model the reality that perturbations arriving from a neighbor are not single grains but cascades of varying size. A financial crisis, a war, a refugee flow — these are not point inputs. They are another system's avalanche landing on your lattice.
 
-This experiment tests whether coupled SOC systems exhibit emergent behaviors not present in isolated systems, and whether the coupling itself can push a system into CSOC-like or ISOC-like regimes.
+This experiment tests whether coupled SOC systems exhibit emergent behaviors not present in isolated systems, and whether the coupling itself can push a system into CSOC-like or ISOC-like regimes (detection categories per [`../ideas/distorted_soc_signatures.md`](../ideas/distorted_soc_signatures.md)). The framework prediction is that *coupling itself* is a candidate mechanism for the amplified-cascade regime described in [`../ideas/liquefaction.md`](../ideas/liquefaction.md) — neighbor avalanches landing on System B act as bursty amplification from outside.
 
 ---
 
@@ -113,17 +113,17 @@ Measure the cross-correlation of avalanche activity between A and B.
 
 **Expected:** Correlation increases with c. At high c, the systems synchronize — their avalanche activity becomes coupled, analogous to diverging correlation length (Signature 2) but between systems rather than within one.
 
-#### 6d. Coupling as ISOC Mechanism
+#### 6d. Coupling as Amplification Mechanism
 
-**Key question:** At intermediate coupling, does System B experience the leaked energy as amplification (ISOC-like) rather than slow driving?
+**Key question:** At intermediate coupling, does System B experience the leaked energy as amplification (producing an ISOC-like signature) rather than slow driving?
 
-If A has a large avalanche and dumps many grains onto B simultaneously, this is not a single grain addition — it's a burst that could trigger and sustain cascades in B beyond what B's internal stored energy would support. This is structurally similar to ISOC amplification.
+If A has a large avalanche and dumps many grains onto B simultaneously, this is not a single grain addition — it's a burst that could trigger and sustain cascades in B beyond what B's internal stored energy would support. This is structurally similar to the amplified-cascade mechanism formalized in [`../ideas/liquefaction.md`](../ideas/liquefaction.md).
 
 **Test:** Compare B's signature profile under coupling to:
 - Experiment 01 (natural SOC, no coupling)
-- Experiment 05 ISOC signatures (amplification without coupling)
+- Experiment 05 Model C (amplification without coupling; see [`05_suppression_amplification.md`](05_suppression_amplification.md))
 
-If B's signatures match ISOC predictions (inflated large events, history-dependent sigma, steepened PSD), coupling can produce ISOC-like dynamics without any explicit amplification mechanism.
+If B's signatures match the ISOC-like bundle (inflated large events, history-dependent σ, steepened PSD) per [`../ideas/distorted_soc_signatures.md`](../ideas/distorted_soc_signatures.md) Part III, coupling can produce ISOC-like dynamics without any explicit amplification mechanism — a significant claim: amplification need not be added by fiat, it can emerge from coupling topology alone.
 
 #### 6e. Coupling-Induced Sub-criticality
 
@@ -173,7 +173,7 @@ This experiment models the reality that countries don't exist in isolation. The 
 | Cross-system event catalog | Arrow file | Which avalanches propagated across systems |
 | Size correlation | Plot | Triggering avalanche size vs. resulting avalanche size |
 | Combined system signatures | DataFrame | SOC diagnostics for the coupled pair as one system |
-| ISOC comparison | Table | Does coupling produce ISOC-like signatures? |
+| ISOC-like comparison | Table | Does coupling produce ISOC-like signatures (per distorted_soc_signatures.md Part III)? |
 | Chain propagation | DataFrame + plot | How far cascades travel in multi-system chain |
 | Higher-order threshold | Plot | Cross-system cascade statistics vs. c |
 
@@ -189,14 +189,14 @@ This experiment models the reality that countries don't exist in isolation. The 
 2. **Build cross-system diagnostics** — extend `work/experiments/validation/diagnostics.jl`
    - `cross_system_events(catalog_A, catalog_B, coupling_log)` → correlated event pairs
    - `cascade_chain_length(multi_system_catalogs)` → propagation distance
-   - `coupling_signature_comparison(catalog, isoc_reference)` → similarity to ISOC
+   - `coupling_signature_comparison(catalog, isoc_like_reference)` → similarity to ISOC-like bundle
 
 3. **Run experiments** — `work/experiments/validation/06_run_coupled.jl` or notebook
    - Sweep c from 0 to 1 for symmetric coupling
    - Asymmetric coupling with heterogeneous system sizes
    - Multi-system chain at selected c values
    - Full diagnostic battery on each configuration
-   - Compare to ISOC signatures from Experiment 05
+   - Compare to ISOC-like signatures from Experiment 05 (Model C)
 
 ---
 
@@ -208,7 +208,7 @@ The experiment succeeds if:
 2. Coupling produces measurable changes in individual system signatures
 3. Cross-system cascades are detectable and their statistics are characterizable
 4. The relationship between coupling strength and signature distortion is systematic
-5. The comparison to ISOC signatures has a clear answer (match or mismatch)
+5. The comparison to the ISOC-like signature bundle has a clear answer (match or mismatch)
 6. In multi-system chains, a higher-order activation threshold is identifiable (or shown not to exist)
 
 ---
@@ -216,8 +216,16 @@ The experiment succeeds if:
 ## Dependencies
 
 - Experiment 01 (sandpile) validated
-- Experiment 05 (CSOC/ISOC) completed — needed for signature comparison
+- Experiment 05 (suppression, amplification, and distinguishability) completed — needed for the ISOC-like signature reference profile
 - Experiment 03 (activation threshold) — for testing coupling to sub-threshold systems
+
+## Related Documents
+
+- [`../ideas/liquefaction.md`](../ideas/liquefaction.md) — the primary mechanism formalism for amplified-cascade dynamics; coupling is a candidate mechanism for producing it
+- [`../ideas/distorted_soc_signatures.md`](../ideas/distorted_soc_signatures.md) — Part III specifies the ISOC-like signature bundle to test for in System B
+- [`../ideas/architecture_mapping.md`](../ideas/architecture_mapping.md) — connects coupling-induced ISOC-like dynamics to the SOC Model Architecture's E_network term and ρ (coupling density)
+- [`../ideas/energy_accounting.md`](../ideas/energy_accounting.md) — coupled-SOC experiments require per-site-of-origin dissipation (an upgrade from the current scalar `n_dissipated`); section "What to instrument and when" specifies the minimum change
+- [`05_suppression_amplification.md`](05_suppression_amplification.md) — Model C there is the uncoupled amplification control this experiment compares against
 
 ## Future Directions
 

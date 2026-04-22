@@ -224,6 +224,12 @@ The experiment is inconclusive if the transition is too gradual to identify p* o
 - Experiment 02 percolation simulator and diagnostics (validated)
 - Julia packages: same as Experiments 01 and 02
 
+## Related Documents
+
+- [`../ideas/distorted_soc_signatures.md`](../ideas/distorted_soc_signatures.md) — signature catalog. Use this to interpret which signatures appear at each p. Below p*, SOC signatures should be absent; at p_c they should emerge; between p* and p_c the signature profile may resemble CSOC-like (suppressed-release) as the spanning cluster is marginal.
+- [`../ideas/energy_accounting.md`](../ideas/energy_accounting.md) — gives a quantitative definition of "activation energy": the minimum PE required for a spanning cascade on the current cluster structure. Percolation extension section specifies which measurements (per-bond flux, spanning-cluster mass) make this operational.
+- [`../ideas/energy_depletion_percolation_research_paths.md`](../ideas/energy_depletion_percolation_research_paths.md) — literature map for the "p_c as termination condition" proposition this experiment tests from below.
+
 ## Next Experiment
 
 **Experiment 04: Overloading the Joined System** — push the sandpile-on-lattice past criticality to find the absorbing barrier. Increase driving rate, reduce dissipation, or flood the system to determine if an irreversible dissolution boundary exists and can be measured.

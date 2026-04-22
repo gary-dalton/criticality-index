@@ -1,18 +1,24 @@
-# Overtopping — A CSOC Extension
+# Overtopping — Primary Formalism for Suppressed-Release SOC Dynamics
 
 ## Preamble
 
-This document extends the Capacitive SOC (CSOC) framework with a structural-fragility mechanism we call **overtopping**. The name comes from the canonical physical example (water overtopping a dam), but the mechanism generalizes beyond hydrology to any system where the suppression structure and the system structure share material or function.
+This document specifies **overtopping**, the primary mechanistic formalism for SOC systems in which small events are suppressed and accumulated deficit is released through a structure that is itself damaged by the release. The name comes from the canonical physical example (water overtopping a dam), but the σ + damage + recovery formalism generalizes to any distributed suppression mechanism — institutional, normative, ecological, material — where the suppression structure is also part of the stress-transmission pathway. The dam image is mnemonic; it does not constrain the formalism.
 
-The extension formalizes what was previously speculative in CSOC Parts VII and VIII (percolation-threshold termination and maximum energy boundary) and gives a concrete, simulation-ready mathematical form. It establishes a three-way naming parallel to the existing CSOC / ISOC framework:
+The central insight is that **the suppression structure and the system structure may be the same thing**. When the system fails by release, the release destroys the structure that was providing containment. Post-failure dynamics can therefore be qualitatively different from pre-failure dynamics, and the upper energy boundary is not merely about propagation capacity but about structural survivability.
 
-- **CSOC** — suppression of small events
-- **ISOC** — amplification of events
-- **Overtopping** — CSOC where the release damages the suppression
+Overtopping gives a concrete, simulation-ready mathematical form for three previously-informal propositions:
 
-The central insight is that in CSOC, **the suppression structure and the system structure may be the same thing**. When the system fails by release, the release destroys the structure that was providing containment. This means post-failure dynamics can be qualitatively different from pre-failure dynamics, and the upper energy boundary is not merely about propagation capacity but about structural survivability.
+1. The percolation-threshold termination mechanism (cascades end when propagation depletes connected energy below p_c).
+2. The maximum-energy boundary (events that exceed what the structure can transmit damage the structure).
+3. The **absorbing barrier** (architecture §5.5) as a locatable boundary in parameter space rather than an assertion.
 
-This document should be read alongside `capacitive_SOC_framework.md` (which establishes CSOC proper) and `../validation/01_03_manna_overtopping.md` (the corresponding experiment design).
+Overtopping is paired with **liquefaction** (see `liquefaction.md`), which provides the symmetric mechanism on the amplification side. The signature patterns these mechanisms produce — mechanism-agnostic detection categories — are cataloged in `distorted_soc_signatures.md`. Historically, these patterns were called "CSOC-like" (suppressed-release) and "ISOC-like" (amplified-cascade) signatures; those terms survive in the signatures catalog as rigorously-defined adjective-form detection categories.
+
+Read alongside:
+- `liquefaction.md` — the ISOC-side counterpart (deferred corollary)
+- `distorted_soc_signatures.md` — empirical detection categories
+- `architecture_mapping.md` — connection to the SOC Model Architecture's C_d framework
+- `../validation/01_03_manna_overtopping.md` — the corresponding experiment design
 
 ---
 
@@ -49,21 +55,21 @@ The failure is not proportional to the trigger. It is proportional to the accumu
 
 ### Suppression and system may coincide
 
-In CSOC as previously specified, the suppression mechanism was an external modifier of the system: small avalanches are suppressed, deficit accumulates, eventually a trigger causes a disproportionate release. The mechanism was exogenous.
+A naive exogenous-suppression model treats the mechanism that blocks small events as an external modifier of the system: small avalanches are suppressed, deficit accumulates, eventually a trigger causes a disproportionate release. The suppression is independent of the system it suppresses.
 
 In the dam case, the suppression mechanism (the dam) and the pathway structure (the downstream channel) share physical material. Releasing the accumulated deficit requires propagating through the same walls that held it back. The release damages those walls. Once damaged, they cannot rebuild containment during the release, and may not fully recover after it.
 
-The extension says: treat this as the general case for CSOC, not the special case. Any system where suppression is implemented via structural features — and where those features are also part of the stress-transmission pathway — will exhibit dam-like dynamics at failure.
+The overtopping formalism treats this as the **general case** for suppressed-release dynamics. Any system where suppression is implemented via structural features — and where those features are also part of the stress-transmission pathway — will exhibit dam-like dynamics at failure. Uncoupled suppression (where the suppression mechanism is not damaged by what it suppresses) is a degenerate special case; see Part V's corner-case discussion.
 
-### Implications for the framework
+### Implications
 
 1. **Post-release suppression may be absent or weakened.** The cycle that follows failure is not simply a repeat of the cycle that preceded it. Deficit accumulation may not resume at the same rate, or at all, if the mechanism is gone.
 
-2. **The upper energy boundary is not about propagation capacity in a static sense.** It is about whether the release energy exceeds what the system can survive structurally intact. This is a refinement of the speculative "maximum energy boundary" in CSOC framework Part VIII.
+2. **The upper energy boundary is not about propagation capacity in a static sense.** It is about whether the release energy exceeds what the system can survive structurally intact.
 
-3. **Positive feedback introduces a third timescale.** Natural SOC has one timescale (driving). CSOC adds deficit accumulation. This extension adds structural damage and repair. The ratio of damage to repair rates determines whether failures compound or recover.
+3. **Positive feedback introduces additional timescales.** Natural SOC has one timescale (driving). Suppressed-release adds deficit accumulation. Overtopping adds structural damage and repair. The trickle mechanism adds a controlled discharge rate. The ratios among these determine the regime (see Part IV).
 
-4. **The absorbing barrier is locatable in parameter space.** The architecture (§5.5) asserts the absorbing barrier exists but does not specify where. In this extension, the barrier is the boundary in (T, α, recovery_rate) space between regimes where failures recover and regimes where structural damage compounds to total collapse.
+4. **The absorbing barrier is locatable in parameter space.** The architecture (§5.5) asserts the absorbing barrier exists but does not specify where. In overtopping, the barrier is the boundary in (T, α, recovery_rate) space between regimes where failures recover and regimes where structural damage compounds to total collapse.
 
 ---
 
@@ -81,7 +87,7 @@ Introduce a structural integrity variable per site:
 
 ### Modified toppling condition
 
-For the Manna model, natural toppling occurs at `z_i ≥ z_c` (typically z_c = 2). The CSOC modification elevates the threshold via a suppression parameter T:
+For the Manna model, natural toppling occurs at `z_i ≥ z_c` (typically z_c = 2). The overtopping formalism elevates the threshold via a suppression parameter T coupled to the local integrity σ_i:
 
 ```
 effective_threshold_i = z_c + T · σ_i
@@ -116,8 +122,31 @@ Between grain drops (or at a slower rate during avalanches), σ slowly recovers 
 where `recovery_rate` is the fractional recovery per timestep. Typical regimes:
 
 - `recovery_rate << α`: damage compounds faster than repair → runaway failures possible
-- `recovery_rate >> α`: repair dominates → CSOC cycles without compounding damage
+- `recovery_rate >> α`: repair dominates → cyclical suppressed-release without compounding damage
 - `recovery_rate ≈ α`: marginal stability, noisy alternation
+
+### Trickle release (spillway)
+
+Real containment structures often have controlled partial-release mechanisms — spillways on dams are the canonical case. A spillway bleeds off excess energy above a threshold lower than the failure threshold, preventing overtopping by providing a managed escape path. The analogous mechanism in governance: bankruptcy laws, scheduled elections, regulated market corrections, controlled protests, safety-valve institutions. These are deliberate small-event release mechanisms that discharge accumulated deficit without requiring full containment failure.
+
+Add a fourth parameter `r` (trickle rate) and an auxiliary threshold `z_leak` (the spillway crest):
+
+```
+between grain drops, after recovery:
+    for each site i with z_i > z_leak:
+        discharge: z_i ← z_i − δ   at rate r · (z_i − z_leak) per timestep
+        (or: discrete discharge of δ grains per timestep with probability r · (z_i − z_leak))
+```
+
+The trickle rate `r` governs how fast accumulated high-z sites bleed off to neighbors or out of the system. In the canonical form we treat trickle as out-of-system dissipation (the grain leaves the lattice, mimicking a spillway discharging to the downstream channel); an alternative form redistributes to neighbors. Both are worth testing.
+
+Dynamical regimes from trickle:
+- `r = 0` — no spillway. Classic overtopping dynamics as specified above.
+- `r · spillway capacity ≫ input rate` — spillway has adequate capacity. Deficit cannot accumulate; the system behaves as natural SOC at a shifted operating point.
+- `r · spillway capacity ≈ input rate` — marginal spillway. Deficit accumulates slowly; rare overtopping events when spillway is saturated.
+- `r · spillway capacity ≪ input rate` — spillway is nominal but inadequate. Behaves much like no spillway; full overtopping dynamics dominate.
+
+The trickle mechanism adds a third timescale (see Part IV) and a fourth phase-space dimension (see Part V). It changes the central question from "does this system overtop?" to "does its spillway suffice for its input?" — a first-order distinction the original three-parameter formalism cannot express.
 
 ### Complete dynamics
 
@@ -131,51 +160,78 @@ Per timestep:
    d. If any site's cumulative toppling count crosses above the flux threshold E_crit, apply damage: `σ_i ← σ_i · (1 − α)`.
    e. Recompute unstable set and repeat until all sites stable.
 3. Apply recovery: `σ_i ← min(1, σ_i + recovery_rate)` for all sites.
+4. Apply trickle: for each site with `z_i > z_leak`, discharge δ grains with probability `r · (z_i − z_leak)` (or equivalent deterministic rate).
 
 ---
 
-## Part IV: Three-Timescale Structure
+## Part IV: Multi-Timescale Structure
 
-Natural SOC has one governing timescale: the driving rate. CSOC introduced a second: the deficit accumulation timescale (how long between release events). This extension introduces a third: the structural repair timescale.
+Natural SOC has one governing timescale: the driving rate. Overtopping adds three more, for a four-timescale structure:
 
 | Timescale | Setter | Dimensional form |
 |-----------|--------|------------------|
 | Driving | Grain-addition rate | 1 grain per timestep |
-| Deficit accumulation | Natural SOC + T | O(L² · T) grains between release events |
+| Deficit accumulation | Natural SOC + T, net of trickle | O(L² · T) grains between release events when `r=0`; extended by trickle |
 | Structural repair | recovery_rate | 1 / recovery_rate timesteps to fully heal |
+| Trickle discharge | r, z_leak | 1 / r timesteps to bleed off one unit of excess above z_leak per site |
 
 Ratios between these define regime:
 
-- **recovery_rate >> damage rate per event × large event frequency**: suppression regrows between failures, CSOC proceeds cyclically.
+- **recovery_rate >> damage rate per event × large event frequency**: suppression regrows between failures, cyclic CSOC-like dynamics.
 - **recovery_rate ≈ damage rate per event × large event frequency**: marginal stability, alternating recovery and degradation.
-- **recovery_rate << damage rate per event × large event frequency**: damage compounds faster than repair, σ trends downward, eventual runaway failure.
+- **recovery_rate << damage rate per event × large event frequency**: damage compounds faster than repair, σ trends downward, runaway failure.
+- **r · excess > input rate**: spillway dominates, overtopping dynamics suppressed.
+- **r · excess < input rate**: spillway inadequate, overtopping dynamics persist.
 
-The third ratio is the one that determines whether a system stays in CSOC or crosses the absorbing barrier. It is the parameter to sweep most carefully.
+The damage-repair ratio determines whether a system stays CSOC-like or crosses the absorbing barrier. The trickle-input ratio determines whether the system enters the suppressed-release regime at all.
 
 ---
 
 ## Part V: Phase Space
 
-Three control parameters: (T, α, recovery_rate). For initial exploration, fix recovery_rate at a representative value and map the (T, α) plane:
+Four control parameters: (T, α, recovery_rate, r). For tractable exploration, fix recovery_rate and r at representative values and map the (T, α) plane first:
 
 | Region | Characterization | Architecture analog |
 |--------|------------------|---------------------|
-| Low T, low α | Close to natural SOC, σ mostly intact, avalanche distribution near natural SOC. | c_d ≈ 0, robust |
-| High T, low α | Strong CSOC: large deficit-driven events, but σ survives the event. Cyclical accumulation–release. | Sub-critical (architecture §3) — over-ordered, dangerous, but recoverable |
-| High T, high α | Runaway: large events damage σ enough that next event finds a weaker structure. Damage compounds. σ trends to 0. Structural failure. | **Crossed absorbing barrier** (architecture §5.5) |
+| Low T, low α | Close to natural SOC, σ mostly intact, avalanche distribution near natural SOC. | C_d ≈ 0, robust |
+| High T, low α | Strong suppressed-release regime: large deficit-driven events, but σ survives the event. Cyclical accumulation–release. | Sub-critical (architecture §3) — over-ordered, dangerous, but recoverable |
+| High T, high α | Runaway: large events damage σ enough that the next event finds a weaker structure. Damage compounds. σ trends to 0. Structural failure. | **Crossed absorbing barrier** (architecture §5.5) |
 | Low T, high α | Weak suppression with fragile structure. Small events may damage σ without producing large releases. Anomalous. | Super-critical with structural fragility — unusual hybrid regime |
 
 **The boundary between high-T/low-α and high-T/high-α is the primary experimental target.** Finding this boundary quantitatively locates the absorbing barrier in parameter space.
 
+### The trickle dimension
+
+With `r` added, each (T, α) regime gains a trickle-dependence:
+
+| (T, α) regime | r = 0 | r · capacity ≈ input | r · capacity ≫ input |
+|---|---|---|---|
+| Low T | Natural SOC | Natural SOC (marginal effect) | Natural SOC |
+| High T, low α | Cyclical suppressed-release | Occasional rare overtopping | Overtopping prevented; behaves as natural SOC at shifted operating point |
+| High T, high α | Runaway | Delayed runaway | Runaway prevented as long as spillway holds; new failure mode if spillway itself degrades |
+
+Two experimentally interesting boundaries emerge:
+1. The (T, α) absorbing-barrier boundary at fixed (recovery_rate, r) — the primary target.
+2. The **trickle sufficiency boundary** — the critical `r` at which overtopping dynamics disappear into natural-SOC behavior for given (T, α, recovery_rate). This is a governance-relevant quantity: it answers "how large must a controlled release mechanism be to prevent catastrophic events?"
+
+### Corner cases (free baselines in the simulator)
+
+- **T = 0** — no suppression. Recovers natural Manna SOC; sanity check against baseline Manna simulations (exp01_02).
+- **α = 0, σ₀ = 1** — elevated threshold without structural dynamics. σ pins at 1; effective threshold is a constant `z_c + T`. Tests whether uncoupled suppression (the "abstract CSOC" case) actually produces the distinctive suppressed-release signatures or reduces to natural SOC at a rescaled operating point. Framework prediction: the latter — uncoupled suppression is approximately a renormalization.
+- **r = 0** — no spillway. Recovers the original three-parameter overtopping dynamics.
+- **α = 0, σ₀ = 1, r > 0** — pure spillway regime without structural damage. Tests trickle sufficiency in isolation.
+
 ---
 
-## Part VI: Connection to Existing Framework
+## Part VI: Connection to Other Components
 
-### Refinement of CSOC Parts VII and VIII
+### The percolation-threshold termination mechanism
 
-**Part VII (Percolation Threshold as Termination Condition)** proposed that cascades self-terminate when activity depletes below a connectivity threshold. This extension is compatible: as σ degrades, effective connectivity degrades, and structural failure can prevent the system from returning to the recurrent class even if activity drops. The σ field is the explicit mechanism by which effective percolation can be lost.
+A long-standing (and informally-stated) proposition holds that SOC cascades self-terminate when activity depletes below a connectivity threshold p_c (see `energy_depletion_percolation_research_paths.md` for the research pathways). Overtopping makes this mechanism explicit: as σ degrades, effective connectivity of the suppressed lattice degrades with it. A site with σ = 0 topples at the natural threshold (no suppression) and transmits to its neighbors normally, but the suppressed system as a whole has lost coverage. **Structural failure is the explicit mechanism by which effective p_c can be lost independent of activity level.**
 
-**Part VIII (Maximum Energy and System Capacity)** proposed an upper boundary where anomalous energy concentration exceeds what the pathway structure can transmit. This extension formalizes what happens *at* that boundary: the excess energy damages σ, which reduces the effective capacity further, creating the positive feedback. The maximum-energy boundary is not just where propagation exceeds capacity — it is where the structure carrying the propagation is damaged by it.
+### The maximum-energy boundary
+
+The same literature proposes that anomalous energy concentration may exceed what the pathway structure can transmit. Overtopping formalizes what happens at that boundary: excess energy damages σ, reducing effective capacity further, creating positive feedback. The maximum-energy boundary is not just where propagation exceeds capacity in a static sense — it is where the structure carrying the propagation is damaged by it. The positive feedback is what makes the boundary sharp rather than gradual.
 
 ### Connection to architecture §5.5 (Absorbing barrier)
 
@@ -185,13 +241,17 @@ Architecture §5.5 defines:
 - **Ruin** — system breaks and the pieces cannot function.
 - **Absorbing barrier** — the state boundary beyond which ruin is inevitable.
 
-In this extension:
+In overtopping:
 
-- Fracture corresponds to CSOC with σ recovering after each release. The system produces a large event, σ degrades locally, but recovery_rate restores it before the next event.
+- Fracture corresponds to suppressed-release with σ recovering after each event. The system produces a large event, σ degrades locally, but recovery_rate restores it before the next event.
 - Ruin corresponds to σ → 0 globally. The suppression mechanism is destroyed.
 - The absorbing barrier is the set of parameter values where the damage-recovery balance tips from net recovery to net degradation.
 
-This makes the architecture's absorbing barrier empirically locatable via simulation, not just a theoretical assertion.
+This makes the architecture's absorbing barrier empirically locatable via simulation, not just a theoretical assertion. The experiment design in `../validation/01_03_manna_overtopping.md` specifies how to find it.
+
+### Connection to detection categories
+
+Overtopping is a mechanism proposal. The signatures it produces — truncated distributions, quasi-periodic large events, spectral knees, non-stationary branching ratio — are the CSOC-like signature bundle cataloged in `distorted_soc_signatures.md`. Detecting CSOC-like signatures in data does not prove the mechanism is overtopping (other mechanisms could produce the same pattern), but overtopping's quantitative predictions (Part VII below) discriminate it from alternative mechanism hypotheses.
 
 ---
 
@@ -208,6 +268,10 @@ The extension makes specific quantitative predictions that could be wrong:
 4. **Runaway onset is sudden, not gradual.** Once σ drops below a critical value (specific to the parameter combination), degradation should accelerate rather than stabilize. If σ decay is exponential everywhere in parameter space (no critical onset), the framework's "absorbing barrier" is not a sharp boundary.
 
 5. **Recovery_rate rescues high-damage regimes.** Increasing recovery_rate at fixed (T, α) should move the system from runaway to recovering. If the regime is determined solely by damage rate without recovery mattering, the framework's timescale-ratio interpretation is wrong.
+
+6. **Trickle sufficiency boundary is sharp.** Increasing `r` at fixed (T, α, recovery_rate) should move the system from suppressed-release dynamics toward natural-SOC-like behavior with a well-defined critical `r*` above which CSOC-like signatures disappear. If the transition is gradual or the signatures persist at arbitrary `r`, the spillway formalism needs refinement.
+
+7. **Trickle lengthens inter-event intervals monotonically.** At fixed (T, α, recovery_rate), increasing `r` should increase the mean time between overtopping events (more deficit bled off continuously → longer accumulation times before crossing the failure threshold). If intervals do not lengthen with `r`, the trickle-as-deficit-relief model is wrong.
 
 Each of these is testable in the Manna + overtopping simulation (see `../validation/01_03_manna_overtopping.md`).
 
@@ -271,13 +335,13 @@ The Drossel-Schwabl forest fire model has trees that regrow at rate p and fires 
 - Slow regrowth (analog of recovery_rate)
 - Runaway if p << consumption rate × fire frequency
 
-What's different in overtopping: the DS model modifies binary lattice occupancy (site present / absent); overtopping modulates a continuous σ field that changes a **suppression threshold**. DS has no "suppressed" regime; the whole model lives at its natural critical state. Overtopping sits on top of CSOC (threshold elevation) and asks what happens when that elevation is fragile.
+What's different in overtopping: the DS model modifies binary lattice occupancy (site present / absent); overtopping modulates a continuous σ field that changes a **suppression threshold**. DS has no "suppressed" regime; the whole model lives at its natural critical state. Overtopping starts from a suppressed-release substrate (threshold elevation T) and asks what happens when that elevation is fragile.
 
 ### Rate-and-state friction in earthquake models (Dieterich 1979, Ruina 1983; OFC variants)
 
 Fault surfaces have a state variable that decays with slip (slip weakens the fault) and heals during quiescent periods. Slip-weakening drives slip instability (positive feedback); healing restores state between events. Mapped onto overtopping: state variable is σ-like, slip is toppling, healing is recovery_rate.
 
-The dynamics are formally similar. What's different: friction models typically aim to reproduce the Gutenberg-Richter law (natural SOC distribution); overtopping explicitly asks about the CSOC regime (suppression elevated) and the failure of that suppression. Different motivating question, similar mathematics.
+The dynamics are formally similar. What's different: friction models typically aim to reproduce the Gutenberg-Richter law (natural SOC distribution); overtopping explicitly asks about the suppressed-release regime (threshold elevated) and the failure of that suppression. Different motivating question, similar mathematics.
 
 ### Neural SOC with synaptic plasticity (Levina, Herrmann, Geisel 2007; Hernández-Urbina & Herrmann 2017)
 
@@ -285,7 +349,7 @@ Neural avalanche models where synapse strengths adapt based on activity. Activit
 
 ### Self-organized quasi-criticality (Bonachela & Muñoz 2010)
 
-Broader framing: systems where the control parameter is dynamically driven by activity in a way that keeps the system near (but not exactly at) the critical point. Overtopping fits this family — σ is dynamically modified by activity, and in the "recovering CSOC" regime the system sits near a quasi-critical state defined by the damage-recovery balance.
+Broader framing: systems where the control parameter is dynamically driven by activity in a way that keeps the system near (but not exactly at) the critical point. Overtopping fits this family — σ is dynamically modified by activity, and in the "recovering suppressed-release" regime the system sits near a quasi-critical state defined by the damage-recovery balance.
 
 ### Adaptive network SOC (Gross & Blasius 2008 review)
 
@@ -295,11 +359,11 @@ Networks where edges form or break based on node activity. Topology-responds-to-
 
 Given these precedents, what's distinctive about overtopping:
 
-1. **The combination of CSOC (threshold elevation T) with substrate damage (σ degradation).** None of the above precedents are specifically CSOC — they operate on natural SOC substrates. Overtopping asks what happens when a suppressed system fails, with the suppression mechanism itself being the fragile structure.
+1. **The combination of threshold elevation (T) with substrate damage (σ degradation) on an SOC substrate.** None of the above precedents combine all three: forest fire has no threshold elevation (it lives at its natural critical state), RAS friction has no explicit elevation parameter distinct from the state variable, neural plasticity models lack the suppression framing. Overtopping asks what happens specifically when a system in a suppressed-release regime fails, with the suppression mechanism itself being the fragile structure.
 
 2. **Explicit link to the absorbing barrier concept.** Overtopping provides the mechanism by which the architecture's absorbing barrier (§5.5) becomes empirically locatable in parameter space. Forest fire and RAS-friction models aren't typically framed this way.
 
-3. **Three-timescale structure with recovery_rate as a specific phase-space dimension.** The parameter (T, α, recovery_rate) phase space is a novel formulation; earlier models have two of these three but not all three simultaneously.
+3. **Four-timescale structure with recovery_rate AND trickle-release as specific phase-space dimensions.** The parameter (T, α, recovery_rate, r) phase space is a novel formulation; earlier models have subsets but not all four simultaneously. The trickle-release dimension is particularly novel — it distinguishes systems with adequate controlled-release mechanisms from those without, a first-order governance-relevant distinction.
 
 4. **Release-damages-containment framing.** The overtopping mechanism has a specific physical intuition (release energy damages the pathway that's carrying it) that's distinct from fire-consumes-fuel or slip-weakens-fault.
 
@@ -309,8 +373,14 @@ When results are published, the Related Work discussion should explicitly cite t
 
 ## Summary
 
-The overtopping extension gives CSOC a concrete, simulation-ready mechanism for the previously-speculative "maximum energy boundary" and for the architecture's "absorbing barrier." The σ field couples suppression strength to release energy via a positive-feedback damage-recovery loop. Three parameters (T, α, recovery_rate) generate a phase space whose "recovering ↔ runaway" boundary is the absorbing barrier in parameter space.
+Overtopping is the primary mechanistic formalism for suppressed-release SOC dynamics. It gives a concrete, simulation-ready account of the maximum-energy boundary, the percolation-threshold termination condition, and the architecture's absorbing barrier. The σ field couples suppression strength to release energy via a positive-feedback damage-recovery loop; the trickle mechanism adds a controlled-release valve that distinguishes "no safety valve" systems from "adequate safety valve" systems at the governance level.
 
-The extension is testable via simulation on the Manna model (see `../validation/01_03_manna_overtopping.md`) and generates quantitative predictions that could falsify it. Related work (Part IX) situates overtopping within the existing literature on activity-substrate feedback in SOC; the mechanism draws on precedents but is distinctive in its CSOC framing and its explicit tie to the absorbing-barrier concept.
+Four parameters (T, α, recovery_rate, r) generate a phase space with two primary boundaries:
+1. The **absorbing barrier** — the (T, α) boundary at fixed (recovery_rate, r) between recovering and runaway regimes.
+2. The **trickle sufficiency boundary** — the critical `r` above which suppressed-release dynamics disappear at fixed (T, α, recovery_rate).
+
+Both are testable via simulation on the Manna substrate (see `../validation/01_03_manna_overtopping.md`). The formalism subsumes abstract suppression (α = 0, σ = 1 corner) and natural SOC (T = 0 corner) as free baselines.
+
+Related Work (Part IX) situates overtopping within existing literature on activity-substrate feedback in SOC; the mechanism draws on precedents (Drossel-Schwabl forest-fire regrowth, rate-and-state friction, synaptic plasticity models, self-organized quasi-criticality, adaptive-network SOC) but is distinctive in its three-timescale structure with explicit trickle-release and its tie to the absorbing-barrier concept.
 
 Status: **theoretical framework, not yet implemented or tested.** All numerical values, parameter choices, and expected regime boundaries are hypothesis, not fact.

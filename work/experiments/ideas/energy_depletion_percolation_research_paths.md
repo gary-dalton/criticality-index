@@ -1,5 +1,9 @@
 # Research Pathways: Energy Depletion and Percolation Threshold as Cascade Termination Mechanism in SOC
 
+## Status note
+
+The `overtopping.md` framework (§8.3) concretizes the dual role of p_c through σ dynamics: as σ degrades, the effective connectivity of the suppressed lattice degrades with it, giving an explicit mechanism by which effective p_c can be lost independent of activity level. This research-pathways document remains the literature-search roadmap for grounding the proposition in the published SOC literature — a task still required even though one concrete instantiation now exists.
+
 ## Core Proposition
 
 In a Self-Organized Critical system, cascade events self-terminate when the energy consumed during propagation depletes the system's stored potential below the percolation threshold — the minimum connectivity/energy condition for a spanning cascade to be sustained. This document maps the research landscape for investigating whether this proposition is established, implicit, or novel.
@@ -233,11 +237,11 @@ This would be significant. The appropriate response would be:
 
 ---
 
-## 10. Connection to Capacitive SOC Framework
+## 10. Connection to Modified-SOC Frameworks
 
 Throughout the literature search, also note any sources relevant to the broader framework under development:
 
-- Sources treating **damped or thresholded SOC** — relevant to Capacitive SOC
+- Sources treating **damped or thresholded SOC** — relevant to overtopping's threshold elevation
 - Sources treating **deficit accumulation** between events
 - Sources treating **quasi-periodicity** in SOC-like systems
 - Sources treating **inductive / amplified** criticality
@@ -247,4 +251,4 @@ The energy depletion — percolation threshold proposition is one component of a
 
 ---
 
-*Document prepared as part of ongoing theoretical development of Capacitive SOC and related criticality frameworks.*
+*Document prepared as part of ongoing theoretical development of overtopping, liquefaction, and related modified-SOC frameworks.*

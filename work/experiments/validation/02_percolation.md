@@ -247,6 +247,11 @@ The experiment fails if we cannot distinguish the percolation transition from no
 - Experiment 01 diagnostics (power-law fitting, fractal dimension) are reused here
 - No external data required
 
+## Related Documents
+
+- [`../ideas/energy_accounting.md`](../ideas/energy_accounting.md) — two-reservoir energy accounting, including the percolation extension (per-bond flux, dynamic topology, spanning-cluster mass as system-level PE). Relevant when dynamics are placed on this substrate in Exp 03.
+- [`../ideas/distorted_soc_signatures.md`](../ideas/distorted_soc_signatures.md) — signature catalog. Exp 03 onward will measure which signatures are observable as a function of p; those measurements use this catalog.
+
 ## Next Experiment
 
 **Experiment 03: Sandpile on a Percolation Lattice** — place the BTW sandpile on a lattice whose connectivity is controlled by the percolation parameter p. Test whether a clear activation energy emerges at p_c where SOC signatures appear.
