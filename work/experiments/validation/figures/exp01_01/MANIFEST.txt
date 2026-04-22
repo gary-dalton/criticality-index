@@ -1,0 +1,7 @@
+01_btw_avalanche_size_distribution.png            cell= 23  section='3a. Visualize P(s) to identify the scaling regime'  title='BTW avalanche size distribution'
+02_btw_avalanche_area_distribution.png            cell= 29  section='3d. Area distribution — cleaner scaling than size'  title='BTW avalanche area distribution'
+03_height_height_correlation_function.png         cell= 34  section='4. Signature 2 — Spatial correlation in the height field'  title='Height-height correlation function'
+04_power_spectral_density_microscopic_time.png    cell= 37  section='5. Signature 3 — Spectral analysis'  title='Power spectral density (microscopic time)'
+05_activity_dependent_branching_ratio.png         cell= 46  section='8. Branching ratio (activity-dependent)'  title='Activity-dependent branching ratio'
+06_multiscaling_drift_in_alpha.png                cell= 56  section='11b. Multiscaling drift with error bars'  title='Multiscaling drift in alpha'
+07_finite_size_extrapolation.png                  cell= 60  section='11d. Finite-size extrapolation'  title='Finite-size extrapolation'

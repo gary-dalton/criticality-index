@@ -39,4 +39,4 @@ For each layer, compute `mutual_information(X_i, X_j)` between grounding slugs a
 
 Running with trade + geographic + lineage is sufficient for a first test. Additional layers can be added later without changing the methodology.
 
-See Exp 01.01 validation (`work/experiments/validation/01_sandpile.md` §4) for the lattice-case proof-of-concept.
+See Exp 01.01 validation (`work/experiments/validation/01_01_btw_sandpile.md`) for the lattice-case proof-of-concept.

@@ -281,7 +281,8 @@ No code change today; this note exists so the concept has a home when we reach t
 - `../ideas/architecture_mapping.md` — connection to the SOC Model Architecture's C_d framework
 - `04_absorbing_barrier.md` — abstract framing of what this experiment concretely measures
 - `05_suppression_amplification.md` — BTW-substrate analogue; Models B and C of 05 are the BTW versions of Models B and C here
-- `01_sandpile.md` — BTW experiment whose methodology this extends
+- `01_01_btw_sandpile.md` — BTW experiment that discovered auto-xmin failure under multiscaling
+- `01_02_manna_sandpile.md` — plain Manna baseline; methodology precursor to Models B/C here
 
 ## Next Experiment
 
