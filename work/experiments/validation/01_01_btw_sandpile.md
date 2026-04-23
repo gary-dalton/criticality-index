@@ -152,7 +152,7 @@ The avalanche size distribution shows the canonical BTW multiscaling pattern: α
 c  = 9.796 ± 0.087
 ```
 
-![Finite-size extrapolation of α](figures/exp01_01/07_finite_size_extrapolation.png)
+![Finite-size extrapolation of α](figures/exp01_01/11_finite_size_extrapolation.png)
 
 α∞ = 1.2000 matches the effective BTW τ_s from published work (Lübeck 2000 cites 1.27 for individual waves; whole-avalanche values vary because the distribution doesn't have a single exponent).
 
@@ -160,7 +160,7 @@ c  = 9.796 ± 0.087
 
 Running α(xmin) sweep at each L (Section 11b/11g) shows **drift that does not shrink with L** — a direct diagnostic of multiscaling per Tebaldi et al. 1999:
 
-![Multiscaling drift across L](figures/exp01_01/06_multiscaling_drift_in_alpha.png)
+![Multiscaling drift across L](figures/exp01_01/10_multiscaling_drift_in_alpha.png)
 
 Fit range spans ~0.6 between xmin=5 and xmin=300 at every L. Manna in comparison shows drift that shrinks as L^(-1/2) (see [`01_02_manna_sandpile.md`](01_02_manna_sandpile.md) — that contrast confirms BTW multiscaling is intrinsic, not finite-size).
 
@@ -195,19 +195,19 @@ Log-binned P(s) across four L values. Scaling regime is visible from s ≈ 10 to
 
 ### Height-height correlation G(r)
 
-![Height-height correlation function](figures/exp01_01/03_height_height_correlation_function.png)
+![Height-height correlation function](figures/exp01_01/04_height_height_correlation_function.png)
 
 G(r) decays as power law (with logarithmic corrections; Piroux & Ruelle 2005). Even-odd lattice discreteness produces the dip at r = 2; the power-law envelope holds from r ≈ 3 onward. Computed for L ≤ 256 only (computational cost).
 
 ### PSD — three-regime structure, β_high ≈ 1.56
 
-![Power spectral density (microscopic time)](figures/exp01_01/04_power_spectral_density_microscopic_time.png)
+![Power spectral density (microscopic time)](figures/exp01_01/05_btw_power_spectral_density_microscopic_time.png)
 
 Per Chhimpa et al. 2025: flat plateau at low frequency, hump at intermediate, and a clean 1/f^β tail at high frequency with β_high ≈ 1.56 stable across L. The microscopic time series (topplings per wave, concatenated across avalanches) is the right signal — per-grain-drop aggregates lose the within-avalanche structure that produces β_high. Peak position shifts with L as t_max ~ L^z_dyn.
 
 ### Branching ratio — b(x) plateau at 1
 
-![Activity-dependent branching ratio](figures/exp01_01/05_activity_dependent_branching_ratio.png)
+![Activity-dependent branching ratio](figures/exp01_01/08_btw_activity_dependent_branching_ratio.png)
 
 Plateau mean over x ∈ [2, 100]: **b(x) ≈ 1.00 at all L** (within 0.02). Per Michiels van Kessenich et al. 2010, this is the strong form of the criticality signature — cascade is marginal at every activity level, not just on average. Spike at x = 1 is the first-toppling boundary effect (known artifact; not physics).
 
