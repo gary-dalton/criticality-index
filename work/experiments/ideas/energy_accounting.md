@@ -1,3 +1,17 @@
+---
+title: "Energy Accounting in SOC Models — A Falsifiable Wave-Based Framework"
+linkTitle: "Energy Accounting"
+description: "Three-reservoir energy framework (grain, structural, heat) anchored in C-DP reaction-diffusion. Specifies per-bond flux, activity-wave observables, toppling-order assumptions, and per-experiment operational model rules. Developmental draft."
+author: "Gary Dalton"
+date: 2026-04-22T00:00:00-05:00
+lastmod: 2026-04-23T00:00:00-05:00
+include_toc: true
+show_comments: false
+draft: true
+weight: 20
+keywords: "energy accounting, reaction-diffusion, C-DP, heat reservoir, structural integrity, sigma field, activity wave, per-bond flux, NESS, falsifiability, Sethna shape collapse, overtopping, liquefaction"
+---
+
 # Energy Accounting in SOC Models — A Falsifiable Wave-Based Framework
 
 > **Status: DEVELOPMENTAL DRAFT.** This document is under active iteration. Hard constraints, three-reservoir structure, falsifiability tests, and per-experiment operational rules are committed in concept; specific values, parameter choices, and the precise form of some coupling rules will continue to evolve as the framework is exercised. Treat as the working theory specification, not a final reference.
