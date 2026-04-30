@@ -67,6 +67,8 @@ Energy in this framework is partitioned into three reservoirs, each with its own
 
 For natural SOC (01.01, 01.02, 01.03, 02): only the grain reservoir is dynamically active. σ ≡ 1 and H accumulates passively from per-site KE deposits but does not feed back into any rule. Heat is a measured observable, not a causal variable, in natural-SOC experiments.
 
+**Open structural question (not yet settled).** The framework treats heat as a separate reservoir with its own continuity equation and free parameters (`α_H`, `κ_base`, `D_H`). A simpler alternative: heat as a **derived** quantity, `H_i ∝ post-event variance of (z_i,after − z_i,before)`. The two formulations may give equivalent predictions on every observable we can measure, in which case the simpler derived form should be preferred. Phase-D (re-instrumented Manna analysis) should specifically test whether the separate-reservoir formulation predicts anything the derived form does not. If no such observable exists, this doc will be revised to use the derived form. Treat the separate-reservoir framing in §6 as provisional pending that test.
+
 For overtopping (01.04 Model C onwards): σ becomes dynamic. H may optionally couple to σ recovery and damage thresholds.
 
 For liquefaction (01.05): π = H drives threshold lowering. The heat reservoir is the same H field as in overtopping; we keep one variable name and acknowledge it serves both roles depending on the experiment.
@@ -145,8 +147,8 @@ This comes from the deterministic saddle-path solution of the Langevin form `∂
 
 **Expected 2D corrections** (Manna is below the upper critical dimension d_c = 4):
 
-- **Asymmetric**: peak at u < 0.5, typically ~0.4 — early growth is faster than late decay because newly activated sites are spatially correlated with recently activated ones.
-- **Power-form fit**: `⟨n(u)⟩ / n_max = C · u^a · (1−u)^b` with `a < b`. Recovers parabolic at a = b = 1.
+- **Asymmetric**: peak at u < 0.5 — early growth is faster than late decay because newly activated sites are spatially correlated with recently activated ones. The qualitative claim is robust for d < d_c systems (Papanikolaou et al. 2011 and follow-ups); specific exponent values quoted in this doc need source verification before being treated as predictions.
+- **Power-form fit**: `⟨n(u)⟩ / n_max = C · u^a · (1−u)^b` with `a < b`. Recovers parabolic at a = b = 1. **Exact 2D-Manna values for (a, b) are flagged as TBD** — to be sourced from Papanikolaou et al. 2011 or comparable literature before the Phase-D fit is run. Until verified, the operational test is "shape collapse + qualitative asymmetry consistent with a < b" rather than quantitative agreement with specific numerical (a, b).
 
 **Operational measurement on existing 01.02 Manna data**:
 
@@ -161,7 +163,7 @@ No new instrumentation needed. The existing `wave_profile` data per seed is suff
 **Falsifiability**:
 
 1. **Shape collapse across L and duration bins**: if curves don't collapse, simple scaling is broken.
-2. **Quantitative deviation from parabolic**: predicted asymmetry within ranges reported in the literature for 2D (a ≈ 0.7, b ≈ 1.3 from Papanikolaou). Significant deviations indicate finite-size or substrate-specific corrections.
+2. **Quantitative deviation from parabolic**: asymmetry direction (a < b) is the robust prediction for 2D systems below d_c. Specific (a, b) values to be sourced from Papanikolaou et al. 2011 or comparable literature before this test is applied as a quantitative refutation; until then, the test is qualitative (asymmetric with a < b) only.
 3. **Cross-experiment signature**: under overtopping (01.04 Model C), σ-damaged regions slow late-stage propagation — shape should broaden / develop a late-tail at matched duration. Under amplification (01.05 liquefaction), wave self-sustaining predicts persistent late-tail. Shape becomes a primary CSOC-like / ISOC-like signature discriminator.
 
 This is the **first concrete falsifiability test we can run on existing data** — no new ensembles, no new code beyond a shape-collapse analysis script. Recommended as the validation gate for the C-DP foundation before any further instrumentation.
@@ -202,7 +204,7 @@ Manna is isotropic *per-grain* (each toppled grain goes to a uniformly random ne
 
 - **Wave bifurcation/recombination**: per-event count of wave-steps where the activity-field has > 1 connected component. Frequent bifurcation under elevated thresholds (Model C) would indicate σ-coupling fragments the wave.
 - **Mutual extinction**: events where activity dies abruptly between waves despite peak > 0 just before. Distinguishes smooth scaling decay from interference-damped events.
-- **Self-damping** (from C-DP RD `−μ n²`): high-activity regions predicted to slow wavefront advancement. Testable as ⟨wavefront velocity | n_peak⟩ a decreasing function of n_peak. If absent, the C-DP self-damping form may not apply at our finite L.
+- **Self-damping** (from C-DP RD `−μ n²`): high-activity regions predicted to slow wavefront advancement. Testable as `E[wavefront_velocity ∣ n_peak]` (conditional-mean wavefront velocity given peak amplitude) being a decreasing function of n_peak. If absent, the C-DP self-damping form may not apply at our finite L.
 
 All four (counting the bidirectional flux above) are measurement additions, not dynamical changes.
 
@@ -226,9 +228,11 @@ Cooling rate per site depends on local connectivity:
 κ_i = κ_base · (degree_i / degree_max)
 ```
 
-For a 2D square lattice with all bonds present, `degree_max = 4`. Interior sites cool at full rate κ_base; boundary sites cool slightly slower (degree 2–3); corner sites slowest (degree 2 of 4). For percolation substrates, sites in low-connectivity regions cool slower — heat persists longer where the cluster is sparse. This makes activation-energy prediction on percolation lattices physical: weakly-connected regions accumulate heat that, when heat-coupling is on (01.04+, 01.05), can lower thresholds and alter where cascades nucleate.
+For a 2D square lattice with all bonds present, `degree_max = 4`. Interior sites cool at full rate κ_base; boundary sites cool slightly slower (degree 2–3); corner sites slowest (degree 2 of 4). For percolation substrates, sites in low-connectivity regions cool slower — heat persists longer where the cluster is sparse.
 
 `κ_base` is a free parameter to be fit from observed H(t) trajectories.
+
+**Phenomenological choice, not derivation.** The connectivity-proportional form is intuitive (more neighbors → more heat-conduction pathways) but is not derived from a microscopic heat-transport law for our lattice. It is a modeling choice that needs sensitivity testing — particularly for Exp 03 (sandpile on percolation), where the rule materially affects activation-energy predictions in low-connectivity cluster regions. On the full 2D square lattice the rule is mostly cosmetic (κ varies only at the L=4 perimeter), but on diluted substrates it is load-bearing. Phase-E should include a sensitivity check: vary the connectivity dependence (e.g., degree^p with p ∈ {0, 0.5, 1, 2}) and report whether activation-energy predictions are robust to the choice. If they aren't, the rule needs justification beyond intuition before Exp 03 conclusions are claimed.
 
 ### 6.2 KE → heat default rule
 
@@ -278,17 +282,25 @@ Per grain drop at site (i, j) with current height z_i:
     Total ΔE    = z_drop                       (fixed per drop, by conservation)
 ```
 
-`α_drop ∈ [0, 1]` is the impact-thermalization fraction (default 1.0 — all impact KE becomes heat). `z_drop` is a parameter (default `2·z_c`, well above any reachable site height in NESS).
+`α_drop ∈ [0, 1]` is the impact-thermalization fraction. `z_drop` is a parameter (default `2·z_c`, well above any reachable site height in NESS).
+
+**Default α_drop is unsettled and requires baseline sweep before commitment.** With `z_drop = 2·z_c` and natural Manna mean ⟨z⟩ ≈ 0.72 < z_c, the per-drop impact KE deposit `(z_drop − z_i) ≈ 3.3` (Manna z_c=2) at α_drop=1.0 may be **substantial relative to per-toppling heat deposit**, plausibly dominating ⟨H⟩ at NESS. That would invert the intended "heat is mostly from avalanche activity" framing. Recommended baseline:
+
+- Sweep `α_drop ∈ {0, 0.5, 1.0}` on natural Manna re-instrumentation.
+- Compare resulting ⟨H⟩ at NESS and the ratio of per-drop vs per-toppling heat contributions.
+- Pick the α_drop value (or sweep range) for which avalanche-driven heat dominates driving-driven heat by some reasonable factor (or accept that driving-driven heat is irreducible and treat it as a baseline to subtract).
+
+Until this sweep is run, the doc does **not commit to a default α_drop**. Implementation should expose it as a free parameter; α_drop = 0 (no impact heating) is the conservative starting point that recovers the previous framework's behavior.
 
 **Implications**:
 
 - Total energy input per drop is constant (z_drop), independent of where the grain lands.
-- Some becomes potential energy (grain joins the stack), some becomes heat (kinetic energy of impact).
-- **Spatially heterogeneous heating from driving alone**: high stacks heat less per drop (small impact KE); empty sites heat more per drop (large impact KE). Even in natural SOC, the heat field develops structure.
+- Some becomes potential energy (grain joins the stack), some may become heat (kinetic energy of impact, scaled by α_drop).
+- **Spatially heterogeneous heating from driving alone** when α_drop > 0: high stacks heat less per drop (small impact KE); empty sites heat more per drop (large impact KE). Even in natural SOC with no avalanche-driven heat coupling, the heat field would develop structure from driving. This is why the baseline sweep matters before committing.
 
-**Sanity check (mandatory)**. With `α_drop = 1` and the heat reservoir tracked passively (no feedback), re-running 01.02 Manna must produce identical avalanche statistics to the current ensemble within noise. If it doesn't, either heat is feeding back into dynamics (instrumentation bug) or the grain-drop convention has changed something it shouldn't have.
+**Sanity check (mandatory)**. With heat reservoir tracked passively (no feedback) at any α_drop, re-running 01.02 Manna must produce identical avalanche statistics to the current ensemble within noise. If it doesn't, either heat is feeding back into dynamics (instrumentation bug) or the grain-drop convention has changed something it shouldn't have.
 
-**Falsifiability**. If we run a sweep over `α_drop ∈ {0, 0.5, 1.0}`, natural-SOC avalanche statistics should remain identical (heat is additive instrumentation). Heat-field statistics should differ predictably: ⟨H⟩ at NESS should scale linearly in α_drop. If ⟨H⟩ doesn't scale linearly or avalanche statistics shift, the framework's assumption of additive instrumentation is broken.
+**Falsifiability**. The α_drop sweep doubles as a falsifiability check: natural-SOC avalanche statistics should remain identical across the sweep (heat is additive instrumentation, no causal feedback). Heat-field statistics should differ predictably: ⟨H⟩ at NESS should scale linearly in α_drop. If ⟨H⟩ doesn't scale linearly or avalanche statistics shift across α_drop, the framework's assumption of additive instrumentation is broken.
 
 ---
 
@@ -532,11 +544,11 @@ Consolidated list of every claim and the test that could refute it:
 |-------|------|-----------|
 | Energy is additive (instrumentation only) | Re-run 01.02 with new instrumentation | α∞, β_high, b(x), other statistics shift outside ensemble noise |
 | C-DP RD applies to Manna | Sethna shape-collapse on existing wave_profile | Curves don't collapse across L and duration bins |
-| Mean-field shape correct | Same; fit `u^a (1−u)^b` | Asymmetry deviates substantially from a ≈ 0.7, b ≈ 1.3 |
+| Mean-field shape correct | Same; fit `u^a (1−u)^b` | Asymmetry direction wrong (a ≥ b instead of a < b); specific (a, b) thresholds TBD pending source verification |
 | Heat is non-causal in natural SOC | α_drop sweep on 01.02 | Avalanche statistics change with α_drop |
 | Per-bond flux symmetric at NESS | Cumulative net flux on 01.02 | Significant non-zero net flux at interior bonds |
 | σ-damage is small perturbation | Cumulative-KE vs Model C damage map | Correlation r < 0.3 at small α |
-| Self-damping via −μn² | ⟨wavefront velocity | n_peak⟩ | No deceleration with peak amplitude |
+| Self-damping via −μn² | Wavefront velocity binned by peak amplitude (mean velocity given n_peak) | No deceleration as peak amplitude grows |
 | NESS for all 3 reservoirs in 01.04 | Burn-in trace extended to σ, H | Reservoirs don't stabilize at fitted κ, α_H |
 | Toppling-order independence (optional) | Re-run with sequential-random | Order-independent statistics differ by >0.5σ |
 | Activation energy on percolation | E_activation(p) measurement | Disagrees with `f(p, p_c, D_eff)` prediction |
